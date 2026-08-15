@@ -1,40 +1,106 @@
 # SONAR: The Echo Chamber
 
 > **Zero Light. Information = Death. Sicht existiert nur durch Schall.**
+>
+> 🌐 **Live Web-Version:** [https://bauerjohannes2-max.github.io/SONAR/](https://bauerjohannes2-max.github.io/SONAR/)
 
-Ein gnadenloser 2D-Arcade-Stealth-Thriller auf HTML5 Canvas mit nativer Web Audio API Klangerzeugung.
+Ein gnadenloser 2D-Arcade-Stealth-Thriller auf HTML5 Canvas mit nativer Web Audio API Klangerzeugung, prozeduralem Raycasting, Cloud-Saves und globalem Firestore-Leaderboard.
 
 ---
 
-## 🎮 Steuerung
+## 🛰️ System-Architektur & Protokoll
 
-| Taste | Aktion | Schall-Radius | Feind-Reaktion |
+```mermaid
+flowchart TD
+    User([Spieler]) --> Main[src/main.js\nState Machine & Game Loop]
+    Main --> Wave[src/engine/WaveSystem.js\nWavefront & Phosphor Decay]
+    Main --> Audio[src/engine/AudioEngine.js\nProcedural Web Audio Synth]
+    Main --> Render[src/engine/CanvasRenderer.js\nVector Phosphor 2D Engine]
+    Main --> Grid[src/world/GridMap.js\n25x18 Collision & BFS Engine]
+    Grid --> Stalker[src/entities/Stalker.js\nStrikte BFS-Pfadsuche pro Schritt]
+    Grid --> Hunter[src/entities/Hunter.js\nAkustische Raubtier-KI]
+    Main --> SM[src/services/StorageManager.js\nUnified Local & Cloud Store]
+    SM --> FB[src/services/FirebaseService.js\nFirestore CDN & SHA-256 Hash]
+    SM --> LB[src/services/LeaderboardService.js\nTop 10 Globales Ranking]
+    Main --> ProfModal[src/ui/ProfileModal.js\nCallsign + 4-Digit PIN]
+    Main --> LBModal[src/ui/LeaderboardModal.js\nLive Firestore Leaderboard]
+```
+
+---
+
+## 🎮 Steuerung & Einsatz-Protokoll
+
+| Taste / Eingabe | Aktion | Schall-Radius | Feind-Reaktion |
 |---|---|---|---|
-| **WASD** / **Pfeiltasten** | Schritt im Raster (120ms Tween) | 2.5 Kacheln (80px) | Alarmiert Hunter im Nahbereich |
-| **Shift (halten)** | Schleichen (240ms Tween) | 0 Kacheln (Lautlos) | Hunter bemerken dich nicht |
-| **Leertaste (Space)** | Großer Sonar-Ping (Global) | Ganzer Bildschirm | Alarmiert alle Hunter // Betäubt Stalker 2.5s |
-| **E** / **F** | Schall-Köder werfen (1/Sektor) | 4 Kacheln Wurf | Sendet 3s Klick-Impulse, lockt Hunter an |
-| **ESC** | Pause-Menü & Einstellungen | — | Öffnet Pausen-Modal |
-| **R** | Sektor-Neustart | — | Setzt aktuellen Sektor zurück |
+| **WASD** / **Pfeiltasten** | Schritt im 25x18 Raster (120ms) | 2.5 Kacheln (80px) | Alarmiert Hunter im Nahbereich |
+| **Shift (halten)** / **[SNEAK]** | Schleichen (240ms) | 0 Kacheln (0 Schall) | Hunter bemerken dich nicht |
+| **Leertaste (Space)** / **[PING]** | Großer Sonar-Ping (Global) | Ganzer Bildschirm | Alarmiert Hunter // Betäubt Stalker 2.5s |
+| **E** / **[KÖDER]** | Schall-Köder werfen (1/Sektor) | 4 Kacheln Wurf | Sendet 3s Klick-Impulse, lockt Hunter an |
+| **ESC** / **[PAUSE]** | Taktische Pause & Optionen | — | Pausiert das Spielgeschehen |
+| **F** / **[ ⛶ ]** | Vollbildmodus umschalten | — | Skaliert pixelgenau (`pixelated`) |
+
+*Auf Touchscreens (Smartphones & Tablets) wird automatisch ein virtuelles Cyberpunk D-Pad und Aktionsknöpfe eingeblendet.*
 
 ---
 
-## 🚀 Spielmechaniken
+## 👤 Pilot-Profil & Cloud-Sync Protokoll
 
-1. **Absolute Dunkelheit (Zero-Light)**: Das Spielfeld ist zu 100% pechschwarz. Wände, Kristalle und Feinde leuchten nur auf, wenn eine Schallwelle sie überstreicht, und verblassen exponentiell (Phosphor-Nachleuchten).
-2. **Sektor-Ziele**: Sammle alle Resonanz-Kristalle (`◆`), um die verschlossene Schleuse mit Energie zu versorgen. Sobald sie grün pulsiert, betritt sie, um in den nächsten Sektor vorzudringen.
-3. **Hunter (Rot)**: Blinde Raubtiere. Patrouillieren im Normalzustand. Sobald ein Schall-Ereignis registriert wird, sprinten sie via BFS-Wegfindung direkt zum Ursprungsort.
-4. **Shadow Stalker (Lila)**: Lautlose Schattenjäger. Werden durch Sonar-Pings (<kbd>Space</kbd>) 2.5 Sekunden im Licht betäubt.
-5. **Resonatoren (Gelb)**: Alarmposten. Werden sie von einem Sonar-Ping getroffen, strahlen sie eine Schockwelle ab und wecken alle Hunter auf.
-6. **Lighthouses (Blau)**: Harmlos rotierende Sonarbojen, die periodisch sichere Sichtzonen aufdecken.
+1. **Zero-Friction Gast-Modus:**
+   - Standardmäßig speichert das Spiel sofort im `localStorage`. Jeder kann ohne Registrierung direkt losspielen.
+2. **Pilot-Registrierung & Login (`[ 👤 PILOTEN-PROFIL ]`):**
+   - **Callsign:** 3 bis 12 Zeichen (Buchstaben, Zahlen, `_`, `-`).
+   - **Sicherheits-PIN:** 4 Ziffern.
+   - **Kryptographie:** Client-seitiges Hashing mit `SHA-256` via Web Crypto API (`crypto.subtle.digest`). Es werden keine Klartext-PINs übertragen.
+3. **Automatischer Cloud-Upload:**
+   - Nach jedem Sektor-Abschluss und Game Over wird der höchste erreichte Spielstand (`unlockedSector`, `sectorStats`, `endlessHighscore`) live mit der Firestore-Collection `pilots` synchronisiert.
 
 ---
 
-## 🛠️ Ausführung & Start
+## 🏆 Globales Leaderboard Protokoll
+
+- **Cloud-Live-Ranking (`[ 🏆 LEADERBOARD ]`):**
+  - Lädt in Echtzeit die Top 10 Drohnen-Piloten aus Google Cloud Firestore sortiert nach höchstem Level und Endless-Highscore.
+  - Spalten: `RANG` | `PILOT (NAME)` | `HÖCHSTES LEVEL` | `DATUM`.
+  - Der eigene Pilot wird farblich hervorgehoben (`[ DU ]`).
+- **Offline-Resilienz:**
+  - Bei Netzwerkunterbrechung schaltet das Terminal nahtlos auf lokale Bestmarken um, ohne den Spielfluss zu unterbrechen.
+
+---
+
+## 👾 Feind- und Entitäts-Katalog
+
+1. **Hunter (Rot - `Hunter.js`):**
+   - Blinde akustische Jäger. Patrouillieren im Normalzustand. Sobald ein Geräusch (Schritt, Ping, Köder) in Hörweite registriert wird, sprinten sie via BFS-Wegfindung zum Ursprung.
+2. **Shadow Stalker (Lila - `Stalker.js`):**
+   - Lautlose Schatten-Prädatoren. Berechnen vor jedem Einzelschritt den mathematisch kürzesten BFS-Pfad zur Drohne.
+   - Werden durch einen Sonar-Ping (`Space`) für 2.5 Sekunden im Lichtkegel betäubt (`STUNNED`).
+3. **Resonatoren (Gelb - `Resonator.js`):**
+   - Alarmbojen. Reagieren auf eintreffende Schallwellen, laden sich kurz auf und senden eine globale Schockwelle aus, die alle Hunter alarmiert.
+4. **Lighthouses (Cyan - `Lighthouse.js`):**
+   - Periodisch pulsierende Leuchtfeuer, die sichere Orientierungszonen aufdecken.
+5. **Acoustic Decoy (`Decoy.js`):**
+   - Werfbare Köderfackel, die über 3 Sekunden regelmäßige Schallimpulse emittiert, um Hunter wegzulocken.
+6. **Airlock Extraktion (`Gate.js`):**
+   - Schaltet frei, sobald alle Resonanz-Kristalle (`◆`) im Sektor geborgen wurden.
+
+---
+
+## 🕹️ Spielmodi
+
+1. **Kampagne (Sektoren 01 - 10):**
+   - 10 handgefertigte taktische Labyrinthe mit steigender Komplexität und neuen Feind-Kombinationen.
+2. **Endless Echo (Prozedurales Roguelike):**
+   - Unendliche, dynamisch generierte 25x18-Gitter mit dem Recursive-Backtracker-Algorithmus und prozedural platzierten Kristallen, Gefahren und Feinden.
+
+---
+
+## 💻 Lokale Entwicklung
 
 ```bash
-# Starten auf Port 3005:
+# Entwicklungs-Server starten
+npm run dev
+# oder
 python -m http.server 3005
 ```
 
-Öffne anschließend **`http://localhost:3005`** im Browser.
+Öffne **`http://localhost:3005`** im Browser.

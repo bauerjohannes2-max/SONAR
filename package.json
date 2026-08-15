@@ -1,0 +1,21 @@
+{
+  "name": "sonar-echo-chamber",
+  "version": "1.0.0",
+  "description": "SONAR: The Echo Chamber - 2D Sound-Based Stealth Arcade Thriller",
+  "main": "src/main.js",
+  "type": "module",
+  "scripts": {
+    "start": "npx -y serve . -l 3005",
+    "dev": "npx -y serve . -l 3005"
+  },
+  "keywords": [
+    "game",
+    "canvas",
+    "web-audio-api",
+    "stealth",
+    "arcade",
+    "sonar"
+  ],
+  "author": "",
+  "license": "MIT"
+}

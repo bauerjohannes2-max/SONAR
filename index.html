@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>SONAR: The Echo Chamber</title>
+  <meta name="description" content="SONAR: The Echo Chamber - Ein gnadenloser 2D-Arcade-Stealth-Thriller im absoluten Nichts. Sicht existiert nur durch Schall.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles/main.css">
+</head>
+<body>
+  <div id="game-wrapper">
+    <!-- Monitor Header / Status Bar -->
+    <header class="terminal-bar">
+      <div class="terminal-status">
+        <span class="status-dot"></span>
+        <span class="status-text">SONAR TERMINAL // SYS_ONLINE</span>
+      </div>
+      <div class="terminal-title">THE ECHO CHAMBER</div>
+      <div class="terminal-actions">
+        <button id="btn-header-profile" class="fullscreen-btn" title="Pilot-Profil & Cloud-Sync">[ 👤 PROFIL ]</button>
+        <button id="btn-header-leaderboard" class="fullscreen-btn" title="Globales Leaderboard">[ 🏆 RANKING ]</button>
+        <button id="btn-header-pause" class="fullscreen-btn" title="Spiel pausieren (ESC)">[ ⏸ PAUSE ]</button>
+        <button id="btn-header-tutorial" class="tutorial-btn-pulse" title="Taktisches Handbuch & Tutorial öffnen">[ ? ] TUTORIAL</button>
+        <button id="btn-header-fullscreen" class="fullscreen-btn" title="Vollbild umschalten (F / F11)">[ ⛶ ]</button>
+      </div>
+    </header>
+
+    <!-- Canvas Container with CRT Filter Layer & Touch Controls Overlay -->
+    <div class="canvas-container">
+      <canvas id="gameCanvas" width="800" height="576"></canvas>
+      <div class="crt-overlay"></div>
+      <div class="scanlines"></div>
+      <div class="vignette"></div>
+
+      <!-- Virtual Touch Controls for Mobile -->
+      <div id="touch-controls">
+        <div class="touch-dpad">
+          <button class="dpad-btn dpad-up" id="touch-up">▲</button>
+          <button class="dpad-btn dpad-down" id="touch-down">▼</button>
+          <button class="dpad-btn dpad-left" id="touch-left">◀</button>
+          <button class="dpad-btn dpad-right" id="touch-right">▶</button>
+          <div class="dpad-btn dpad-center"></div>
+        </div>
+
+        <div class="touch-actions">
+          <div class="touch-actions-row">
+            <button class="touch-btn touch-btn-sneak" id="touch-sneak">
+              <span>SNEAK</span>
+            </button>
+            <button class="touch-btn touch-btn-decoy" id="touch-decoy">
+              <span>KÖDER</span>
+              <span id="touch-decoy-count">1/1</span>
+            </button>
+          </div>
+          <button class="touch-btn touch-btn-ping" id="touch-ping">
+            <span>PING</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Quick Controls Bar -->
+    <footer class="controls-bar">
+      <div class="control-hint"><kbd>WASD</kbd> / <kbd>▲▼◀▶</kbd> SCHRITT</div>
+      <div class="control-hint"><kbd>SHIFT</kbd> SCHLEICHEN (0 Schall)</div>
+      <div class="control-hint"><kbd>SPACE</kbd> SONAR PING</div>
+      <div class="control-hint"><kbd>E</kbd> KÖDER</div>
+      <div class="control-hint"><kbd>ESC</kbd> PAUSE</div>
+      <div class="control-hint"><kbd>F</kbd> VOLLBILD</div>
+    </footer>
+  </div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

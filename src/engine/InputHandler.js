@@ -128,17 +128,28 @@ export class InputHandler {
     });
 
     // Mouse and Touch Click mapping via DisplayManager
-    this.canvas.addEventListener('mousedown', (e) => {
+    const handlePointerDown = (clientX, clientY) => {
       if (this.displayManager) {
-        this.mouseClick = this.displayManager.screenToCanvas(e.clientX, e.clientY);
+        this.mouseClick = this.displayManager.screenToCanvas(clientX, clientY);
       } else {
         const rect = this.canvas.getBoundingClientRect();
         this.mouseClick = {
-          x: (e.clientX - rect.left) * (CONFIG.CANVAS_WIDTH / rect.width),
-          y: (e.clientY - rect.top) * (CONFIG.CANVAS_HEIGHT / rect.height)
+          x: (clientX - rect.left) * (CONFIG.CANVAS_WIDTH / rect.width),
+          y: (clientY - rect.top) * (CONFIG.CANVAS_HEIGHT / rect.height)
         };
       }
+    };
+
+    this.canvas.addEventListener('mousedown', (e) => {
+      handlePointerDown(e.clientX, e.clientY);
     });
+
+    this.canvas.addEventListener('touchstart', (e) => {
+      if (e.touches && e.touches.length > 0) {
+        const t = e.touches[0];
+        handlePointerDown(t.clientX, t.clientY);
+      }
+    }, { passive: true });
   }
 
   isSneaking() {

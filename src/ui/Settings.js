@@ -169,51 +169,81 @@ export class Settings {
       closeBtn.addEventListener('touchstart', handleClose, { passive: false });
     }
 
+    const bindTouchSlider = (slider, onValChange) => {
+      if (!slider) return;
+      const updateFromTouch = (e) => {
+        if (!e.touches || e.touches.length === 0) return;
+        const touch = e.touches[0];
+        const rect = slider.getBoundingClientRect();
+        const ratio = Math.max(0, Math.min(1, (touch.clientX - rect.left) / rect.width));
+        const val = Math.round(ratio * 100);
+        slider.value = val;
+        onValChange(val);
+      };
+
+      slider.addEventListener('touchstart', updateFromTouch, { passive: true });
+      slider.addEventListener('touchmove', updateFromTouch, { passive: true });
+    };
+
     if (masterSlider) {
-      masterSlider.addEventListener('input', (e) => {
-        const val = parseInt(e.target.value, 10);
+      const updateMaster = (val) => {
         this.masterVolume = val / 100;
         const badge = container.querySelector('#val-master-volume');
         if (badge) badge.textContent = `${val}%`;
         this.applySettings();
         this.saveSettings();
-      });
+      };
+      masterSlider.addEventListener('input', (e) => updateMaster(parseInt(e.target.value, 10)));
+      bindTouchSlider(masterSlider, updateMaster);
     }
 
     if (sfxSlider) {
-      sfxSlider.addEventListener('input', (e) => {
-        const val = parseInt(e.target.value, 10);
+      const updateSfx = (val) => {
         this.sfxVolume = val / 100;
         const badge = container.querySelector('#val-sfx-volume');
         if (badge) badge.textContent = `${val}%`;
         this.applySettings();
         this.saveSettings();
-      });
+      };
+      sfxSlider.addEventListener('input', (e) => updateSfx(parseInt(e.target.value, 10)));
+      bindTouchSlider(sfxSlider, updateSfx);
       sfxSlider.addEventListener('change', () => {
         if (this.audio) this.audio.playUIBlip();
       });
     }
 
     if (crtBtn) {
-      crtBtn.addEventListener('click', () => {
+      const toggleCrt = (e) => {
+        if (e && e.type === 'touchstart') {
+          e.preventDefault();
+          e.stopPropagation();
+        }
         this.crtEffects = !this.crtEffects;
         crtBtn.textContent = this.crtEffects ? 'AN' : 'AUS';
         crtBtn.className = `modal-btn modal-btn-toggle ${this.crtEffects ? 'active' : ''}`;
         this.applySettings();
         this.saveSettings();
         if (this.audio) this.audio.playUIBlip();
-      });
+      };
+      crtBtn.addEventListener('click', toggleCrt);
+      crtBtn.addEventListener('touchstart', toggleCrt, { passive: false });
     }
 
     if (shakeBtn) {
-      shakeBtn.addEventListener('click', () => {
+      const toggleShake = (e) => {
+        if (e && e.type === 'touchstart') {
+          e.preventDefault();
+          e.stopPropagation();
+        }
         this.screenShake = !this.screenShake;
         shakeBtn.textContent = this.screenShake ? 'AN' : 'AUS';
         shakeBtn.className = `modal-btn modal-btn-toggle ${this.screenShake ? 'active' : ''}`;
         this.applySettings();
         this.saveSettings();
         if (this.audio) this.audio.playUIBlip();
-      });
+      };
+      shakeBtn.addEventListener('click', toggleShake);
+      shakeBtn.addEventListener('touchstart', toggleShake, { passive: false });
     }
 
     window.addEventListener('keydown', (e) => {

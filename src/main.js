@@ -285,17 +285,17 @@ export class Game {
         } else if (this.inputHandler.consumeMenu()) {
           this.gameState = CONFIG.STATES.MENU;
         } else {
-          // Check mouse/touch clicks on Pause Menu buttons
+          // Check mouse/touch clicks on Pause Menu buttons (w: 380, center x: 400)
           const click = this.inputHandler.consumeMouseClick();
-          if (click && click.x >= this.canvas.width / 2 - 180 && click.x <= this.canvas.width / 2 + 180) {
-            if (click.y >= 182 && click.y <= 218) {
+          if (click && click.x >= CONFIG.CANVAS_WIDTH / 2 - 200 && click.x <= CONFIG.CANVAS_WIDTH / 2 + 200) {
+            if (click.y >= 175 && click.y <= 225) {
               this.gameState = CONFIG.STATES.PLAYING;
-            } else if (click.y >= 237 && click.y <= 273) {
+            } else if (click.y >= 230 && click.y <= 280) {
               this.gameState = CONFIG.STATES.SECTOR_SELECT;
-            } else if (click.y >= 292 && click.y <= 328) {
+            } else if (click.y >= 285 && click.y <= 335) {
               if (this.isEndlessActive) this.loadEndlessFloor(this.endlessMode.currentFloor);
               else this.loadSector(this.currentSectorIndex);
-            } else if (click.y >= 347 && click.y <= 383) {
+            } else if (click.y >= 340 && click.y <= 390) {
               this.gameState = CONFIG.STATES.MENU;
             }
           }
@@ -323,10 +323,10 @@ export class Game {
         } else if (this.inputHandler.consumeMenu()) {
           this.gameState = CONFIG.STATES.MENU;
         } else {
-          // Check mouse / touch clicks on Clear buttons
+          // Check mouse / touch clicks on Clear buttons (w: 380, center x: 400)
           const click = this.inputHandler.consumeMouseClick();
-          if (click && click.x >= this.canvas.width / 2 - 180 && click.x <= this.canvas.width / 2 + 180) {
-            if (click.y >= 307 && click.y <= 343) {
+          if (click && click.x >= CONFIG.CANVAS_WIDTH / 2 - 200 && click.x <= CONFIG.CANVAS_WIDTH / 2 + 200) {
+            if (click.y >= 300 && click.y <= 350) {
               if (this.isEndlessActive) {
                 this.endlessMode.advanceFloor(this.crystals.length);
                 this.loadEndlessFloor(this.endlessMode.currentFloor);
@@ -337,9 +337,9 @@ export class Game {
                   this.gameState = CONFIG.STATES.VICTORY;
                 }
               }
-            } else if (click.y >= 362 && click.y <= 398) {
+            } else if (click.y >= 355 && click.y <= 405) {
               this.gameState = CONFIG.STATES.SECTOR_SELECT;
-            } else if (click.y >= 417 && click.y <= 453) {
+            } else if (click.y >= 410 && click.y <= 460) {
               this.gameState = CONFIG.STATES.MENU;
             }
           }
@@ -359,17 +359,17 @@ export class Game {
           this.gameState = CONFIG.STATES.MENU;
         } else {
           const click = this.inputHandler.consumeMouseClick();
-          if (click && click.x >= this.canvas.width / 2 - 180 && click.x <= this.canvas.width / 2 + 180) {
-            if (click.y >= 222 && click.y <= 258) {
+          if (click && click.x >= CONFIG.CANVAS_WIDTH / 2 - 200 && click.x <= CONFIG.CANVAS_WIDTH / 2 + 200) {
+            if (click.y >= 215 && click.y <= 265) {
               if (this.isEndlessActive) {
                 this.endlessMode.reset();
                 this.loadEndlessFloor(1);
               } else {
                 this.loadSector(this.currentSectorIndex);
               }
-            } else if (click.y >= 282 && click.y <= 318) {
+            } else if (click.y >= 275 && click.y <= 325) {
               this.gameState = CONFIG.STATES.SECTOR_SELECT;
-            } else if (click.y >= 342 && click.y <= 378) {
+            } else if (click.y >= 335 && click.y <= 385) {
               this.gameState = CONFIG.STATES.MENU;
             }
           }
@@ -382,10 +382,10 @@ export class Game {
           this.gameState = CONFIG.STATES.MENU;
         } else {
           const click = this.inputHandler.consumeMouseClick();
-          if (click && click.x >= this.canvas.width / 2 - 180 && click.x <= this.canvas.width / 2 + 180) {
-            if (click.y >= 282 && click.y <= 318) {
+          if (click && click.x >= CONFIG.CANVAS_WIDTH / 2 - 200 && click.x <= CONFIG.CANVAS_WIDTH / 2 + 200) {
+            if (click.y >= 275 && click.y <= 325) {
               this.gameState = CONFIG.STATES.SECTOR_SELECT;
-            } else if (click.y >= 342 && click.y <= 378) {
+            } else if (click.y >= 335 && click.y <= 385) {
               this.gameState = CONFIG.STATES.MENU;
             }
           }

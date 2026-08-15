@@ -107,10 +107,10 @@ export class HUD {
 
     buttons.forEach((b) => {
       ctx.fillStyle = 'rgba(0, 240, 255, 0.08)';
-      ctx.fillRect(this.width / 2 - 180, b.y - 18, 360, 36);
+      ctx.fillRect(this.width / 2 - 190, b.y - 22, 380, 44);
       ctx.strokeStyle = b.color;
       ctx.lineWidth = 1.5;
-      ctx.strokeRect(this.width / 2 - 180, b.y - 18, 360, 36);
+      ctx.strokeRect(this.width / 2 - 190, b.y - 22, 380, 44);
 
       ctx.font = '700 13.5px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.fillStyle = b.color;
@@ -159,10 +159,10 @@ export class HUD {
 
     buttons.forEach((b) => {
       ctx.fillStyle = 'rgba(255, 42, 78, 0.1)';
-      ctx.fillRect(this.width / 2 - 180, b.y - 18, 360, 36);
+      ctx.fillRect(this.width / 2 - 190, b.y - 22, 380, 44);
       ctx.strokeStyle = b.color;
       ctx.lineWidth = 1.5;
-      ctx.strokeRect(this.width / 2 - 180, b.y - 18, 360, 36);
+      ctx.strokeRect(this.width / 2 - 190, b.y - 22, 380, 44);
 
       ctx.font = '700 13.5px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.fillStyle = b.color;
@@ -233,10 +233,10 @@ export class HUD {
 
     buttons.forEach((b) => {
       ctx.fillStyle = 'rgba(0, 255, 170, 0.09)';
-      ctx.fillRect(this.width / 2 - 180, b.y - 18, 360, 36);
+      ctx.fillRect(this.width / 2 - 190, b.y - 22, 380, 44);
       ctx.strokeStyle = b.color;
       ctx.lineWidth = 1.5;
-      ctx.strokeRect(this.width / 2 - 180, b.y - 18, 360, 36);
+      ctx.strokeRect(this.width / 2 - 190, b.y - 22, 380, 44);
 
       ctx.font = '700 13.5px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.textAlign = 'center';
@@ -280,10 +280,10 @@ export class HUD {
 
     buttons.forEach((b) => {
       ctx.fillStyle = 'rgba(0, 240, 255, 0.08)';
-      ctx.fillRect(this.width / 2 - 180, b.y - 18, 360, 36);
+      ctx.fillRect(this.width / 2 - 190, b.y - 22, 380, 44);
       ctx.strokeStyle = b.color;
       ctx.lineWidth = 1.5;
-      ctx.strokeRect(this.width / 2 - 180, b.y - 18, 360, 36);
+      ctx.strokeRect(this.width / 2 - 190, b.y - 22, 380, 44);
 
       ctx.font = '700 13.5px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.fillStyle = b.color;

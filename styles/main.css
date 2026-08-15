@@ -549,24 +549,27 @@ kbd {
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
-  height: 6px;
+  height: 8px;
   background: #0d1e2b;
-  border: 1px solid rgba(0, 240, 255, 0.25);
-  border-radius: 2px;
+  border: 1px solid rgba(0, 240, 255, 0.35);
+  border-radius: 4px;
   outline: none;
   cursor: pointer;
+  touch-action: pan-x !important;
+  pointer-events: auto !important;
+  margin: 10px 0;
 }
 
 .terminal-range-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 16px;
-  height: 16px;
-  border-radius: 2px;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
   background: var(--cyan-primary);
-  border: 1px solid #ffffff;
+  border: 2px solid #ffffff;
   cursor: pointer;
-  box-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.7);
   transition: transform 0.1s ease;
 }
 
@@ -575,11 +578,11 @@ kbd {
 }
 
 .terminal-range-slider::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
-  border-radius: 2px;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
   background: var(--cyan-primary);
-  border: 1px solid #ffffff;
+  border: 2px solid #ffffff;
   cursor: pointer;
 }
 
@@ -895,6 +898,59 @@ kbd {
 
   .terminal-modal-box {
     width: 96vw;
+    max-height: 94vh;
     padding: 0;
+  }
+}
+
+/* Portrait mobile & iPad optimization: place touch controls at bottom of screen for natural thumb reach */
+@media (orientation: portrait) {
+  #touch-controls {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 90;
+    pointer-events: none;
+  }
+
+  .touch-dpad {
+    left: 20px;
+    bottom: 28px;
+    width: 150px;
+    height: 150px;
+  }
+
+  .dpad-btn {
+    font-size: 18px;
+  }
+
+  .dpad-up { top: 0; left: 50px; width: 50px; height: 48px; }
+  .dpad-down { bottom: 0; left: 50px; width: 50px; height: 48px; }
+  .dpad-left { top: 50px; left: 0; width: 48px; height: 50px; }
+  .dpad-right { top: 50px; right: 0; width: 48px; height: 50px; }
+  .dpad-center { top: 50px; left: 50px; width: 50px; height: 50px; }
+
+  .touch-actions {
+    right: 20px;
+    bottom: 28px;
+    gap: 14px;
+  }
+
+  .touch-actions-row {
+    gap: 12px;
+  }
+
+  .touch-btn-ping {
+    width: 80px;
+    height: 80px;
+    font-size: 12px;
+  }
+
+  .touch-btn-sneak, .touch-btn-decoy {
+    min-width: 66px;
+    height: 52px;
+    font-size: 10.5px;
   }
 }

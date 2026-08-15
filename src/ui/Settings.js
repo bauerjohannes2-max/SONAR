@@ -133,18 +133,11 @@ export class Settings {
               ${this.screenShake ? 'AN' : 'AUS'}
             </button>
           </div>
-
-          <!-- Reset Save State -->
-          <div style="margin-top: 6px;">
-            <button id="btn-settings-reset-save" class="modal-btn modal-btn-danger">
-              FORTSCHRITT ZURÜCKSETZEN
-            </button>
-          </div>
         </div>
 
         <div class="modal-footer">
-          <button id="btn-settings-back" class="modal-btn modal-btn-dim">
-            ← ZURÜCK (ESC)
+          <button id="btn-settings-back" class="modal-btn modal-btn-dim" style="min-height: 48px; font-weight: 700;">
+            ✕ ZURÜCK ZUM SPIEL / MENÜ (ESC)
           </button>
         </div>
       </div>
@@ -154,17 +147,30 @@ export class Settings {
     wrapper.appendChild(container);
     this.modalEl = container;
 
-    // Attach Listeners
+    // Attach Listeners with reliable touch & click handling
     const closeBtn = container.querySelector('#modal-settings-close-btn');
     const backBtn = container.querySelector('#btn-settings-back');
     const masterSlider = container.querySelector('#slider-master-volume');
     const sfxSlider = container.querySelector('#slider-sfx-volume');
     const crtBtn = container.querySelector('#btn-toggle-crt');
     const shakeBtn = container.querySelector('#btn-toggle-shake');
-    const resetBtn = container.querySelector('#btn-settings-reset-save');
 
-    if (closeBtn) closeBtn.addEventListener('click', () => this.close());
-    if (backBtn) backBtn.addEventListener('click', () => this.close());
+    const handleClose = (e) => {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      this.close();
+    };
+
+    if (closeBtn) {
+      closeBtn.addEventListener('click', handleClose);
+      closeBtn.addEventListener('touchstart', handleClose, { passive: false });
+    }
+    if (backBtn) {
+      backBtn.addEventListener('click', handleClose);
+      backBtn.addEventListener('touchstart', handleClose, { passive: false });
+    }
 
     if (masterSlider) {
       masterSlider.addEventListener('input', (e) => {
@@ -213,38 +219,7 @@ export class Settings {
       });
     }
 
-    if (resetBtn) {
-      resetBtn.addEventListener('click', () => {
-        if (!this.resetConfirmPending) {
-          this.resetConfirmPending = true;
-          resetBtn.textContent = 'WIRKLICH LÖSCHEN? (ERNEUT KLICKEN)';
-          resetBtn.style.background = '#ff1e44';
-          resetBtn.style.color = '#ffffff';
 
-          if (this.resetConfirmTimeout) clearTimeout(this.resetConfirmTimeout);
-          this.resetConfirmTimeout = setTimeout(() => {
-            this.resetConfirmPending = false;
-            resetBtn.textContent = 'FORTSCHRITT ZURÜCKSETZEN';
-            resetBtn.style.background = 'rgba(255, 30, 68, 0.1)';
-            resetBtn.style.color = 'var(--red-danger)';
-          }, 3500);
-        } else {
-          this.resetConfirmPending = false;
-          if (this.resetConfirmTimeout) clearTimeout(this.resetConfirmTimeout);
-          resetBtn.textContent = 'FORTSCHRITT GELÖSCHT!';
-          if (typeof this.onResetProgress === 'function') {
-            this.onResetProgress();
-          }
-          if (this.audio) this.audio.playWallCrash();
-
-          setTimeout(() => {
-            resetBtn.textContent = 'FORTSCHRITT ZURÜCKSETZEN';
-            resetBtn.style.background = 'rgba(255, 30, 68, 0.1)';
-            resetBtn.style.color = 'var(--red-danger)';
-          }, 2000);
-        }
-      });
-    }
 
     window.addEventListener('keydown', (e) => {
       if (this.isOpen && e.key === 'Escape') {

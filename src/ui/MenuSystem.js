@@ -48,10 +48,10 @@ export class MenuSystem {
       },
       {
         id: 'TUTORIAL',
-        title: 'HANDBUCH',
+        title: 'TUTORIAL',
         subtitle: '',
         tag: '',
-        desc: 'Handbuch: Taktische Manöver, Drohnensteuerung & Feindanalyse'
+        desc: 'Tutorial: Taktische Manöver, Drohnensteuerung & Feindanalyse'
       }
     ];
 
@@ -142,6 +142,13 @@ export class MenuSystem {
     // Direct mouse click handling
     const click = inputHandler.consumeMouseClick();
     if (click) {
+      // 0. Pilot Status Badge Click (Cloud-Save / Profile)
+      if (click.x >= 120 && click.x <= 680 && click.y >= 88 && click.y <= 138) {
+        this.selectedIndex = 2;
+        if (this.audio) this.audio.playUIBlip();
+        return 'PROFILE';
+      }
+
       // 1. Primary Card 0 (Campaign): x 148..652, y 148..216
       if (click.x >= 148 && click.x <= 652 && click.y >= 148 && click.y <= 216) {
         this.selectedIndex = 0;
@@ -278,38 +285,53 @@ export class MenuSystem {
     ctx.shadowBlur = 0;
 
     // Main Title
-    ctx.font = '700 40px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.font = '700 36px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = '#00f0ff';
-    ctx.fillText('S O N A R', CONFIG.CANVAS_WIDTH / 2, 54);
+    ctx.fillText('S O N A R', CONFIG.CANVAS_WIDTH / 2, 46);
 
     // Subtitle
-    ctx.font = '600 11px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.font = '600 10.5px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = '#607b8b';
-    ctx.fillText('// ZERO-LIGHT SURVIVAL', CONFIG.CANVAS_WIDTH / 2, 84);
+    ctx.fillText('// ZERO-LIGHT SURVIVAL', CONFIG.CANVAS_WIDTH / 2, 70);
 
-    // Pilot Status Badge Pill (Minimalist & Clean)
-    const badgeW = 460;
-    const badgeH = 24;
+    // Pilot Status Banner Box (Clear Cloud-Save & Guest Notice)
+    const badgeW = 520;
+    const badgeH = 44;
     const badgeX = CONFIG.CANVAS_WIDTH / 2 - badgeW / 2;
-    const badgeY = 104;
+    const badgeY = 88;
 
-    ctx.fillStyle = 'rgba(0, 240, 255, 0.04)';
+    ctx.fillStyle = isGuest ? 'rgba(255, 230, 0, 0.03)' : 'rgba(0, 255, 136, 0.04)';
     ctx.fillRect(badgeX, badgeY, badgeW, badgeH);
-    ctx.strokeStyle = 'rgba(0, 240, 255, 0.18)';
+    ctx.strokeStyle = isGuest ? 'rgba(255, 230, 0, 0.25)' : 'rgba(0, 255, 136, 0.3)';
     ctx.lineWidth = 1;
     ctx.strokeRect(badgeX, badgeY, badgeW, badgeH);
 
-    ctx.font = '600 11px "Chakra Petch", "JetBrains Mono", monospace';
-    const pilotNameStr = isGuest ? 'GAST' : pilot.callsign;
-    const sectorStr = this.unlockedSector < 10 ? `0${this.unlockedSector}` : `${this.unlockedSector}`;
-    let statusText = `PILOT: ${pilotNameStr}  •  FORTSCHRITT: SEKTOR ${sectorStr}`;
+    if (isGuest) {
+      // Line 1: Guest Notice
+      ctx.font = '600 10.5px "Chakra Petch", "JetBrains Mono", monospace';
+      ctx.fillStyle = '#f0c040';
+      ctx.fillText('PILOT: GAST (NUR LOKAL) • FORTSCHRITT WIRD NUR IM BROWSER GESPEICHERT', CONFIG.CANVAS_WIDTH / 2, badgeY + 14);
 
-    if (endlessMode && endlessMode.bestFloor > 1) {
-      statusText += `  •  ENDLESS: ETAGE ${endlessMode.bestFloor}`;
+      // Line 2: Pulsing Cloud-Save Button Badge
+      const pulse = 0.75 + 0.25 * Math.sin(time * 5);
+      ctx.font = '700 11px "Chakra Petch", "JetBrains Mono", monospace';
+      ctx.fillStyle = `rgba(0, 240, 255, ${pulse})`;
+      ctx.fillText('[ ☁ CLOUD-SAVE AKTIVIEREN ]', CONFIG.CANVAS_WIDTH / 2, badgeY + 31);
+    } else {
+      // Logged In Status
+      ctx.font = '700 12px "Chakra Petch", "JetBrains Mono", monospace';
+      ctx.fillStyle = '#00ff88';
+      ctx.fillText(`PILOT: ${pilot.callsign.toUpperCase()} • CLOUD-SYNC AKTIV ★`, CONFIG.CANVAS_WIDTH / 2, badgeY + 14);
+
+      const sectorStr = this.unlockedSector < 10 ? `0${this.unlockedSector}` : `${this.unlockedSector}`;
+      let detailText = `FORTSCHRITT: SEKTOR ${sectorStr}`;
+      if (endlessMode && endlessMode.bestFloor > 1) {
+        detailText += `  •  ENDLESS BEST: ETAGE ${endlessMode.bestFloor}`;
+      }
+      ctx.font = '500 10.5px "Chakra Petch", "JetBrains Mono", monospace';
+      ctx.fillStyle = '#80b0c8';
+      ctx.fillText(detailText, CONFIG.CANVAS_WIDTH / 2, badgeY + 31);
     }
-
-    ctx.fillStyle = isGuest ? '#a0c0d0' : '#00ff88';
-    ctx.fillText(statusText, CONFIG.CANVAS_WIDTH / 2, badgeY + badgeH / 2);
 
     // 5. Primary Tier: 2 Large Prominent Cards
     const primDefs = [

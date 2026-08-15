@@ -43,3 +43,11 @@ Grid: 25x18 (32px tiles). Screen: 800x576px.
    - Canvas CSS: always enforce `image-rendering: pixelated; image-rendering: crisp-edges;`.
 4. **Token-Optimized Onboarding**:
    - At the start of a session, read ONLY `PROJECT_MAP.md` and target specifically modified files without blind workspace scans.
+5. **Integrated Canvas UI & Touch State Isolation**:
+   - All HUD & Quick-Actions (`[ ⛶ ]`, `[ ⚙ ]`) are contained inside `.canvas-container` without outside header/footer bars.
+   - Touch Controls overlay `#touch-controls` must ONLY be active during `PLAYING`/`ENDLESS` states and remain strictly invisible (`display: none`) in `MENU`, `SECTOR_SELECT`, and modals.
+6. **PWA Offline Caching & Mobile Haptics**:
+   - `sw.js` caches all game assets using Cache-First strategy with background revalidation for instant offline play.
+   - Mobile haptic pulses are dispatched via `AudioEngine.triggerHaptic()` (Ping: 15ms, Crystal Pickup: [30, 40, 30], Collision/Death: 120ms).
+
+

@@ -1,6 +1,6 @@
 /**
  * SONAR: The Echo Chamber
- * Mobile Touch Controls with Ergonomic D-Pad, Multi-Touch & Haptic Feedback
+ * Mobile Touch Controls with Ergonomic D-Pad, Multi-Touch, Hold-to-Move & State Isolation
  */
 
 export class TouchControls {
@@ -11,16 +11,30 @@ export class TouchControls {
     this.isTouchDevice = false;
     this.sneakToggled = false;
     this.touchOverlay = document.getElementById('touch-controls');
+    this.isVisible = false;
 
     this.init();
   }
 
   init() {
-    this.isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+    this.isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || window.matchMedia('(pointer: coarse)').matches;
 
-    if (this.isTouchDevice && this.touchOverlay) {
-      this.touchOverlay.style.display = 'block';
-      this.bindButtons();
+    if (this.touchOverlay) {
+      this.touchOverlay.style.display = 'none'; // Strictly invisible in MENU / modals
+    }
+
+    this.bindButtons();
+  }
+
+  setVisible(visible) {
+    if (!this.touchOverlay) return;
+    const shouldShow = visible && this.isTouchDevice;
+    if (this.isVisible !== shouldShow) {
+      this.isVisible = shouldShow;
+      this.touchOverlay.style.display = shouldShow ? 'block' : 'none';
+      if (!shouldShow) {
+        this.input.clearTouchDirection();
+      }
     }
   }
 
@@ -49,19 +63,29 @@ export class TouchControls {
       el.addEventListener('touchcancel', handleUp, { passive: false });
       el.addEventListener('mousedown', handleDown);
       el.addEventListener('mouseup', handleUp);
-      el.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (this.audio) this.audio.ensureContext();
-        if (onDown) onDown();
-      });
     };
 
-    // 4-Way D-Pad Movement
-    bindBtn('touch-up', () => { this.input.moveQueue = { dx: 0, dy: -1 }; });
-    bindBtn('touch-down', () => { this.input.moveQueue = { dx: 0, dy: 1 }; });
-    bindBtn('touch-left', () => { this.input.moveQueue = { dx: -1, dy: 0 }; });
-    bindBtn('touch-right', () => { this.input.moveQueue = { dx: 1, dy: 0 }; });
+    // 4-Way D-Pad Movement with Hold-to-Move
+    bindBtn(
+      'touch-up',
+      () => this.input.setTouchDirection(0, -1),
+      () => this.input.clearTouchDirection(0, -1)
+    );
+    bindBtn(
+      'touch-down',
+      () => this.input.setTouchDirection(0, 1),
+      () => this.input.clearTouchDirection(0, 1)
+    );
+    bindBtn(
+      'touch-left',
+      () => this.input.setTouchDirection(-1, 0),
+      () => this.input.clearTouchDirection(-1, 0)
+    );
+    bindBtn(
+      'touch-right',
+      () => this.input.setTouchDirection(1, 0),
+      () => this.input.clearTouchDirection(1, 0)
+    );
 
     // Action Buttons
     bindBtn('touch-ping', () => {

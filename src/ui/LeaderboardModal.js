@@ -80,8 +80,22 @@ export class LeaderboardModal {
     const backBtn = container.querySelector('#btn-lb-back');
     const refreshBtn = container.querySelector('#btn-lb-refresh');
 
-    if (closeBtn) closeBtn.addEventListener('click', () => this.close());
-    if (backBtn) backBtn.addEventListener('click', () => this.close());
+    const handleClose = (e) => {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      this.close();
+    };
+
+    if (closeBtn) {
+      closeBtn.addEventListener('click', handleClose);
+      closeBtn.addEventListener('touchstart', handleClose, { passive: false });
+    }
+    if (backBtn) {
+      backBtn.addEventListener('click', handleClose);
+      backBtn.addEventListener('touchstart', handleClose, { passive: false });
+    }
     if (refreshBtn) refreshBtn.addEventListener('click', () => this.loadData(true));
 
     window.addEventListener('keydown', (e) => {

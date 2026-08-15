@@ -34,48 +34,38 @@ export class HUD {
     ctx.textBaseline = 'middle';
     ctx.shadowBlur = 0;
 
-    // Sector / Endless Floor Title
+    // Sector / Endless Floor Title (Top Left)
     ctx.font = '700 12px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.textAlign = 'left';
     ctx.fillStyle = isEndless ? CONFIG.COLORS.RESONATOR : CONFIG.COLORS.PLAYER;
     ctx.fillText(isEndless ? `ENDLESS ECHO // ETAGE ${String(floor).padStart(2, '0')}` : levelData.name, 16, 18);
 
-    // Crystals Collected Status
+    // Center Info: Crystals & Decoy & Sneak
     ctx.textAlign = 'center';
     ctx.font = '600 12px "Chakra Petch", "JetBrains Mono", monospace';
-    ctx.fillStyle = crystalsLeft === 0 ? CONFIG.COLORS.CRYSTAL : CONFIG.COLORS.TEXT_MAIN;
-    const crystalText = crystalsLeft === 0
-      ? '★ SCHLEUSE GEÖFFNET! FLÜCHTE ZUR EXTRAKTION ★'
-      : `◆ KRISTALLE: ${totalCrystals - crystalsLeft} / ${totalCrystals}`;
-    ctx.fillText(crystalText, this.width / 2, 18);
 
-    // Right Side: Ping Cooldown + Decoy Counter + Sneak State
-    ctx.textAlign = 'right';
-
-    // Sneak indicator
-    if (player && player.isSneaking) {
-      ctx.font = '700 11px "Chakra Petch", "JetBrains Mono", monospace';
+    if (crystalsLeft === 0) {
       ctx.fillStyle = CONFIG.COLORS.CRYSTAL;
-      ctx.fillText('SCHLEICHEN', this.width - 320, 18);
+      ctx.fillText('★ SCHLEUSE OFFEN! FLÜCHTE ZUR EXTRAKTION ★', this.width / 2 - 20, 18);
+    } else {
+      ctx.fillStyle = CONFIG.COLORS.TEXT_MAIN;
+      const crystalStr = `KRISTALLE: ${totalCrystals - crystalsLeft} / ${totalCrystals}`;
+      const decoyStr = player ? `  •  KÖDER (E): ${player.decoysRemaining}/1` : '';
+      const sneakStr = (player && player.isSneaking) ? '  •  [SNEAK]' : '';
+      ctx.fillText(`${crystalStr}${decoyStr}${sneakStr}`, this.width / 2 - 20, 18);
     }
 
-    // Decoy counter
-    if (player) {
-      ctx.font = '600 11px "Chakra Petch", "JetBrains Mono", monospace';
-      ctx.fillStyle = player.decoysRemaining > 0 ? CONFIG.COLORS.DECOY : CONFIG.COLORS.TEXT_DIM;
-      ctx.fillText(`KÖDER (E): ${player.decoysRemaining}/1`, this.width - 200, 18);
-    }
-
-    // Ping Cooldown Text & Bar
+    // Top Right: Ping Cooldown Text & Bar (Positioned left of the top-right HTML buttons)
     const pingSec = player ? player.getPingRemainingSeconds() : 0;
-    const barW = 70;
+    const barW = 60;
     const barH = 8;
-    const barX = this.width - barW - 16;
+    const barX = this.width - 92 - barW; // Ends at 708px, HTML buttons start at 720px
     const barY = 14;
 
+    ctx.textAlign = 'right';
     ctx.font = '700 11px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = pingSec > 0 ? '#ff8899' : CONFIG.COLORS.PLAYER;
-    ctx.fillText(pingSec > 0 ? `PING: ${pingSec}s` : 'PING: BEREIT', barX - 10, 18);
+    ctx.fillText(pingSec > 0 ? `PING: ${pingSec}s` : 'PING: BEREIT', barX - 8, 18);
 
     ctx.fillStyle = '#061520';
     ctx.fillRect(barX, barY, barW, barH);

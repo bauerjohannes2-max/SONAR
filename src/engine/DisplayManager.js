@@ -1,6 +1,6 @@
 /**
  * SONAR: The Echo Chamber
- * Display & Fullscreen Manager with Screen-to-Canvas Projection
+ * Display & Fullscreen Manager with High-DPI Scaling & Screen Projection
  */
 
 import { CONFIG } from '../config.js';
@@ -9,12 +9,17 @@ export class DisplayManager {
   constructor(canvas) {
     this.canvas = canvas;
     this.isFullscreen = false;
+    this.dpr = 2;
 
     this.onFullscreenChange = this.onFullscreenChange.bind(this);
+    this.setupResolution = this.setupResolution.bind(this);
     this.init();
   }
 
   init() {
+    this.setupResolution();
+
+    window.addEventListener('resize', this.setupResolution);
     document.addEventListener('fullscreenchange', this.onFullscreenChange);
     document.addEventListener('webkitfullscreenchange', this.onFullscreenChange);
 
@@ -24,12 +29,16 @@ export class DisplayManager {
       fsBtn.addEventListener('click', () => {
         this.toggleFullscreen();
       });
+      fsBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.toggleFullscreen();
+      }, { passive: false });
     }
 
-    // Hotkeys F or F11
+    // Hotkey F
     window.addEventListener('keydown', (e) => {
       if (e.code === 'KeyF' && !e.ctrlKey && !e.altKey && !e.metaKey) {
-        // Only trigger if not in text input
         if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
           e.preventDefault();
           this.toggleFullscreen();
@@ -38,12 +47,29 @@ export class DisplayManager {
     });
   }
 
+  setupResolution() {
+    if (!this.canvas) return;
+    const dpr = Math.max(window.devicePixelRatio || 1, 2);
+    this.dpr = dpr;
+
+    this.canvas.width = Math.round(CONFIG.CANVAS_WIDTH * dpr);
+    this.canvas.height = Math.round(CONFIG.CANVAS_HEIGHT * dpr);
+
+    const ctx = this.canvas.getContext('2d');
+    if (ctx) {
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.imageSmoothingEnabled = true;
+    }
+  }
+
   onFullscreenChange() {
     this.isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement);
     const fsBtn = document.getElementById('btn-header-fullscreen');
     if (fsBtn) {
-      fsBtn.innerText = this.isFullscreen ? 'FENSTER' : 'VOLLBILD';
+      fsBtn.innerText = this.isFullscreen ? '🗗' : '⛶';
+      fsBtn.title = this.isFullscreen ? 'Fenstermodus (F)' : 'Vollbildmodus (F)';
     }
+    this.setupResolution();
   }
 
   toggleFullscreen() {

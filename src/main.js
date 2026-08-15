@@ -89,46 +89,16 @@ export class Game {
   initHeaderButtons() {
     const gearBtn = document.getElementById('btn-settings-gear');
     if (gearBtn) {
-      gearBtn.addEventListener('click', () => {
+      const openSettings = (e) => {
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
         if (this.audioEngine) this.audioEngine.playUIBlip();
         this.settingsModal.toggle();
-      });
-    }
-
-    const profBtn = document.getElementById('btn-header-profile');
-    if (profBtn) {
-      profBtn.addEventListener('click', () => {
-        if (this.audioEngine) this.audioEngine.playUIBlip();
-        this.profileModal.open();
-      });
-    }
-
-    const lbBtn = document.getElementById('btn-header-leaderboard');
-    if (lbBtn) {
-      lbBtn.addEventListener('click', () => {
-        if (this.audioEngine) this.audioEngine.playUIBlip();
-        this.leaderboardModal.open();
-      });
-    }
-
-    const tutBtn = document.getElementById('btn-header-tutorial');
-    if (tutBtn) {
-      tutBtn.addEventListener('click', () => {
-        if (this.audioEngine) this.audioEngine.playUIBlip();
-        this.openTutorial();
-      });
-    }
-
-    const pauseBtn = document.getElementById('btn-header-pause');
-    if (pauseBtn) {
-      pauseBtn.addEventListener('click', () => {
-        if (this.audioEngine) this.audioEngine.playUIBlip();
-        if (this.gameState === CONFIG.STATES.PLAYING) {
-          this.gameState = CONFIG.STATES.PAUSED;
-        } else if (this.gameState === CONFIG.STATES.PAUSED) {
-          this.gameState = CONFIG.STATES.PLAYING;
-        }
-      });
+      };
+      gearBtn.addEventListener('click', openSettings);
+      gearBtn.addEventListener('touchstart', openSettings, { passive: false });
     }
   }
 
@@ -649,16 +619,15 @@ export class Game {
   }
 
   syncDOMState() {
-    const isGameplay = this.gameState === CONFIG.STATES.PLAYING ||
-                       this.gameState === CONFIG.STATES.PAUSED ||
-                       this.gameState === CONFIG.STATES.GAME_OVER ||
-                       this.gameState === CONFIG.STATES.VICTORY;
+    // Only show touch controls during active gameplay when no modal is open
+    const isPlaying = (this.gameState === CONFIG.STATES.PLAYING || this.gameState === CONFIG.STATES.ENDLESS) &&
+                      !this.settingsModal.isOpen &&
+                      !this.profileModal.isOpen &&
+                      !this.leaderboardModal.isOpen;
 
-    const termBar = document.querySelector('.terminal-bar');
-    const ctrlBar = document.querySelector('.controls-bar');
-
-    if (termBar) termBar.style.display = isGameplay ? 'flex' : 'none';
-    if (ctrlBar) ctrlBar.style.display = isGameplay ? 'flex' : 'none';
+    if (this.touchControls) {
+      this.touchControls.setVisible(isPlaying);
+    }
   }
 
   loop(timestamp) {
@@ -673,12 +642,28 @@ export class Game {
   }
 }
 
+// Register PWA Service Worker for offline support
+function registerServiceWorker() {
+  if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then((reg) => {
+          console.log('[SW] ServiceWorker registered with scope:', reg.scope);
+        })
+        .catch((err) => {
+          console.warn('[SW] ServiceWorker registration failed:', err);
+        });
+    });
+  }
+}
+
 // Start Game Instance
 function initGame() {
   if (!window.game) {
     const game = new Game();
     window.game = game;
     game.start();
+    registerServiceWorker();
   }
 }
 

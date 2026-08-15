@@ -86,8 +86,22 @@ export class ProfileModal {
     const callsignInput = container.querySelector('#input-pilot-callsign');
     const pinInput = container.querySelector('#input-pilot-pin');
 
-    if (closeBtn) closeBtn.addEventListener('click', () => this.close());
-    if (backBtn) backBtn.addEventListener('click', () => this.close());
+    const handleClose = (e) => {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      this.close();
+    };
+
+    if (closeBtn) {
+      closeBtn.addEventListener('click', handleClose);
+      closeBtn.addEventListener('touchstart', handleClose, { passive: false });
+    }
+    if (backBtn) {
+      backBtn.addEventListener('click', handleClose);
+      backBtn.addEventListener('touchstart', handleClose, { passive: false });
+    }
 
     if (submitBtn) {
       submitBtn.addEventListener('click', () => this.handleSubmit());

@@ -462,17 +462,18 @@ export class TutorialModal {
 
     const click = inputHandler.consumeMouseClick();
     if (click) {
-      // Check modal navigation buttons:
-      // Prev: x: 140..250, y: 490..525
-      // Next: x: 550..660, y: 490..525
-      // Close: x: 330..470, y: 490..525 or Top-Right X (x: 640..680, y: 45..85)
-      if (click.x >= 130 && click.x <= 250 && click.y >= 485 && click.y <= 525) {
+      // Check modal navigation buttons with generous touch hitboxes:
+      // Prev: x: 100..270, y: 460..535
+      // Next: x: 530..700, y: 460..535
+      // Close Bottom: x: 280..520, y: 460..535
+      // Close Top-Right X: x: 620..710, y: 30..90
+      if (click.x >= 100 && click.x <= 270 && click.y >= 460 && click.y <= 535) {
         this.prevCard();
-      } else if (click.x >= 550 && click.x <= 670 && click.y >= 485 && click.y <= 525) {
+      } else if (click.x >= 530 && click.x <= 700 && click.y >= 460 && click.y <= 535) {
         this.nextCard();
-      } else if (click.x >= 320 && click.x <= 480 && click.y >= 485 && click.y <= 525) {
+      } else if (click.x >= 280 && click.x <= 520 && click.y >= 460 && click.y <= 535) {
         return 'CLOSE';
-      } else if (click.x >= 635 && click.x <= 685 && click.y >= 40 && click.y <= 85) {
+      } else if (click.x >= 620 && click.x <= 710 && click.y >= 30 && click.y <= 90) {
         return 'CLOSE';
       }
     }
@@ -521,11 +522,11 @@ export class TutorialModal {
     ctx.font = '700 14px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = CONFIG.COLORS.PLAYER;
     ctx.shadowBlur = 0;
-    ctx.fillText(`TAKTIK-HANDBUCH // KARTE ${this.currentCardIndex + 1} / ${this.cards.length}`, boxX + 20, boxY + 25);
+    ctx.fillText(`TUTORIAL // KARTE ${this.currentCardIndex + 1} / ${this.cards.length}`, boxX + 20, boxY + 25);
 
     // Close [X] Button in Top-Right
     ctx.textAlign = 'right';
-    ctx.font = '700 15px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.font = '700 18px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = CONFIG.COLORS.HUNTER;
     ctx.fillText('✕', boxX + boxW - 20, boxY + 25);
 
@@ -572,35 +573,35 @@ export class TutorialModal {
       ctx.fillText(r.val, tblX + 16, ry + 20);
     });
 
-    // Navigation Buttons at Bottom
-    const btnY = boxY + boxH - 30;
+    // Navigation Buttons at Bottom (36px high for touch accessibility)
+    const btnY = boxY + boxH - 28;
 
     // VORHERIGE
     ctx.fillStyle = '#091520';
-    ctx.fillRect(boxX + 24, btnY - 14, 110, 28);
+    ctx.fillRect(boxX + 24, btnY - 17, 120, 34);
     ctx.strokeStyle = CONFIG.COLORS.PLAYER;
     ctx.lineWidth = 1;
-    ctx.strokeRect(boxX + 24, btnY - 14, 110, 28);
+    ctx.strokeRect(boxX + 24, btnY - 17, 120, 34);
     ctx.textAlign = 'center';
-    ctx.font = '700 11px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.font = '700 11.5px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = CONFIG.COLORS.PLAYER;
-    ctx.fillText('← VORHERIGE', boxX + 79, btnY);
+    ctx.fillText('← VORHERIGE', boxX + 84, btnY);
 
-    // SCHLIESSEN
+    // SCHLIESSEN / ZURÜCK ZUM MENÜ
     ctx.fillStyle = '#18070b';
-    ctx.fillRect(boxX + (boxW - 130) / 2, btnY - 14, 130, 28);
+    ctx.fillRect(boxX + (boxW - 170) / 2, btnY - 17, 170, 34);
     ctx.strokeStyle = CONFIG.COLORS.HUNTER;
-    ctx.strokeRect(boxX + (boxW - 130) / 2, btnY - 14, 130, 28);
+    ctx.strokeRect(boxX + (boxW - 170) / 2, btnY - 17, 170, 34);
     ctx.fillStyle = CONFIG.COLORS.HUNTER;
-    ctx.fillText('✕ SCHLIESSEN', boxX + boxW / 2, btnY);
+    ctx.fillText('✕ ZURÜCK ZUM MENÜ', boxX + boxW / 2, btnY);
 
     // NÄCHSTE
     ctx.fillStyle = '#091520';
-    ctx.fillRect(boxX + boxW - 134, btnY - 14, 110, 28);
+    ctx.fillRect(boxX + boxW - 144, btnY - 17, 120, 34);
     ctx.strokeStyle = CONFIG.COLORS.PLAYER;
-    ctx.strokeRect(boxX + boxW - 134, btnY - 14, 110, 28);
+    ctx.strokeRect(boxX + boxW - 144, btnY - 17, 120, 34);
     ctx.fillStyle = CONFIG.COLORS.PLAYER;
-    ctx.fillText('NÄCHSTE →', boxX + boxW - 79, btnY);
+    ctx.fillText('NÄCHSTE →', boxX + boxW - 84, btnY);
 
     ctx.restore();
   }

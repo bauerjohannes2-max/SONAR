@@ -1,6 +1,6 @@
 /**
  * SONAR: The Echo Chamber
- * Input Handler with Mouse/Touch Coordinate Mapping & Sneak Integration
+ * Input Handler with Mouse/Touch Coordinate Mapping, Sneak & Smooth Hold-to-Move
  */
 
 import { CONFIG } from '../config.js';
@@ -12,6 +12,9 @@ export class InputHandler {
 
     this.keys = {};
     this.moveQueue = null;
+    this.heldDirection = null; // { dx, dy, downTime }
+    this.touchHeldDirection = null; // { dx, dy, downTime }
+
     this.pingTriggered = false;
     this.decoyTriggered = false;
     this.actionTriggered = false;
@@ -31,6 +34,27 @@ export class InputHandler {
     this.touchControls = touchControls;
   }
 
+  setTouchDirection(dx, dy) {
+    this.touchHeldDirection = { dx, dy, downTime: performance.now() };
+    this.moveQueue = { dx, dy };
+  }
+
+  clearTouchDirection(dx = null, dy = null) {
+    if (dx === null && dy === null) {
+      this.touchHeldDirection = null;
+    } else if (this.touchHeldDirection && this.touchHeldDirection.dx === dx && this.touchHeldDirection.dy === dy) {
+      this.touchHeldDirection = null;
+    }
+  }
+
+  getActiveKeyDirection() {
+    if (this.keys['ArrowUp'] || this.keys['KeyW']) return { dx: 0, dy: -1 };
+    if (this.keys['ArrowDown'] || this.keys['KeyS']) return { dx: 0, dy: 1 };
+    if (this.keys['ArrowLeft'] || this.keys['KeyA']) return { dx: -1, dy: 0 };
+    if (this.keys['ArrowRight'] || this.keys['KeyD']) return { dx: 1, dy: 0 };
+    return null;
+  }
+
   setupListeners() {
     window.addEventListener('keydown', (e) => {
       // 1. Strict Input Isolation: Do not trigger game/menu shortcuts when typing in inputs
@@ -45,18 +69,23 @@ export class InputHandler {
         this.isShiftHeld = true;
       }
 
+      let dir = null;
       if (['ArrowUp', 'KeyW'].includes(e.code)) {
-        this.moveQueue = { dx: 0, dy: -1 };
-        e.preventDefault();
+        dir = { dx: 0, dy: -1 };
       } else if (['ArrowDown', 'KeyS'].includes(e.code)) {
-        this.moveQueue = { dx: 0, dy: 1 };
-        e.preventDefault();
+        dir = { dx: 0, dy: 1 };
       } else if (['ArrowLeft', 'KeyA'].includes(e.code)) {
-        this.moveQueue = { dx: -1, dy: 0 };
-        e.preventDefault();
+        dir = { dx: -1, dy: 0 };
       } else if (['ArrowRight', 'KeyD'].includes(e.code)) {
-        this.moveQueue = { dx: 1, dy: 0 };
+        dir = { dx: 1, dy: 0 };
+      }
+
+      if (dir) {
         e.preventDefault();
+        if (!this.heldDirection || this.heldDirection.dx !== dir.dx || this.heldDirection.dy !== dir.dy) {
+          this.heldDirection = { dx: dir.dx, dy: dir.dy, downTime: performance.now() };
+          this.moveQueue = { dx: dir.dx, dy: dir.dy };
+        }
       }
 
       if (e.code === 'Space') {
@@ -89,6 +118,13 @@ export class InputHandler {
       if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
         this.isShiftHeld = false;
       }
+
+      const activeDir = this.getActiveKeyDirection();
+      if (activeDir) {
+        this.heldDirection = { dx: activeDir.dx, dy: activeDir.dy, downTime: performance.now() };
+      } else {
+        this.heldDirection = null;
+      }
     });
 
     // Mouse and Touch Click mapping via DisplayManager
@@ -113,9 +149,22 @@ export class InputHandler {
   }
 
   getMovement() {
-    const m = this.moveQueue;
-    this.moveQueue = null;
-    return m;
+    if (this.moveQueue) {
+      const m = this.moveQueue;
+      this.moveQueue = null;
+      return m;
+    }
+
+    // Hold-to-Move: continuous fluid movement after initial 120ms delay
+    const held = this.touchHeldDirection || this.heldDirection;
+    if (held) {
+      const now = performance.now();
+      if (now - held.downTime >= 120) {
+        return { dx: held.dx, dy: held.dy };
+      }
+    }
+
+    return null;
   }
 
   consumePing() {

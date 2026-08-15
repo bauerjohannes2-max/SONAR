@@ -173,15 +173,20 @@ export class AudioEngine {
   }
 
   /**
-   * Haptic vibration trigger helper for mobile touch.
+   * Haptic vibration trigger helper for mobile touch & gameplay events.
    */
-  triggerHaptic(type = 'step') {
-    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+  triggerHaptic(type = 'ping') {
+    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
       try {
-        if (type === 'step') navigator.vibrate(18);
-        else if (type === 'ping') navigator.vibrate(45);
-        else if (type === 'alarm' || type === 'death') navigator.vibrate([80, 40, 80]);
-        else if (type === 'pickup') navigator.vibrate(25);
+        if (type === 'ping') {
+          navigator.vibrate(15);
+        } else if (type === 'pickup') {
+          navigator.vibrate([30, 40, 30]);
+        } else if (type === 'death' || type === 'collision') {
+          navigator.vibrate(120);
+        } else if (type === 'step') {
+          navigator.vibrate(10);
+        }
       } catch (e) {}
     }
   }

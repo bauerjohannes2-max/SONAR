@@ -31,6 +31,8 @@ import { storageManager } from './services/StorageManager.js';
 export class Game {
   constructor() {
     this.canvas = document.getElementById('gameCanvas');
+    this.canvas.width = CONFIG.CANVAS_WIDTH;
+    this.canvas.height = CONFIG.CANVAS_HEIGHT;
     this.ctx = this.canvas.getContext('2d');
 
     // Subsystems
@@ -41,11 +43,15 @@ export class Game {
     this.renderer = new CanvasRenderer(this.canvas);
     this.touchControls = new TouchControls(this.audioEngine, this.inputHandler);
     this.displayManager = new DisplayManager(this.canvas);
+    this.inputHandler.displayManager = this.displayManager;
 
     // UI Modules
     this.hud = new HUD(this.canvas);
     this.menuSystem = new MenuSystem(this.audioEngine);
-    this.settingsModal = new SettingsModal(this.audioEngine, this.particleEngine);
+    this.settingsModal = new SettingsModal(this.audioEngine, this.particleEngine, () => {
+      this.menuSystem.resetAllProgress();
+      this.endlessMode.reset();
+    });
     this.tutorialModal = new TutorialModal(this.audioEngine);
     this.profileModal = new ProfileModal(this.audioEngine, (pilot) => this.onProfileChanged(pilot));
     this.leaderboardModal = new LeaderboardModal(this.audioEngine);
@@ -81,6 +87,14 @@ export class Game {
   }
 
   initHeaderButtons() {
+    const gearBtn = document.getElementById('btn-settings-gear');
+    if (gearBtn) {
+      gearBtn.addEventListener('click', () => {
+        if (this.audioEngine) this.audioEngine.playUIBlip();
+        this.settingsModal.toggle();
+      });
+    }
+
     const profBtn = document.getElementById('btn-header-profile');
     if (profBtn) {
       profBtn.addEventListener('click', () => {
@@ -209,6 +223,10 @@ export class Game {
   update(dt) {
     this.gameTime += dt;
 
+    if (this.inputHandler && typeof this.inputHandler.consumeSettings === 'function' && this.inputHandler.consumeSettings()) {
+      if (this.settingsModal) this.settingsModal.toggle();
+    }
+
     switch (this.gameState) {
       case CONFIG.STATES.MENU: {
         const choice = this.menuSystem.handleMenuInput(this.inputHandler);
@@ -223,9 +241,6 @@ export class Game {
           this.leaderboardModal.open();
         } else if (choice === 'TUTORIAL') {
           this.openTutorial();
-        } else if (choice === 'SETTINGS') {
-          this.previousState = CONFIG.STATES.MENU;
-          this.gameState = CONFIG.STATES.SETTINGS;
         }
         break;
       }
@@ -563,10 +578,6 @@ export class Game {
         this.tutorialModal.render(ctx, time);
         break;
 
-      case CONFIG.STATES.SETTINGS:
-        this.settingsModal.render(ctx);
-        break;
-
       case CONFIG.STATES.PLAYING:
       case CONFIG.STATES.PAUSED: {
         const isChased = this.hunters.some(h => h.state === 'CHASING');
@@ -638,15 +649,16 @@ export class Game {
   }
 
   syncDOMState() {
-    const isMenu = this.gameState === CONFIG.STATES.MENU ||
-                   this.gameState === CONFIG.STATES.SECTOR_SELECT ||
-                   this.gameState === CONFIG.STATES.SETTINGS;
+    const isGameplay = this.gameState === CONFIG.STATES.PLAYING ||
+                       this.gameState === CONFIG.STATES.PAUSED ||
+                       this.gameState === CONFIG.STATES.GAME_OVER ||
+                       this.gameState === CONFIG.STATES.VICTORY;
 
     const termBar = document.querySelector('.terminal-bar');
     const ctrlBar = document.querySelector('.controls-bar');
 
-    if (termBar) termBar.style.display = 'flex';
-    if (ctrlBar) ctrlBar.style.display = isMenu ? 'none' : 'flex';
+    if (termBar) termBar.style.display = isGameplay ? 'flex' : 'none';
+    if (ctrlBar) ctrlBar.style.display = isGameplay ? 'flex' : 'none';
   }
 
   loop(timestamp) {

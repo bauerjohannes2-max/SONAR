@@ -7,7 +7,7 @@
   <meta name="description" content="SONAR: The Echo Chamber - Ein gnadenloser 2D-Arcade-Stealth-Thriller im absoluten Nichts. Sicht existiert nur durch Schall.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=JetBrains+Mono:wght@400;600;800&family=Share+Tech+Mono&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./styles/main.css">
 </head>
 <body>
@@ -20,11 +20,11 @@
       </div>
       <div class="terminal-title">THE ECHO CHAMBER</div>
       <div class="terminal-actions">
-        <button id="btn-header-profile" class="fullscreen-btn" title="Pilot-Profil & Cloud-Sync">[ 👤 PROFIL ]</button>
-        <button id="btn-header-leaderboard" class="fullscreen-btn" title="Globales Leaderboard">[ 🏆 RANKING ]</button>
-        <button id="btn-header-pause" class="fullscreen-btn" title="Spiel pausieren (ESC)">[ ⏸ PAUSE ]</button>
-        <button id="btn-header-tutorial" class="tutorial-btn-pulse" title="Taktisches Handbuch & Tutorial öffnen">[ ? ] TUTORIAL</button>
-        <button id="btn-header-fullscreen" class="fullscreen-btn" title="Vollbild umschalten (F / F11)">[ ⛶ ]</button>
+        <button id="btn-header-profile" class="fullscreen-btn" title="Pilot-Profil & Cloud-Sync">PROFIL</button>
+        <button id="btn-header-leaderboard" class="fullscreen-btn" title="Globales Leaderboard">RANKING</button>
+        <button id="btn-header-pause" class="fullscreen-btn" title="Spiel pausieren (ESC)">PAUSE</button>
+        <button id="btn-header-tutorial" class="tutorial-btn-pulse" title="Taktisches Handbuch & Tutorial öffnen">HANDBUCH</button>
+        <button id="btn-header-fullscreen" class="fullscreen-btn" title="Vollbild umschalten (F / F11)">VOLLBILD</button>
       </div>
     </header>
 
@@ -34,6 +34,9 @@
       <div class="crt-overlay"></div>
       <div class="scanlines"></div>
       <div class="vignette"></div>
+
+      <!-- Top Right Gear / Settings Button -->
+      <button id="btn-settings-gear" class="gear-btn" title="System-Einstellungen (O)">⚙</button>
 
       <!-- Virtual Touch Controls for Mobile -->
       <div id="touch-controls">
@@ -65,7 +68,7 @@
     <!-- Bottom Quick Controls Bar -->
     <footer class="controls-bar">
       <div class="control-hint"><kbd>WASD</kbd> / <kbd>▲▼◀▶</kbd> SCHRITT</div>
-      <div class="control-hint"><kbd>SHIFT</kbd> SCHLEICHEN (0 Schall)</div>
+      <div class="control-hint"><kbd>SHIFT</kbd> SCHLEICHEN</div>
       <div class="control-hint"><kbd>SPACE</kbd> SONAR PING</div>
       <div class="control-hint"><kbd>E</kbd> KÖDER</div>
       <div class="control-hint"><kbd>ESC</kbd> PAUSE</div>
@@ -73,6 +76,6 @@
     </footer>
   </div>
 
-  <script type="module" src="./src/main.js"></script>
+  <script type="module" src="./src/main.js?v=2.2"></script>
 </body>
 </html>

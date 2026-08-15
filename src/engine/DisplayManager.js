@@ -42,7 +42,7 @@ export class DisplayManager {
     this.isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement);
     const fsBtn = document.getElementById('btn-header-fullscreen');
     if (fsBtn) {
-      fsBtn.innerText = this.isFullscreen ? '[ 🗗 ]' : '[ ⛶ ]';
+      fsBtn.innerText = this.isFullscreen ? 'FENSTER' : 'VOLLBILD';
     }
   }
 

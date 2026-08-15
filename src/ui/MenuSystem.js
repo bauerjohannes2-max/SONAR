@@ -1,39 +1,69 @@
 /**
  * SONAR: The Echo Chamber
- * Sci-Fi Terminal Menu System (Campaign, Endless, Pilot Profile, Leaderboard & Settings)
+ * Sci-Fi Terminal Menu System (Clean 2-Tier Hierarchy, High-Clarity Typography, No Brackets)
  */
 
 import { CONFIG } from '../config.js';
 import { LEVELS } from '../world/levels.js';
 import { storageManager } from '../services/StorageManager.js';
-import { firebaseService } from '../services/FirebaseService.js';
 
 export class MenuSystem {
   constructor(audioEngine) {
     this.audio = audioEngine;
-    this.selectedIndex = 0;
+    this.selectedIndex = 0; // 0: Campaign, 1: Endless, 2: Profile, 3: Leaderboard, 4: Tutorial
     this.selectedSectorIndex = 0;
     this.unlockedSector = 1;
     this.sectorStats = {};
 
     this.options = [
-      { id: 'SECTOR_SELECT', label: '[ KAMPAGNE (SEKTOREN 1 - 10) ]', desc: 'Wähle einen Sektor oder starte ab Sektor 1' },
-      { id: 'ENDLESS', label: '[ ENDLESS ECHO ]', desc: 'Unendlicher prozeduraler Roguelike-Modus' },
-      { id: 'PROFILE', label: '[ 👤 PILOTEN-PROFIL ]', desc: 'Login mit Callsign & PIN zur Cloud-Sicherung' },
-      { id: 'LEADERBOARD', label: '[ 🏆 LEADERBOARD ]', desc: 'Globales Ranking der Top 10 Drohnen-Piloten' },
-      { id: 'TUTORIAL', label: '[ [ ? ] TAKTIK-HANDBUCH ]', desc: 'Interaktives Handbuch & Feind-Datenbank' },
-      { id: 'SETTINGS', label: '[ EINSTELLUNGEN ]', desc: 'Audio, CRT-Filter & Spielstand zurücksetzen' }
+      // Primary Tier (Large Prominent Cards)
+      {
+        id: 'SECTOR_SELECT',
+        title: 'KAMPAGNE',
+        subtitle: 'Sektoren 01 – 10',
+        tag: '10 SEKTOREN',
+        desc: 'Kampagne: 10 taktische Sektoren mit steigender Bedrohung & Rang-Wertung'
+      },
+      {
+        id: 'ENDLESS',
+        title: 'ENDLESS ECHO',
+        subtitle: 'Prozeduraler Überlebensmodus',
+        tag: 'ROGUELIKE',
+        desc: 'Endless Echo: Prozedural generiertes Überlebens-Labyrinth im ewigen Nichts'
+      },
+      // Secondary Tier (3 Compact Action Buttons)
+      {
+        id: 'PROFILE',
+        title: 'PILOTEN-PROFIL',
+        subtitle: '',
+        tag: '',
+        desc: 'Pilot: Rufzeichen & 4-stellige Sicherheits-PIN zur Cloud-Sicherung'
+      },
+      {
+        id: 'LEADERBOARD',
+        title: 'LEADERBOARD',
+        subtitle: '',
+        tag: '',
+        desc: 'Leaderboard: Weltweites Ranking der Top-10-Drohnenpiloten'
+      },
+      {
+        id: 'TUTORIAL',
+        title: 'HANDBUCH',
+        subtitle: '',
+        tag: '',
+        desc: 'Handbuch: Taktische Manöver, Drohnensteuerung & Feindanalyse'
+      }
     ];
 
-    // Background particle array
+    // Background floating phosphor dust
     this.particles = [];
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 35; i++) {
       this.particles.push({
         x: Math.random() * CONFIG.CANVAS_WIDTH,
         y: Math.random() * CONFIG.CANVAS_HEIGHT,
-        vx: (Math.random() - 0.5) * 0.4,
-        vy: (Math.random() - 0.5) * 0.4,
-        radius: Math.random() * 2 + 1,
+        vx: (Math.random() - 0.5) * 0.35,
+        vy: (Math.random() - 0.5) * 0.35,
+        radius: Math.random() * 1.8 + 0.8,
         alpha: Math.random() * 0.5 + 0.2
       });
     }
@@ -60,27 +90,47 @@ export class MenuSystem {
   }
 
   updateProfileLabel() {
-    const pilot = storageManager.getCurrentPilot();
-    const isGuest = storageManager.isGuest();
-    const profOpt = this.options.find(o => o.id === 'PROFILE');
-    if (profOpt) {
-      profOpt.label = isGuest
-        ? '[ 👤 PILOTEN-PROFIL (GAST) ]'
-        : `[ 👤 PILOT: ${pilot.callsign} ]`;
-    }
+    // Keep profile label dynamic if needed
   }
 
   handleMenuInput(inputHandler) {
-    this.updateProfileLabel();
-
     const move = inputHandler.getMovement();
     if (move) {
+      // 2-Tier Navigation Logic
       if (move.dy < 0) {
-        this.selectedIndex = (this.selectedIndex - 1 + this.options.length) % this.options.length;
+        // UP
+        if (this.selectedIndex === 0) {
+          this.selectedIndex = 2; // Wrap to profile
+        } else if (this.selectedIndex === 1) {
+          this.selectedIndex = 0; // Go to campaign
+        } else {
+          this.selectedIndex = 1; // From secondary to endless
+        }
         if (this.audio) this.audio.playUIBlip();
       } else if (move.dy > 0) {
-        this.selectedIndex = (this.selectedIndex + 1) % this.options.length;
+        // DOWN
+        if (this.selectedIndex === 0) {
+          this.selectedIndex = 1; // Go to endless
+        } else if (this.selectedIndex === 1) {
+          this.selectedIndex = 2; // Go to secondary
+        } else {
+          this.selectedIndex = 0; // Wrap to campaign
+        }
         if (this.audio) this.audio.playUIBlip();
+      }
+
+      if (move.dx < 0) {
+        // LEFT
+        if (this.selectedIndex >= 2 && this.selectedIndex <= 4) {
+          this.selectedIndex = this.selectedIndex === 2 ? 4 : this.selectedIndex - 1;
+          if (this.audio) this.audio.playUIBlip();
+        }
+      } else if (move.dx > 0) {
+        // RIGHT
+        if (this.selectedIndex >= 2 && this.selectedIndex <= 4) {
+          this.selectedIndex = this.selectedIndex === 4 ? 2 : this.selectedIndex + 1;
+          if (this.audio) this.audio.playUIBlip();
+        }
       }
     }
 
@@ -92,20 +142,34 @@ export class MenuSystem {
     // Direct mouse click handling
     const click = inputHandler.consumeMouseClick();
     if (click) {
-      const optYStart = 168;
-      const optH = 43;
-      const btnW = 380;
-      for (let i = 0; i < this.options.length; i++) {
-        const y = optYStart + i * optH;
-        if (
-          click.x >= CONFIG.CANVAS_WIDTH / 2 - btnW / 2 &&
-          click.x <= CONFIG.CANVAS_WIDTH / 2 + btnW / 2 &&
-          click.y >= y - 16 &&
-          click.y <= y + 18
-        ) {
-          this.selectedIndex = i;
-          if (this.audio) this.audio.playUIBlip();
-          return this.options[i].id;
+      // 1. Primary Card 0 (Campaign): x 148..652, y 148..216
+      if (click.x >= 148 && click.x <= 652 && click.y >= 148 && click.y <= 216) {
+        this.selectedIndex = 0;
+        if (this.audio) this.audio.playUIBlip();
+        return this.options[0].id;
+      }
+
+      // 2. Primary Card 1 (Endless): x 148..652, y 226..294
+      if (click.x >= 148 && click.x <= 652 && click.y >= 226 && click.y <= 294) {
+        this.selectedIndex = 1;
+        if (this.audio) this.audio.playUIBlip();
+        return this.options[1].id;
+      }
+
+      // 3. Secondary 3 Buttons (Row): y 308..348
+      if (click.y >= 308 && click.y <= 348) {
+        const secDefs = [
+          { idx: 2, minX: 148, maxX: 306 }, // Profile
+          { idx: 3, minX: 321, maxX: 479 }, // Leaderboard
+          { idx: 4, minX: 494, maxX: 652 }  // Tutorial
+        ];
+
+        for (let sec of secDefs) {
+          if (click.x >= sec.minX && click.x <= sec.maxX) {
+            this.selectedIndex = sec.idx;
+            if (this.audio) this.audio.playUIBlip();
+            return this.options[sec.idx].id;
+          }
         }
       }
     }
@@ -144,7 +208,7 @@ export class MenuSystem {
     if (click) {
       // Check 2x5 grid buttons
       const startX = 70;
-      const startY = 140;
+      const startY = 135;
       const cardW = 120;
       const cardH = 120;
       const gapX = 18;
@@ -166,7 +230,7 @@ export class MenuSystem {
       }
 
       // Back Button
-      if (click.x >= 320 && click.x <= 480 && click.y >= 480 && click.y <= 520) {
+      if (click.x >= 310 && click.x <= 490 && click.y >= 475 && click.y <= 515) {
         return { action: 'BACK' };
       }
     }
@@ -175,19 +239,18 @@ export class MenuSystem {
   }
 
   renderMenu(ctx, time, endlessMode) {
-    this.updateProfileLabel();
     const pilot = storageManager.getCurrentPilot();
     const isGuest = storageManager.isGuest();
 
     ctx.save();
 
-    // 1. Terminal Background
-    ctx.fillStyle = CONFIG.COLORS.BG;
+    // 1. Deep Zero-Light Background
+    ctx.fillStyle = '#05070a';
     ctx.fillRect(0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
 
     // 2. Animated Ambient Radar Ring
-    const radarRadius = Math.max(0, (time * 65) % 450);
-    const radarAlpha = Math.max(0, 1 - radarRadius / 450) * 0.22;
+    const radarRadius = Math.max(0, (time * 60) % 460);
+    const radarAlpha = Math.max(0, 1 - radarRadius / 460) * 0.20;
     ctx.beginPath();
     ctx.arc(CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT / 2, Math.max(0, radarRadius), 0, Math.PI * 2);
     ctx.strokeStyle = `rgba(0, 240, 255, ${radarAlpha})`;
@@ -212,95 +275,181 @@ export class MenuSystem {
     // 4. Game Title Banner (Sharp Vector Monospace)
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-
-    ctx.font = '900 42px "Share Tech Mono", monospace';
-    ctx.fillStyle = CONFIG.COLORS.PLAYER;
     ctx.shadowBlur = 0;
-    ctx.fillText('S O N A R', CONFIG.CANVAS_WIDTH / 2, 60);
 
-    ctx.font = '12px "Share Tech Mono", monospace';
-    ctx.fillStyle = CONFIG.COLORS.TEXT_DIM;
-    ctx.shadowBlur = 0;
-    ctx.fillText('// ZERO-LIGHT SURVIVAL', CONFIG.CANVAS_WIDTH / 2, 95);
+    // Main Title
+    ctx.font = '700 40px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.fillStyle = '#00f0ff';
+    ctx.fillText('S O N A R', CONFIG.CANVAS_WIDTH / 2, 54);
 
-    // Pilot Status Bar Subhead
-    ctx.font = 'bold 11px "Share Tech Mono", monospace';
-    if (!isGuest) {
-      ctx.fillStyle = CONFIG.COLORS.CRYSTAL;
-      ctx.fillText(`👤 PILOT: ${pilot.callsign} [CLOUD AKTIV]  •  SEKTOR 0${this.unlockedSector}`, CONFIG.CANVAS_WIDTH / 2, 122);
-    } else {
-      ctx.fillStyle = CONFIG.COLORS.TEXT_DIM;
-      ctx.fillText('👤 STATUS: GAST-MODUS (LOKAL)  •  FORTSCHRITT: SEKTOR 0' + this.unlockedSector, CONFIG.CANVAS_WIDTH / 2, 122);
-    }
+    // Subtitle
+    ctx.font = '600 11px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.fillStyle = '#607b8b';
+    ctx.fillText('// ZERO-LIGHT SURVIVAL', CONFIG.CANVAS_WIDTH / 2, 84);
 
-    // Endless Mode Record Badge
+    // Pilot Status Badge Pill (Minimalist & Clean)
+    const badgeW = 460;
+    const badgeH = 24;
+    const badgeX = CONFIG.CANVAS_WIDTH / 2 - badgeW / 2;
+    const badgeY = 104;
+
+    ctx.fillStyle = 'rgba(0, 240, 255, 0.04)';
+    ctx.fillRect(badgeX, badgeY, badgeW, badgeH);
+    ctx.strokeStyle = 'rgba(0, 240, 255, 0.18)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(badgeX, badgeY, badgeW, badgeH);
+
+    ctx.font = '600 11px "Chakra Petch", "JetBrains Mono", monospace';
+    const pilotNameStr = isGuest ? 'GAST' : pilot.callsign;
+    const sectorStr = this.unlockedSector < 10 ? `0${this.unlockedSector}` : `${this.unlockedSector}`;
+    let statusText = `PILOT: ${pilotNameStr}  •  FORTSCHRITT: SEKTOR ${sectorStr}`;
+
     if (endlessMode && endlessMode.bestFloor > 1) {
-      ctx.font = 'bold 10px "Share Tech Mono", monospace';
-      ctx.fillStyle = CONFIG.COLORS.RESONATOR;
-      ctx.fillText(`🏆 ENDLESS: ETAGE ${endlessMode.bestFloor} (${endlessMode.bestCrystals} KRISTALLE)`, CONFIG.CANVAS_WIDTH / 2, 142);
+      statusText += `  •  ENDLESS: ETAGE ${endlessMode.bestFloor}`;
     }
 
-    // 5. Menu Options - Clean vertical uniform cards
-    const optYStart = 168;
-    const optH = 43;
-    const btnW = 380;
+    ctx.fillStyle = isGuest ? '#a0c0d0' : '#00ff88';
+    ctx.fillText(statusText, CONFIG.CANVAS_WIDTH / 2, badgeY + badgeH / 2);
 
-    for (let i = 0; i < this.options.length; i++) {
-      const opt = this.options[i];
-      const isSelected = i === this.selectedIndex;
-      const y = optYStart + i * optH;
+    // 5. Primary Tier: 2 Large Prominent Cards
+    const primDefs = [
+      { idx: 0, y: 148, h: 68 },
+      { idx: 1, y: 226, h: 68 }
+    ];
+    const cardW = 504;
+    const cardX = CONFIG.CANVAS_WIDTH / 2 - cardW / 2;
+
+    for (let item of primDefs) {
+      const opt = this.options[item.idx];
+      const isSelected = this.selectedIndex === item.idx;
 
       ctx.save();
       if (isSelected) {
-        ctx.fillStyle = 'rgba(0, 240, 255, 0.14)';
-        ctx.fillRect(CONFIG.CANVAS_WIDTH / 2 - btnW / 2, y - 15, btnW, 32);
+        // Active Primary Card
+        ctx.fillStyle = 'rgba(0, 240, 255, 0.12)';
+        ctx.fillRect(cardX, item.y, cardW, item.h);
 
-        ctx.strokeStyle = CONFIG.COLORS.PLAYER;
+        ctx.strokeStyle = '#00f0ff';
         ctx.lineWidth = 1.5;
-        ctx.shadowBlur = 0;
-        ctx.strokeRect(CONFIG.CANVAS_WIDTH / 2 - btnW / 2, y - 15, btnW, 32);
+        ctx.strokeRect(cardX, item.y, cardW, item.h);
 
-        ctx.font = 'bold 14px "Share Tech Mono", monospace';
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillText(opt.label, CONFIG.CANVAS_WIDTH / 2, y + 1);
+        // Left accent bar
+        ctx.fillStyle = '#00f0ff';
+        ctx.fillRect(cardX, item.y, 4, item.h);
+
+        // Title
+        ctx.textAlign = 'left';
+        ctx.font = '700 18px "Chakra Petch", "JetBrains Mono", monospace';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(opt.title, cardX + 22, item.y + 24);
+
+        // Subtitle
+        ctx.font = '500 12px "Chakra Petch", "JetBrains Mono", monospace';
+        ctx.fillStyle = '#00f0ff';
+        ctx.fillText(opt.subtitle, cardX + 22, item.y + 48);
+
+        // Right Tag
+        ctx.textAlign = 'right';
+        ctx.font = '700 11px "Chakra Petch", "JetBrains Mono", monospace';
+        ctx.fillStyle = '#00f0ff';
+        ctx.fillText(opt.tag, cardX + cardW - 20, item.y + 34);
       } else {
-        const isSpecial = opt.id === 'PROFILE' || opt.id === 'LEADERBOARD';
-        const isTutorial = opt.id === 'TUTORIAL';
-        const pulseAlpha = isTutorial ? 0.04 + Math.sin(time * 3) * 0.03 : 0.03;
+        // Inactive Primary Card
+        ctx.fillStyle = 'rgba(5, 14, 22, 0.75)';
+        ctx.fillRect(cardX, item.y, cardW, item.h);
 
-        ctx.fillStyle = `rgba(0, 240, 255, ${pulseAlpha})`;
-        ctx.fillRect(CONFIG.CANVAS_WIDTH / 2 - btnW / 2, y - 15, btnW, 32);
-
-        ctx.strokeStyle = isSpecial
-          ? 'rgba(0, 240, 255, 0.25)'
-          : (isTutorial ? 'rgba(255, 230, 0, 0.35)' : 'rgba(0, 240, 255, 0.12)');
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.22)';
         ctx.lineWidth = 1;
-        ctx.strokeRect(CONFIG.CANVAS_WIDTH / 2 - btnW / 2, y - 15, btnW, 32);
+        ctx.strokeRect(cardX, item.y, cardW, item.h);
 
-        ctx.font = '13px "Share Tech Mono", monospace';
-        ctx.fillStyle = isTutorial
-          ? CONFIG.COLORS.RESONATOR
-          : (isSpecial ? CONFIG.COLORS.PLAYER : CONFIG.COLORS.TEXT_DIM);
-        ctx.shadowBlur = 0;
-        ctx.fillText(opt.label, CONFIG.CANVAS_WIDTH / 2, y + 1);
+        // Title
+        ctx.textAlign = 'left';
+        ctx.font = '700 17px "Chakra Petch", "JetBrains Mono", monospace';
+        ctx.fillStyle = '#00f0ff';
+        ctx.fillText(opt.title, cardX + 20, item.y + 24);
+
+        // Subtitle
+        ctx.font = '500 12px "Chakra Petch", "JetBrains Mono", monospace';
+        ctx.fillStyle = '#607b8b';
+        ctx.fillText(opt.subtitle, cardX + 20, item.y + 48);
+
+        // Right Tag
+        ctx.textAlign = 'right';
+        ctx.font = '600 11px "Chakra Petch", "JetBrains Mono", monospace';
+        ctx.fillStyle = '#456070';
+        ctx.fillText(opt.tag, cardX + cardW - 20, item.y + 34);
       }
       ctx.restore();
     }
 
-    // 6. Selected Option Description
-    const currentOpt = this.options[this.selectedIndex];
-    if (currentOpt) {
-      ctx.font = '12px "Share Tech Mono", monospace';
-      ctx.fillStyle = CONFIG.COLORS.CRYSTAL;
-      ctx.shadowBlur = 0;
-      ctx.fillText(`// ${currentOpt.desc}`, CONFIG.CANVAS_WIDTH / 2, 442);
+    // 6. Secondary Tier: 3 Compact Action Buttons
+    const secY = 308;
+    const secH = 40;
+    const secBtnW = 158;
+    const secGap = 15;
+    const secStartX = cardX;
+
+    const secIndices = [2, 3, 4];
+    for (let i = 0; i < secIndices.length; i++) {
+      const idx = secIndices[i];
+      const opt = this.options[idx];
+      const isSelected = this.selectedIndex === idx;
+      const x = secStartX + i * (secBtnW + secGap);
+
+      ctx.save();
+      if (isSelected) {
+        ctx.fillStyle = 'rgba(0, 240, 255, 0.18)';
+        ctx.fillRect(x, secY, secBtnW, secH);
+
+        ctx.strokeStyle = '#00f0ff';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(x, secY, secBtnW, secH);
+
+        ctx.textAlign = 'center';
+        ctx.font = '700 11.5px "Chakra Petch", "JetBrains Mono", monospace';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(opt.title, x + secBtnW / 2, secY + secH / 2);
+      } else {
+        ctx.fillStyle = 'rgba(5, 14, 22, 0.7)';
+        ctx.fillRect(x, secY, secBtnW, secH);
+
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.18)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x, secY, secBtnW, secH);
+
+        ctx.textAlign = 'center';
+        ctx.font = '600 11px "Chakra Petch", "JetBrains Mono", monospace';
+        ctx.fillStyle = '#7895a5';
+        ctx.fillText(opt.title, x + secBtnW / 2, secY + secH / 2);
+      }
+      ctx.restore();
     }
 
-    // 7. Minimal Footer Instructions
-    ctx.font = '11px "Share Tech Mono", monospace';
-    ctx.fillStyle = CONFIG.COLORS.TEXT_DIM;
-    ctx.shadowBlur = 0;
-    ctx.fillText('[W/S/▲/▼] AUSWAHL  •  [SPACE / ENTER] START  •  [F] VOLLBILD', CONFIG.CANVAS_WIDTH / 2, 515);
+    // 7. Context-Aware Description Box (Well within 504px card width)
+    const descBoxY = 360;
+    const descBoxH = 34;
+    const descBoxW = cardW;
+    const descBoxX = cardX;
+
+    ctx.fillStyle = 'rgba(0, 240, 255, 0.03)';
+    ctx.fillRect(descBoxX, descBoxY, descBoxW, descBoxH);
+    ctx.strokeStyle = 'rgba(0, 240, 255, 0.12)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(descBoxX, descBoxY, descBoxW, descBoxH);
+
+    const currentOpt = this.options[this.selectedIndex];
+    if (currentOpt) {
+      ctx.textAlign = 'center';
+      ctx.font = '500 11px "Chakra Petch", "JetBrains Mono", monospace';
+      ctx.fillStyle = '#a0e0ff';
+      ctx.fillText(`// ${currentOpt.desc}`, CONFIG.CANVAS_WIDTH / 2, descBoxY + descBoxH / 2);
+    }
+
+    // 8. Clean Minimal Footer Navigation Hints
+    ctx.textAlign = 'center';
+    ctx.font = '500 11px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.fillStyle = '#556e7d';
+    ctx.fillText('W / S / Pfeiltasten: Navigieren  •  Enter: Bestätigen  •  F: Vollbild', CONFIG.CANVAS_WIDTH / 2, 532);
 
     ctx.restore();
   }
@@ -309,25 +458,25 @@ export class MenuSystem {
     const totalSectors = LEVELS.length; // 10
 
     ctx.save();
-    ctx.fillStyle = CONFIG.COLORS.BG;
+    ctx.fillStyle = '#05070a';
     ctx.fillRect(0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
 
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-
-    ctx.font = 'bold 24px "Share Tech Mono", monospace';
-    ctx.fillStyle = CONFIG.COLORS.PLAYER;
     ctx.shadowBlur = 0;
-    ctx.fillText('SEKTOR-AUSWAHL // 10 SECTORS', CONFIG.CANVAS_WIDTH / 2, 55);
 
-    ctx.font = '12px "Share Tech Mono", monospace';
-    ctx.fillStyle = CONFIG.COLORS.TEXT_DIM;
-    ctx.shadowBlur = 0;
-    ctx.fillText(`FREIGESCHALTET: SEKTOR 01 BIS 0${Math.min(10, this.unlockedSector)}`, CONFIG.CANVAS_WIDTH / 2, 88);
+    // Header
+    ctx.font = '700 24px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.fillStyle = '#00f0ff';
+    ctx.fillText('SEKTOR-AUSWAHL // 10 SEKTOREN', CONFIG.CANVAS_WIDTH / 2, 52);
+
+    ctx.font = '500 12px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.fillStyle = '#607b8b';
+    ctx.fillText(`FREIGESCHALTET: SEKTOR 01 BIS 0${Math.min(10, this.unlockedSector)}`, CONFIG.CANVAS_WIDTH / 2, 84);
 
     // 2x5 Grid of Sector Cards
     const startX = 70;
-    const startY = 125;
+    const startY = 120;
     const cardW = 120;
     const cardH = 120;
     const gapX = 18;
@@ -346,70 +495,60 @@ export class MenuSystem {
       ctx.save();
       if (isSelected) {
         ctx.fillStyle = isUnlocked ? 'rgba(0, 240, 255, 0.16)' : 'rgba(255, 30, 68, 0.1)';
-        ctx.strokeStyle = isUnlocked ? CONFIG.COLORS.PLAYER : CONFIG.COLORS.HUNTER;
+        ctx.strokeStyle = isUnlocked ? '#00f0ff' : '#ff1e44';
         ctx.lineWidth = 2;
-        ctx.shadowBlur = 0;
       } else {
         ctx.fillStyle = isUnlocked ? '#06131c' : '#0a080d';
         ctx.strokeStyle = isUnlocked ? 'rgba(0, 240, 255, 0.3)' : 'rgba(255, 255, 255, 0.1)';
         ctx.lineWidth = 1;
-        ctx.shadowBlur = 0;
       }
 
       ctx.fillRect(x, y, cardW, cardH);
       ctx.strokeRect(x, y, cardW, cardH);
 
-      // Card Content
       const numStr = i + 1 < 10 ? `0${i + 1}` : `${i + 1}`;
       ctx.textAlign = 'center';
 
       if (isUnlocked) {
-        ctx.font = 'bold 18px "Share Tech Mono", monospace';
-        ctx.fillStyle = isSelected ? '#FFFFFF' : CONFIG.COLORS.PLAYER;
-        ctx.shadowBlur = 0;
+        ctx.font = '700 17px "Chakra Petch", "JetBrains Mono", monospace';
+        ctx.fillStyle = isSelected ? '#FFFFFF' : '#00f0ff';
         ctx.fillText(`SEKTOR ${numStr}`, x + cardW / 2, y + 28);
 
         if (stats) {
-          ctx.font = 'bold 14px "Share Tech Mono", monospace';
-          ctx.fillStyle = stats.rank === 'S' ? '#FFE600' : CONFIG.COLORS.CRYSTAL;
-          ctx.fillText(`RANG [ ${stats.rank} ]`, x + cardW / 2, y + 58);
+          ctx.font = '700 13px "Chakra Petch", "JetBrains Mono", monospace';
+          ctx.fillStyle = stats.rank === 'S' ? '#FFE600' : '#00ff88';
+          ctx.fillText(`RANG ${stats.rank}`, x + cardW / 2, y + 58);
 
-          ctx.font = '10px "Share Tech Mono", monospace';
-          ctx.fillStyle = CONFIG.COLORS.TEXT_DIM;
+          ctx.font = '500 11px "Chakra Petch", "JetBrains Mono", monospace';
+          ctx.fillStyle = '#607b8b';
           ctx.fillText(`${stats.time.toFixed(1)}s`, x + cardW / 2, y + 84);
         } else {
-          ctx.font = '11px "Share Tech Mono", monospace';
-          ctx.fillStyle = CONFIG.COLORS.TEXT_DIM;
+          ctx.font = '600 11px "Chakra Petch", "JetBrains Mono", monospace';
+          ctx.fillStyle = '#607b8b';
           ctx.fillText('OFFEN', x + cardW / 2, y + 68);
         }
       } else {
-        ctx.font = 'bold 17px "Share Tech Mono", monospace';
+        ctx.font = '700 16px "Chakra Petch", "JetBrains Mono", monospace';
         ctx.fillStyle = '#4a5760';
-        ctx.shadowBlur = 0;
         ctx.fillText(`SEKTOR ${numStr}`, x + cardW / 2, y + 32);
 
-        ctx.font = '20px "Share Tech Mono", monospace';
-        ctx.fillStyle = '#ff4455';
-        ctx.fillText('🔒', x + cardW / 2, y + 68);
-
-        ctx.font = '10px "Share Tech Mono", monospace';
-        ctx.fillStyle = '#663344';
-        ctx.fillText('GESPERRT', x + cardW / 2, y + 96);
+        ctx.font = '700 12px "Chakra Petch", "JetBrains Mono", monospace';
+        ctx.fillStyle = '#883344';
+        ctx.fillText('GESPERRT', x + cardW / 2, y + 70);
       }
       ctx.restore();
     }
 
     // Back Button
     ctx.fillStyle = '#0a1722';
-    ctx.fillRect(CONFIG.CANVAS_WIDTH / 2 - 80, 480, 160, 36);
-    ctx.strokeStyle = CONFIG.COLORS.PLAYER;
+    ctx.fillRect(CONFIG.CANVAS_WIDTH / 2 - 90, 480, 180, 36);
+    ctx.strokeStyle = '#00f0ff';
     ctx.lineWidth = 1.5;
-    ctx.strokeRect(CONFIG.CANVAS_WIDTH / 2 - 80, 480, 160, 36);
+    ctx.strokeRect(CONFIG.CANVAS_WIDTH / 2 - 90, 480, 180, 36);
 
-    ctx.font = 'bold 14px "Share Tech Mono", monospace';
-    ctx.fillStyle = CONFIG.COLORS.PLAYER;
-    ctx.shadowBlur = 0;
-    ctx.fillText('<< ZURÜCK [ESC]', CONFIG.CANVAS_WIDTH / 2, 498);
+    ctx.font = '700 13px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.fillStyle = '#00f0ff';
+    ctx.fillText('← ZURÜCK (ESC)', CONFIG.CANVAS_WIDTH / 2, 498);
 
     ctx.restore();
   }

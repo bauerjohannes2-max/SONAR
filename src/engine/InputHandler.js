@@ -17,6 +17,7 @@ export class InputHandler {
     this.actionTriggered = false;
     this.restartTriggered = false;
     this.menuTriggered = false;
+    this.settingsTriggered = false;
     this.escapeTriggered = false;
     this.mouseClick = null;
     this.isShiftHeld = false;
@@ -32,6 +33,12 @@ export class InputHandler {
 
   setupListeners() {
     window.addEventListener('keydown', (e) => {
+      // 1. Strict Input Isolation: Do not trigger game/menu shortcuts when typing in inputs
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
+        if (e.key === 'Escape') e.target.blur();
+        return;
+      }
+
       this.keys[e.code] = true;
 
       if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
@@ -65,6 +72,8 @@ export class InputHandler {
         this.restartTriggered = true;
       } else if (e.code === 'KeyM') {
         this.menuTriggered = true;
+      } else if (e.code === 'KeyO') {
+        this.settingsTriggered = true;
       } else if (e.code === 'Escape') {
         this.escapeTriggered = true;
         e.preventDefault();
@@ -72,6 +81,10 @@ export class InputHandler {
     });
 
     window.addEventListener('keyup', (e) => {
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
+        return;
+      }
+
       this.keys[e.code] = false;
       if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
         this.isShiftHeld = false;
@@ -139,6 +152,12 @@ export class InputHandler {
     const e = this.escapeTriggered;
     this.escapeTriggered = false;
     return e;
+  }
+
+  consumeSettings() {
+    const s = this.settingsTriggered;
+    this.settingsTriggered = false;
+    return s;
   }
 
   consumeMouseClick() {

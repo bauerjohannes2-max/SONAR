@@ -21,10 +21,10 @@ export class HUD {
     ctx.save();
 
     // Top Status Header Banner
-    ctx.fillStyle = 'rgba(3, 3, 5, 0.88)';
+    ctx.fillStyle = 'rgba(3, 7, 12, 0.90)';
     ctx.fillRect(0, 0, this.width, 36);
 
-    ctx.strokeStyle = '#122332';
+    ctx.strokeStyle = 'rgba(0, 240, 255, 0.2)';
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(0, 36);
@@ -32,20 +32,18 @@ export class HUD {
     ctx.stroke();
 
     ctx.textBaseline = 'middle';
+    ctx.shadowBlur = 0;
 
     // Sector / Endless Floor Title
-    ctx.font = 'bold 12px "Share Tech Mono", monospace';
+    ctx.font = '700 12px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.textAlign = 'left';
     ctx.fillStyle = isEndless ? CONFIG.COLORS.RESONATOR : CONFIG.COLORS.PLAYER;
-    ctx.shadowColor = ctx.fillStyle;
-    ctx.shadowBlur = 2;
     ctx.fillText(isEndless ? `ENDLESS ECHO // ETAGE ${String(floor).padStart(2, '0')}` : levelData.name, 16, 18);
 
     // Crystals Collected Status
     ctx.textAlign = 'center';
+    ctx.font = '600 12px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = crystalsLeft === 0 ? CONFIG.COLORS.CRYSTAL : CONFIG.COLORS.TEXT_MAIN;
-    ctx.shadowColor = crystalsLeft === 0 ? CONFIG.COLORS.CRYSTAL : 'transparent';
-    ctx.shadowBlur = crystalsLeft === 0 ? 2 : 0;
     const crystalText = crystalsLeft === 0
       ? '★ SCHLEUSE GEÖFFNET! FLÜCHTE ZUR EXTRAKTION ★'
       : `◆ KRISTALLE: ${totalCrystals - crystalsLeft} / ${totalCrystals}`;
@@ -56,18 +54,16 @@ export class HUD {
 
     // Sneak indicator
     if (player && player.isSneaking) {
+      ctx.font = '700 11px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.fillStyle = CONFIG.COLORS.CRYSTAL;
-      ctx.shadowColor = CONFIG.COLORS.CRYSTAL;
-      ctx.shadowBlur = 2;
-      ctx.fillText('[SCHLEICHEN]', this.width - 320, 18);
+      ctx.fillText('SCHLEICHEN', this.width - 320, 18);
     }
 
     // Decoy counter
     if (player) {
+      ctx.font = '600 11px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.fillStyle = player.decoysRemaining > 0 ? CONFIG.COLORS.DECOY : CONFIG.COLORS.TEXT_DIM;
-      ctx.shadowColor = player.decoysRemaining > 0 ? CONFIG.COLORS.DECOY : 'transparent';
-      ctx.shadowBlur = player.decoysRemaining > 0 ? 2 : 0;
-      ctx.fillText(`KÖDER [E]: ${player.decoysRemaining}/1`, this.width - 200, 18);
+      ctx.fillText(`KÖDER (E): ${player.decoysRemaining}/1`, this.width - 200, 18);
     }
 
     // Ping Cooldown Text & Bar
@@ -77,10 +73,8 @@ export class HUD {
     const barX = this.width - barW - 16;
     const barY = 14;
 
-    ctx.font = 'bold 11px "Share Tech Mono", monospace';
+    ctx.font = '700 11px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = pingSec > 0 ? '#ff8899' : CONFIG.COLORS.PLAYER;
-    ctx.shadowColor = pingSec > 0 ? '#ff4466' : CONFIG.COLORS.PLAYER;
-    ctx.shadowBlur = 2;
     ctx.fillText(pingSec > 0 ? `PING: ${pingSec}s` : 'PING: BEREIT', barX - 10, 18);
 
     ctx.fillStyle = '#061520';
@@ -103,23 +97,22 @@ export class HUD {
     const ctx = this.ctx;
     ctx.save();
 
-    ctx.fillStyle = 'rgba(3, 3, 5, 0.92)';
+    ctx.fillStyle = 'rgba(3, 7, 12, 0.92)';
     ctx.fillRect(0, 0, this.width, this.height);
 
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
+    ctx.shadowBlur = 0;
 
-    ctx.font = 'bold 28px "Share Tech Mono", monospace';
+    ctx.font = '700 28px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = CONFIG.COLORS.PLAYER;
-    ctx.shadowColor = CONFIG.COLORS.PLAYER;
-    ctx.shadowBlur = 2;
     ctx.fillText('PAUSE // SYSTEM BEREIT', this.width / 2, 120);
 
     const buttons = [
-      { text: '▶ WEITERSPIELEN [ESC / SPACE]', y: 200, color: CONFIG.COLORS.PLAYER },
-      { text: '➔ LEVEL-ÜBERSICHT [L]', y: 255, color: CONFIG.COLORS.CRYSTAL },
-      { text: '↺ SEKTOR-NEUSTART [R]', y: 310, color: CONFIG.COLORS.TEXT_MAIN },
-      { text: '⎋ HAUPTMENÜ [M]', y: 365, color: CONFIG.COLORS.TEXT_DIM }
+      { text: '▶ WEITERSPIELEN (ESC / SPACE)', y: 200, color: CONFIG.COLORS.PLAYER },
+      { text: '➔ LEVEL-ÜBERSICHT (L)', y: 255, color: CONFIG.COLORS.CRYSTAL },
+      { text: '↺ SEKTOR-NEUSTART (R)', y: 310, color: CONFIG.COLORS.TEXT_MAIN },
+      { text: '⎋ HAUPTMENÜ (M)', y: 365, color: CONFIG.COLORS.TEXT_DIM }
     ];
 
     buttons.forEach((b) => {
@@ -129,10 +122,8 @@ export class HUD {
       ctx.lineWidth = 1.5;
       ctx.strokeRect(this.width / 2 - 180, b.y - 18, 360, 36);
 
-      ctx.font = 'bold 14px "Share Tech Mono", monospace';
+      ctx.font = '700 13.5px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.fillStyle = b.color;
-      ctx.shadowColor = b.color;
-      ctx.shadowBlur = 1;
       ctx.fillText(b.text, this.width / 2, b.y);
     });
 
@@ -151,31 +142,29 @@ export class HUD {
 
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
+    ctx.shadowBlur = 0;
 
-    ctx.font = 'bold 30px "Share Tech Mono", monospace';
+    ctx.font = '700 28px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = CONFIG.COLORS.HUNTER;
-    ctx.shadowColor = CONFIG.COLORS.HUNTER_GLOW;
-    ctx.shadowBlur = 3;
 
     const title = deathCause === 'WALL_CRASH'
-      ? 'DRONEN-KOLLISION // AN WAND ZERSCHELLT'
+      ? 'DROHNEN-KOLLISION // AN WAND ZERSCHELLT'
       : 'SIGNAL VERLOREN // ELIMINIERT';
     ctx.fillText(title, this.width / 2, 110);
 
-    ctx.font = '13px "Share Tech Mono", monospace';
+    ctx.font = '500 13px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = '#ff8899';
-    ctx.shadowBlur = 0;
     const subText = deathCause === 'WALL_CRASH'
-      ? 'Die Drohne hält Wandaufprallen nicht stand! Nutze Pings [SPACE] & bewege dich vorsichtig.'
+      ? 'Die Drohne hält Wandaufprallen nicht stand! Nutze Pings (SPACE) & bewege dich vorsichtig.'
       : (isEndless
         ? `Drohne auf Etage ${floor} zerstört // Raubtier-Kontakt`
         : `Drohne in Sektor 0${sectorIndex + 1} zerstört // Raubtier-Kontakt`);
     ctx.fillText(subText, this.width / 2, 160);
 
     const buttons = [
-      { text: '↺ SEKTOR-NEUSTART [R / SPACE]', y: 240, color: CONFIG.COLORS.HUNTER },
-      { text: '➔ LEVEL-ÜBERSICHT [L]', y: 300, color: CONFIG.COLORS.CRYSTAL },
-      { text: '⎋ HAUPTMENÜ [M]', y: 360, color: CONFIG.COLORS.TEXT_DIM }
+      { text: '↺ SEKTOR-NEUSTART (R / SPACE)', y: 240, color: CONFIG.COLORS.HUNTER },
+      { text: '➔ LEVEL-ÜBERSICHT (L)', y: 300, color: CONFIG.COLORS.CRYSTAL },
+      { text: '⎋ HAUPTMENÜ (M)', y: 360, color: CONFIG.COLORS.TEXT_DIM }
     ];
 
     buttons.forEach((b) => {
@@ -185,10 +174,8 @@ export class HUD {
       ctx.lineWidth = 1.5;
       ctx.strokeRect(this.width / 2 - 180, b.y - 18, 360, 36);
 
-      ctx.font = 'bold 14px "Share Tech Mono", monospace';
+      ctx.font = '700 13.5px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.fillStyle = b.color;
-      ctx.shadowColor = b.color;
-      ctx.shadowBlur = 1;
       ctx.fillText(b.text, this.width / 2, b.y);
     });
 
@@ -207,11 +194,10 @@ export class HUD {
 
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
+    ctx.shadowBlur = 0;
 
-    ctx.font = 'bold 30px "Share Tech Mono", monospace';
+    ctx.font = '700 28px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = CONFIG.COLORS.CRYSTAL;
-    ctx.shadowColor = CONFIG.COLORS.CRYSTAL_GLOW;
-    ctx.shadowBlur = 18;
     const title = isEndless
       ? `ETAGE ${currentSectorIndex} BEREINIGT!`
       : `SEKTOR 0${currentSectorIndex + 1} GESICHERT!`;
@@ -219,11 +205,9 @@ export class HUD {
 
     // Rank Badge
     const rank = stats.rank || 'A';
-    ctx.font = 'bold 48px "Share Tech Mono", monospace';
+    ctx.font = '700 44px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = rank === 'S' ? '#FFE600' : (rank === 'A' ? CONFIG.COLORS.CRYSTAL : CONFIG.COLORS.PLAYER);
-    ctx.shadowColor = ctx.fillStyle;
-    ctx.shadowBlur = 20;
-    ctx.fillText(`RANG [ ${rank} ]`, this.width / 2, 140);
+    ctx.fillText(`RANG ${rank}`, this.width / 2, 140);
 
     // Performance Stats Box
     const boxW = 400;
@@ -235,28 +219,26 @@ export class HUD {
     ctx.fillRect(boxX, boxY, boxW, boxH);
     ctx.strokeStyle = CONFIG.COLORS.CRYSTAL;
     ctx.lineWidth = 1.5;
-    ctx.shadowColor = CONFIG.COLORS.CRYSTAL_GLOW;
     ctx.strokeRect(boxX, boxY, boxW, boxH);
 
-    ctx.font = '13px "Share Tech Mono", monospace';
+    ctx.font = '500 13px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.textAlign = 'left';
     ctx.fillStyle = CONFIG.COLORS.TEXT_MAIN;
-    ctx.shadowBlur = 0;
 
     ctx.fillText(`• EINSATZDAUER : ${stats.time.toFixed(1)} s`, boxX + 30, boxY + 30);
     ctx.fillText(`• SONAR-PINGS  : ${stats.pingsUsed}`, boxX + 30, boxY + 58);
     ctx.fillText(`• SCHRITTE     : ${stats.stepsTaken}`, boxX + 30, boxY + 86);
 
     const nextActionLabel = isEndless
-      ? '▶ NÄCHSTE ETAGE [SPACE / ENTER]'
+      ? '▶ NÄCHSTE ETAGE (SPACE / ENTER)'
       : (currentSectorIndex + 1 < totalSectors
-        ? '▶ NÄCHSTER SEKTOR [SPACE / ENTER]'
-        : '★ KAMPAGNE BEENDET [SPACE] ★');
+        ? '▶ NÄCHSTER SEKTOR (SPACE / ENTER)'
+        : '★ KAMPAGNE BEENDET (SPACE) ★');
 
     const buttons = [
       { text: nextActionLabel, y: 325, color: CONFIG.COLORS.CRYSTAL },
-      { text: '➔ LEVEL-ÜBERSICHT [L]', y: 380, color: CONFIG.COLORS.PLAYER },
-      { text: '⎋ HAUPTMENÜ [M]', y: 435, color: CONFIG.COLORS.TEXT_DIM }
+      { text: '➔ LEVEL-ÜBERSICHT (L)', y: 380, color: CONFIG.COLORS.PLAYER },
+      { text: '⎋ HAUPTMENÜ (M)', y: 435, color: CONFIG.COLORS.TEXT_DIM }
     ];
 
     buttons.forEach((b) => {
@@ -266,11 +248,9 @@ export class HUD {
       ctx.lineWidth = 1.5;
       ctx.strokeRect(this.width / 2 - 180, b.y - 18, 360, 36);
 
-      ctx.font = 'bold 14px "Share Tech Mono", monospace';
+      ctx.font = '700 13.5px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.textAlign = 'center';
       ctx.fillStyle = b.color;
-      ctx.shadowColor = b.color;
-      ctx.shadowBlur = 6;
       ctx.fillText(b.text, this.width / 2, b.y);
     });
 
@@ -289,26 +269,23 @@ export class HUD {
 
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
+    ctx.shadowBlur = 0;
 
-    ctx.font = 'bold 34px "Share Tech Mono", monospace';
+    ctx.font = '700 32px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = CONFIG.COLORS.PLAYER;
-    ctx.shadowColor = CONFIG.COLORS.PLAYER;
-    ctx.shadowBlur = 24;
     ctx.fillText('KAMPAGNE VOLLENDET', this.width / 2, 110);
 
-    ctx.font = '14px "Share Tech Mono", monospace';
+    ctx.font = '600 13.5px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = CONFIG.COLORS.CRYSTAL;
-    ctx.shadowBlur = 8;
     ctx.fillText('ALLE 10 SEKTOREN ERFOLGREICH BEREINIGT // APEX-STATUS ERREICHT', this.width / 2, 170);
 
-    ctx.font = '13px "Share Tech Mono", monospace';
+    ctx.font = '500 12.5px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = CONFIG.COLORS.TEXT_DIM;
-    ctx.shadowBlur = 0;
     ctx.fillText('Teste deine Fähigkeiten im unendlichen Roguelike "ENDLESS ECHO".', this.width / 2, 210);
 
     const buttons = [
-      { text: '➔ LEVEL-ÜBERSICHT [L]', y: 300, color: CONFIG.COLORS.CRYSTAL },
-      { text: '⎋ HAUPTMENÜ [M / SPACE]', y: 360, color: CONFIG.COLORS.PLAYER }
+      { text: '➔ LEVEL-ÜBERSICHT (L)', y: 300, color: CONFIG.COLORS.CRYSTAL },
+      { text: '⎋ HAUPTMENÜ (M / SPACE)', y: 360, color: CONFIG.COLORS.PLAYER }
     ];
 
     buttons.forEach((b) => {
@@ -318,10 +295,8 @@ export class HUD {
       ctx.lineWidth = 1.5;
       ctx.strokeRect(this.width / 2 - 180, b.y - 18, 360, 36);
 
-      ctx.font = 'bold 14px "Share Tech Mono", monospace';
+      ctx.font = '700 13.5px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.fillStyle = b.color;
-      ctx.shadowColor = b.color;
-      ctx.shadowBlur = 6;
       ctx.fillText(b.text, this.width / 2, b.y);
     });
 

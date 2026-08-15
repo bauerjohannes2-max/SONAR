@@ -29,7 +29,7 @@ export class LeaderboardModal {
         <div class="modal-header">
           <div class="modal-title">
             <span class="status-dot"></span>
-            <span>🏆 GLOBAL FIRESTORE LEADERBOARD // TOP 10 PILOTEN</span>
+            <span>GLOBALES LEADERBOARD // TOP 10 PILOTEN</span>
           </div>
           <button id="modal-lb-close-btn" class="modal-close-btn">✕</button>
         </div>
@@ -41,7 +41,7 @@ export class LeaderboardModal {
               <span id="lb-status-text">// STATUS: VERBINDE...</span>
             </div>
             <button id="btn-lb-refresh" class="modal-btn modal-btn-small">
-              [ ⟳ AKTUALISIEREN ]
+              ⟳ AKTUALISIEREN
             </button>
           </div>
 
@@ -66,7 +66,7 @@ export class LeaderboardModal {
 
         <div class="modal-footer">
           <button id="btn-lb-back" class="modal-btn modal-btn-dim">
-            << ZURÜCK ZUM MENÜ [ESC]
+            ← ZURÜCK ZUM MENÜ (ESC)
           </button>
         </div>
       </div>
@@ -120,15 +120,15 @@ export class LeaderboardModal {
 
     tbody.innerHTML = data.entries.map((entry) => {
       const isTop3 = entry.rank <= 3;
-      const rankBadge = entry.rank === 1 ? '🥇 01' : (entry.rank === 2 ? '🥈 02' : (entry.rank === 3 ? '🥉 03' : `0${entry.rank}`));
+      const rankBadge = entry.rank < 10 ? `0${entry.rank}` : `${entry.rank}`;
       const rowClass = (entry.isCurrentPlayer ? 'current-player-row ' : '') + (isTop3 ? 'top-rank-row' : '');
 
       return `
         <tr class="${rowClass}">
-          <td class="col-rank"><strong>${rankBadge}</strong></td>
+          <td class="col-rank"><strong>#${rankBadge}</strong></td>
           <td class="col-pilot">
             <span class="pilot-name">${entry.callsign}</span>
-            ${entry.isCurrentPlayer ? '<span class="you-tag">[ DU ]</span>' : ''}
+            ${entry.isCurrentPlayer ? '<span class="you-tag">DU</span>' : ''}
           </td>
           <td class="col-level">${entry.highestLevel}</td>
           <td class="col-date">${entry.date}</td>

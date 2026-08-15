@@ -25,7 +25,7 @@ export class TutorialModal {
         category: 'GRUNDPRINZIP',
         role: 'Umgebungsphysik & Kollision',
         behavior: '100% Dunkelheit. Nur Schallwellen decken Wände auf. ACHTUNG: Blindes Laufen in Wände zerstört die Drohne sofort!',
-        counter: 'Nutze Sonar-Pings [SPACE], merke dir das Labyrinth und steuere präzise.',
+        counter: 'Nutze Sonar-Pings (SPACE), merke dir das Labyrinth und steuere präzise.',
         renderVisual: (ctx, t) => {
           ctx.fillStyle = '#030305';
           ctx.fillRect(0, 0, 280, 140);
@@ -78,7 +78,7 @@ export class TutorialModal {
         category: 'SPIELER-EINHEIT',
         role: 'Späh-Drohne (Wandkollision = Tod)',
         behavior: 'Schritte erzeugen 2.5-Tile Schallwelle. Sonar-Ping deckt Raum für 1.5s auf (3s Cooldown).',
-        counter: 'PC: [WASD] / [SHIFT] / [SPACE] / [E] / [F Vollbild] // Mobile: On-Screen D-Pad & Buttons.',
+        counter: 'PC: WASD / Shift / Space / E / F (Vollbild) // Mobile: On-Screen D-Pad & Buttons.',
         renderVisual: (ctx, t) => {
           ctx.fillStyle = '#030305';
           ctx.fillRect(0, 0, 280, 140);
@@ -126,7 +126,7 @@ export class TutorialModal {
             ctx.lineWidth = 1;
             ctx.strokeRect(130, y - 10, 140, 22);
 
-            ctx.font = 'bold 9px "Share Tech Mono", monospace';
+            ctx.font = '700 9.5px "Chakra Petch", "JetBrains Mono", monospace';
             ctx.fillStyle = '#00F0FF';
             ctx.textAlign = 'left';
             ctx.fillText(b.label, 136, y + 4);
@@ -208,7 +208,7 @@ export class TutorialModal {
         category: 'FEIND-TYP (SIGNAL-ROT)',
         role: 'Aggressiver Spitzenprädator',
         behavior: 'Blind. Hört Schritte & Pings und sprintet via kürzestem Pfad (BFS) zur Quelle.',
-        counter: 'Schleiche mit [SHIFT] an ihm vorbei oder lenke ihn mit Schall-Ködern [E] ab!',
+        counter: 'Schleiche mit Shift an ihm vorbei oder lenke ihn mit Schall-Ködern (E) ab!',
         renderVisual: (ctx, t) => {
           ctx.fillStyle = '#030305';
           ctx.fillRect(0, 0, 280, 140);
@@ -256,7 +256,7 @@ export class TutorialModal {
           ctx.restore();
 
           // Exclamation icon
-          ctx.font = 'bold 16px "Share Tech Mono", monospace';
+          ctx.font = '700 16px "Chakra Petch", "JetBrains Mono", monospace';
           ctx.fillStyle = '#FF1E44';
           ctx.textAlign = 'center';
           ctx.shadowColor = '#FF1E44';
@@ -272,7 +272,7 @@ export class TutorialModal {
         category: 'FEIND-TYP (SCHATTEN-LILA)',
         role: 'Lautloser Infiltrator',
         behavior: 'Schleicht im Dunkeln geräuschlos direkt auf deine Position zu.',
-        counter: 'FEIND-SCHWÄCHE: Löse einen Sonar-Ping [SPACE] aus -> Erstarrt 2.5s im Licht!',
+        counter: 'FEIND-SCHWÄCHE: Löse einen Sonar-Ping (SPACE) aus -> Erstarrt 2.5s im Licht!',
         renderVisual: (ctx, t) => {
           ctx.fillStyle = '#030305';
           ctx.fillRect(0, 0, 280, 140);
@@ -305,7 +305,7 @@ export class TutorialModal {
             ctx.fill();
             ctx.stroke();
 
-            ctx.font = 'bold 11px "Share Tech Mono", monospace';
+            ctx.font = '700 11px "Chakra Petch", "JetBrains Mono", monospace';
             ctx.fillStyle = '#00F0FF';
             ctx.textAlign = 'center';
             ctx.fillText('BLINDED // STUNNED 2.5s', 0, -22);
@@ -394,10 +394,10 @@ export class TutorialModal {
       {
         id: 'decoy',
         title: '07. SCHALL-KÖDER // DECOY FLARE',
-        category: 'TAKTIK-AUSRÜSTUNG [E / F]',
+        category: 'TAKTIK-AUSRÜSTUNG (E / KÖDER)',
         role: 'Ablenkungs-Wurfkörper (1x pro Sektor)',
         behavior: 'Fliegt 4 Kacheln vor und sendet 3 Sekunden lang laute Klick-Impulse aus.',
-        counter: 'Wirf den Köder mit [E], um Hunter von Engpässen wegzulocken!',
+        counter: 'Wirf den Köder mit E, um Hunter von Engpässen wegzulocken!',
         renderVisual: (ctx, t) => {
           ctx.fillStyle = '#030305';
           ctx.fillRect(0, 0, 280, 140);
@@ -518,17 +518,16 @@ export class TutorialModal {
     // Modal Header
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    ctx.font = 'bold 15px "Share Tech Mono", monospace';
+    ctx.font = '700 14px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = CONFIG.COLORS.PLAYER;
-    ctx.shadowColor = CONFIG.COLORS.PLAYER;
-    ctx.shadowBlur = 8;
-    ctx.fillText(`TAKTIK-HANDBUCH // [ KARTE ${this.currentCardIndex + 1} / ${this.cards.length} ]`, boxX + 20, boxY + 25);
+    ctx.shadowBlur = 0;
+    ctx.fillText(`TAKTIK-HANDBUCH // KARTE ${this.currentCardIndex + 1} / ${this.cards.length}`, boxX + 20, boxY + 25);
 
     // Close [X] Button in Top-Right
     ctx.textAlign = 'right';
-    ctx.font = 'bold 16px "Share Tech Mono", monospace';
+    ctx.font = '700 15px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = CONFIG.COLORS.HUNTER;
-    ctx.fillText('[ X ]', boxX + boxW - 20, boxY + 25);
+    ctx.fillText('✕', boxX + boxW - 20, boxY + 25);
 
     // Render Procedural Animated Canvas (Upper Half)
     card.renderVisual(this.miniCtx, time);
@@ -536,10 +535,9 @@ export class TutorialModal {
 
     // Card Title
     ctx.textAlign = 'center';
-    ctx.font = 'bold 15px "Share Tech Mono", monospace';
+    ctx.font = '700 14px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = CONFIG.COLORS.TEXT_MAIN;
-    ctx.shadowColor = CONFIG.COLORS.PLAYER;
-    ctx.shadowBlur = 6;
+    ctx.shadowBlur = 0;
     ctx.fillText(card.title, CONFIG.CANVAS_WIDTH / 2, boxY + 215);
 
     // Tactical Table Box (Lower Half)
@@ -563,13 +561,12 @@ export class TutorialModal {
     rows.forEach((r, i) => {
       const ry = tblY + 28 + i * 55;
       ctx.textAlign = 'left';
-      ctx.font = 'bold 11px "Share Tech Mono", monospace';
+      ctx.font = '700 11px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.fillStyle = r.color;
-      ctx.shadowColor = r.color;
-      ctx.shadowBlur = 4;
+      ctx.shadowBlur = 0;
       ctx.fillText(`• ${r.label}:`, tblX + 16, ry);
 
-      ctx.font = '11px "Share Tech Mono", monospace';
+      ctx.font = '500 11px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.fillStyle = CONFIG.COLORS.TEXT_MAIN;
       ctx.shadowBlur = 0;
       ctx.fillText(r.val, tblX + 16, ry + 20);
@@ -578,32 +575,32 @@ export class TutorialModal {
     // Navigation Buttons at Bottom
     const btnY = boxY + boxH - 30;
 
-    // [ < VORHERIGE ]
+    // VORHERIGE
     ctx.fillStyle = '#091520';
     ctx.fillRect(boxX + 24, btnY - 14, 110, 28);
     ctx.strokeStyle = CONFIG.COLORS.PLAYER;
     ctx.lineWidth = 1;
     ctx.strokeRect(boxX + 24, btnY - 14, 110, 28);
     ctx.textAlign = 'center';
-    ctx.font = 'bold 11px "Share Tech Mono", monospace';
+    ctx.font = '700 11px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = CONFIG.COLORS.PLAYER;
-    ctx.fillText('< VORHERIGE', boxX + 79, btnY);
+    ctx.fillText('← VORHERIGE', boxX + 79, btnY);
 
-    // [ SCHLIESSEN ]
+    // SCHLIESSEN
     ctx.fillStyle = '#18070b';
     ctx.fillRect(boxX + (boxW - 130) / 2, btnY - 14, 130, 28);
     ctx.strokeStyle = CONFIG.COLORS.HUNTER;
     ctx.strokeRect(boxX + (boxW - 130) / 2, btnY - 14, 130, 28);
     ctx.fillStyle = CONFIG.COLORS.HUNTER;
-    ctx.fillText('X SCHLIESSEN', boxX + boxW / 2, btnY);
+    ctx.fillText('✕ SCHLIESSEN', boxX + boxW / 2, btnY);
 
-    // [ NÄCHSTE > ]
+    // NÄCHSTE
     ctx.fillStyle = '#091520';
     ctx.fillRect(boxX + boxW - 134, btnY - 14, 110, 28);
     ctx.strokeStyle = CONFIG.COLORS.PLAYER;
     ctx.strokeRect(boxX + boxW - 134, btnY - 14, 110, 28);
     ctx.fillStyle = CONFIG.COLORS.PLAYER;
-    ctx.fillText('NÄCHSTE >', boxX + boxW - 79, btnY);
+    ctx.fillText('NÄCHSTE →', boxX + boxW - 79, btnY);
 
     ctx.restore();
   }

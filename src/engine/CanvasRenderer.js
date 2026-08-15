@@ -253,10 +253,9 @@ export class CanvasRenderer {
         ctx.save();
         ctx.translate(s.x, s.y - 18);
         ctx.fillStyle = '#FFFFFF';
-        ctx.font = 'bold 11px "Share Tech Mono", monospace';
+        ctx.font = '700 11px "Chakra Petch", "JetBrains Mono", monospace';
         ctx.textAlign = 'center';
-        ctx.shadowColor = CONFIG.COLORS.STALKER;
-        ctx.shadowBlur = 8;
+        ctx.shadowBlur = 0;
         ctx.fillText('STUNNED', 0, 0);
       } else {
         // Dark Spectral Silhouette
@@ -491,10 +490,9 @@ export class CanvasRenderer {
         ctx.save();
         ctx.translate(h.x, h.y - 18);
         ctx.fillStyle = CONFIG.COLORS.HUNTER;
-        ctx.font = 'bold 12px "Share Tech Mono", monospace';
+        ctx.font = '700 13px "Chakra Petch", "JetBrains Mono", monospace';
         ctx.textAlign = 'center';
-        ctx.shadowColor = CONFIG.COLORS.HUNTER_GLOW;
-        ctx.shadowBlur = 8;
+        ctx.shadowBlur = 0;
         ctx.fillText('!', 0, 0);
       }
 

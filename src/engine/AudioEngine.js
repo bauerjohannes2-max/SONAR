@@ -516,46 +516,45 @@ export class AudioEngine {
     if (!this.ensureContext() || this.isMuted) return;
     const now = this.ctx.currentTime;
 
-    const bufferSize = this.ctx.sampleRate * 0.4;
-    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-    const output = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      output[i] = Math.random() * 2 - 1;
-    }
+    // 1. Soft Atmospheric Pitch Drop (Sine/Triangle 300Hz -> 40Hz)
+    const pitchOsc = this.ctx.createOscillator();
+    const pitchGain = this.ctx.createGain();
+    const lowPass = this.ctx.createBiquadFilter();
 
-    const whiteNoise = this.ctx.createBufferSource();
-    whiteNoise.buffer = buffer;
+    pitchOsc.type = 'triangle';
+    pitchOsc.frequency.setValueAtTime(300, now);
+    pitchOsc.frequency.exponentialRampToValueAtTime(40, now + 0.85);
 
-    const filter = this.ctx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(800, now);
-    filter.frequency.exponentialRampToValueAtTime(80, now + 0.4);
+    lowPass.type = 'lowpass';
+    lowPass.frequency.setValueAtTime(450, now);
+    lowPass.frequency.exponentialRampToValueAtTime(60, now + 0.9);
 
-    const noiseGain = this.ctx.createGain();
-    noiseGain.gain.setValueAtTime(0.5, now);
-    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+    pitchGain.gain.setValueAtTime(0.35, now);
+    pitchGain.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
 
-    whiteNoise.connect(filter);
-    filter.connect(noiseGain);
-    noiseGain.connect(this.sfxGain);
+    pitchOsc.connect(lowPass);
+    lowPass.connect(pitchGain);
+    pitchGain.connect(this.sfxGain);
 
-    whiteNoise.start(now);
-    whiteNoise.stop(now + 0.45);
+    pitchOsc.start(now);
+    pitchOsc.stop(now + 0.95);
 
-    const osc = this.ctx.createOscillator();
-    const toneGain = this.ctx.createGain();
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(200, now);
-    osc.frequency.exponentialRampToValueAtTime(20, now + 0.6);
+    // 2. Deep Cinematic Sub-Bass Wummern (Sine 55Hz -> 28Hz with 1.2s smooth decay)
+    const subOsc = this.ctx.createOscillator();
+    const subGain = this.ctx.createGain();
 
-    toneGain.gain.setValueAtTime(0.4, now);
-    toneGain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+    subOsc.type = 'sine';
+    subOsc.frequency.setValueAtTime(55, now);
+    subOsc.frequency.exponentialRampToValueAtTime(28, now + 1.2);
 
-    osc.connect(toneGain);
-    toneGain.connect(this.sfxGain);
+    subGain.gain.setValueAtTime(0.45, now);
+    subGain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
 
-    osc.start(now);
-    osc.stop(now + 0.65);
+    subOsc.connect(subGain);
+    subGain.connect(this.sfxGain);
+
+    subOsc.start(now);
+    subOsc.stop(now + 1.25);
   }
 
   playWallCrash() {
@@ -563,47 +562,45 @@ export class AudioEngine {
     if (!this.ensureContext() || this.isMuted) return;
     const now = this.ctx.currentTime;
 
-    // 1. Metal Impact Noise Burst
-    const bufferSize = this.ctx.sampleRate * 0.25;
-    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-    const output = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      output[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.05));
-    }
-    const noise = this.ctx.createBufferSource();
-    noise.buffer = buffer;
+    // 1. Soft Cushioned Hull Impact (Triangle 260Hz -> 38Hz)
+    const impactOsc = this.ctx.createOscillator();
+    const impactGain = this.ctx.createGain();
+    const lowPass = this.ctx.createBiquadFilter();
 
-    const filter = this.ctx.createBiquadFilter();
-    filter.type = 'highpass';
-    filter.frequency.setValueAtTime(400, now);
-    filter.frequency.exponentialRampToValueAtTime(100, now + 0.2);
+    impactOsc.type = 'triangle';
+    impactOsc.frequency.setValueAtTime(260, now);
+    impactOsc.frequency.exponentialRampToValueAtTime(38, now + 0.8);
 
-    const noiseGain = this.ctx.createGain();
-    noiseGain.gain.setValueAtTime(0.7, now);
-    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+    lowPass.type = 'lowpass';
+    lowPass.frequency.setValueAtTime(400, now);
+    lowPass.frequency.exponentialRampToValueAtTime(50, now + 0.85);
 
-    noise.connect(filter);
-    filter.connect(noiseGain);
-    noiseGain.connect(this.sfxGain);
+    impactGain.gain.setValueAtTime(0.38, now);
+    impactGain.gain.exponentialRampToValueAtTime(0.001, now + 0.85);
 
-    noise.start(now);
-    noise.stop(now + 0.26);
+    impactOsc.connect(lowPass);
+    lowPass.connect(impactGain);
+    impactGain.connect(this.sfxGain);
 
-    // 2. Heavy Sub Collision Thud
-    const osc = this.ctx.createOscillator();
-    const toneGain = this.ctx.createGain();
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(320, now);
-    osc.frequency.exponentialRampToValueAtTime(30, now + 0.35);
+    impactOsc.start(now);
+    impactOsc.stop(now + 0.9);
 
-    toneGain.gain.setValueAtTime(0.6, now);
-    toneGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+    // 2. Cinematic Sub-Bass Resonance (Sine 50Hz -> 25Hz, 1.2s decay)
+    const subOsc = this.ctx.createOscillator();
+    const subGain = this.ctx.createGain();
 
-    osc.connect(toneGain);
-    toneGain.connect(this.sfxGain);
+    subOsc.type = 'sine';
+    subOsc.frequency.setValueAtTime(50, now);
+    subOsc.frequency.exponentialRampToValueAtTime(25, now + 1.2);
 
-    osc.start(now);
-    osc.stop(now + 0.36);
+    subGain.gain.setValueAtTime(0.42, now);
+    subGain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+
+    subOsc.connect(subGain);
+    subGain.connect(this.sfxGain);
+
+    subOsc.start(now);
+    subOsc.stop(now + 1.25);
   }
 
   playUIBlip() {

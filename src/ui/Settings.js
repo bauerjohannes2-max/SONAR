@@ -1,35 +1,29 @@
 /**
  * SONAR: The Echo Chamber
- * Settings & Persistence Management
+ * Modern Terminal Settings Modal with Sliders & Instant Feedback
  */
 
 import { CONFIG } from '../config.js';
 
 export class Settings {
-  constructor(audioEngine, particleEngine) {
+  constructor(audioEngine, particleEngine, onResetProgress = null) {
     this.audio = audioEngine;
     this.particles = particleEngine;
+    this.onResetProgress = onResetProgress;
 
     this.masterVolume = 0.8;
     this.sfxVolume = 0.8;
-    this.crtEffects = true;
+    this.crtEffects = false; // Turned off by default per user specification for maximum clarity
     this.screenShake = true;
 
-    this.selectedIndex = 0;
-    this.options = [
-      { id: 'master', label: 'MASTER LAUTSTÄRKE' },
-      { id: 'sfx', label: 'EFFEKT LAUTSTÄRKE (SFX)' },
-      { id: 'crt', label: 'CRT-SCANLINES & GLOW' },
-      { id: 'shake', label: 'SCREEN-SHAKE (ERSCHÜTTERUNG)' },
-      { id: 'reset_save', label: '[ FORTSCHRITT ZURÜCKSETZEN ]' },
-      { id: 'main_menu', label: '➔ HAUPTMENÜ' },
-      { id: 'back', label: '>> ZURÜCK / WEITERSPIELEN <<' }
-    ];
-
-    this.resetConfirmTimer = 0;
+    this.isOpen = false;
+    this.modalEl = null;
+    this.resetConfirmPending = false;
+    this.resetConfirmTimeout = null;
 
     this.loadSettings();
     this.applySettings();
+    this.initDOM();
   }
 
   loadSettings() {
@@ -70,7 +64,7 @@ export class Settings {
       this.particles.screenShakeEnabled = this.screenShake;
     }
 
-    // Toggle DOM elements for CRT
+    // Toggle DOM CRT elements
     const scanlines = document.querySelector('.scanlines');
     const crtOverlay = document.querySelector('.crt-overlay');
     const vignette = document.querySelector('.vignette');
@@ -80,186 +74,228 @@ export class Settings {
     if (vignette) vignette.style.display = this.crtEffects ? 'block' : 'none';
   }
 
-  handleInput(inputHandler) {
-    const move = inputHandler.getMovement();
-    if (move) {
-      if (move.dy < 0) {
-        this.selectedIndex = (this.selectedIndex - 1 + this.options.length) % this.options.length;
-        this.audio.playUIBlip();
-      } else if (move.dy > 0) {
-        this.selectedIndex = (this.selectedIndex + 1) % this.options.length;
-        this.audio.playUIBlip();
-      }
+  initDOM() {
+    const old = document.getElementById('settings-modal');
+    if (old) old.remove();
 
-      // Adjust sliders with Left/Right
-      if (move.dx !== 0) {
-        this.adjustOption(this.options[this.selectedIndex].id, move.dx);
-      }
+    const container = document.createElement('div');
+    container.id = 'settings-modal';
+    container.className = 'terminal-modal-backdrop';
+    container.style.display = 'none';
+
+    container.innerHTML = `
+      <div class="terminal-modal-box settings-modal-box">
+        <div class="modal-header">
+          <div class="modal-title">
+            <span class="status-dot"></span>
+            <span>SYSTEM-EINSTELLUNGEN // AUDIO & GRAFIK</span>
+          </div>
+          <button id="modal-settings-close-btn" class="modal-close-btn" title="Schließen (ESC)">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <!-- Master Volume Slider -->
+          <div class="settings-row">
+            <div class="settings-header-row">
+              <label for="slider-master-volume" class="settings-label">MASTER-LAUTSTÄRKE</label>
+              <span id="val-master-volume" class="settings-value-badge">${Math.round(this.masterVolume * 100)}%</span>
+            </div>
+            <input type="range" id="slider-master-volume" min="0" max="100" value="${Math.round(this.masterVolume * 100)}" class="terminal-range-slider" />
+          </div>
+
+          <!-- SFX Volume Slider -->
+          <div class="settings-row">
+            <div class="settings-header-row">
+              <label for="slider-sfx-volume" class="settings-label">SFX-LAUTSTÄRKE (EFFEKTE & SONAR)</label>
+              <span id="val-sfx-volume" class="settings-value-badge">${Math.round(this.sfxVolume * 100)}%</span>
+            </div>
+            <input type="range" id="slider-sfx-volume" min="0" max="100" value="${Math.round(this.sfxVolume * 100)}" class="terminal-range-slider" />
+          </div>
+
+          <!-- CRT Scanlines Toggle -->
+          <div class="settings-toggle-row">
+            <div>
+              <div class="settings-label">CRT-SCANLINES & RETRO-GLOW</div>
+              <div class="field-hint">Aktiviert subtile Röhrenmonitor-Scanlines</div>
+            </div>
+            <button id="btn-toggle-crt" class="modal-btn modal-btn-toggle ${this.crtEffects ? 'active' : ''}">
+              ${this.crtEffects ? 'AN' : 'AUS'}
+            </button>
+          </div>
+
+          <!-- Screen Shake Toggle -->
+          <div class="settings-toggle-row">
+            <div>
+              <div class="settings-label">SCREEN-SHAKE (ERSCHÜTTERUNG)</div>
+              <div class="field-hint">Kamera-Erschütterung bei Kollisionen & Schockwellen</div>
+            </div>
+            <button id="btn-toggle-shake" class="modal-btn modal-btn-toggle ${this.screenShake ? 'active' : ''}">
+              ${this.screenShake ? 'AN' : 'AUS'}
+            </button>
+          </div>
+
+          <!-- Reset Save State -->
+          <div style="margin-top: 6px;">
+            <button id="btn-settings-reset-save" class="modal-btn modal-btn-danger">
+              FORTSCHRITT ZURÜCKSETZEN
+            </button>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button id="btn-settings-back" class="modal-btn modal-btn-dim">
+            ← ZURÜCK (ESC)
+          </button>
+        </div>
+      </div>
+    `;
+
+    const wrapper = document.getElementById('game-wrapper') || document.body;
+    wrapper.appendChild(container);
+    this.modalEl = container;
+
+    // Attach Listeners
+    const closeBtn = container.querySelector('#modal-settings-close-btn');
+    const backBtn = container.querySelector('#btn-settings-back');
+    const masterSlider = container.querySelector('#slider-master-volume');
+    const sfxSlider = container.querySelector('#slider-sfx-volume');
+    const crtBtn = container.querySelector('#btn-toggle-crt');
+    const shakeBtn = container.querySelector('#btn-toggle-shake');
+    const resetBtn = container.querySelector('#btn-settings-reset-save');
+
+    if (closeBtn) closeBtn.addEventListener('click', () => this.close());
+    if (backBtn) backBtn.addEventListener('click', () => this.close());
+
+    if (masterSlider) {
+      masterSlider.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value, 10);
+        this.masterVolume = val / 100;
+        const badge = container.querySelector('#val-master-volume');
+        if (badge) badge.textContent = `${val}%`;
+        this.applySettings();
+        this.saveSettings();
+      });
     }
 
-    if (inputHandler.consumeAction()) {
-      const opt = this.options[this.selectedIndex];
-      if (opt.id === 'back') {
-        return 'BACK';
-      } else if (opt.id === 'level_select') {
-        return 'LEVEL_SELECT';
-      } else if (opt.id === 'main_menu') {
-        return 'MAIN_MENU';
-      } else if (opt.id === 'reset_save') {
-        return 'RESET_SAVE';
-      } else {
-        this.toggleOption(opt.id);
-      }
+    if (sfxSlider) {
+      sfxSlider.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value, 10);
+        this.sfxVolume = val / 100;
+        const badge = container.querySelector('#val-sfx-volume');
+        if (badge) badge.textContent = `${val}%`;
+        this.applySettings();
+        this.saveSettings();
+      });
+      sfxSlider.addEventListener('change', () => {
+        if (this.audio) this.audio.playUIBlip();
+      });
     }
 
-    if (inputHandler.consumeEscape()) {
-      return 'BACK';
+    if (crtBtn) {
+      crtBtn.addEventListener('click', () => {
+        this.crtEffects = !this.crtEffects;
+        crtBtn.textContent = this.crtEffects ? 'AN' : 'AUS';
+        crtBtn.className = `modal-btn modal-btn-toggle ${this.crtEffects ? 'active' : ''}`;
+        this.applySettings();
+        this.saveSettings();
+        if (this.audio) this.audio.playUIBlip();
+      });
     }
 
-    // Handle mouse click
-    const click = inputHandler.consumeMouseClick();
-    if (click) {
-      const clicked = this.handleClick(click.x, click.y);
-      if (clicked) return clicked;
+    if (shakeBtn) {
+      shakeBtn.addEventListener('click', () => {
+        this.screenShake = !this.screenShake;
+        shakeBtn.textContent = this.screenShake ? 'AN' : 'AUS';
+        shakeBtn.className = `modal-btn modal-btn-toggle ${this.screenShake ? 'active' : ''}`;
+        this.applySettings();
+        this.saveSettings();
+        if (this.audio) this.audio.playUIBlip();
+      });
     }
 
-    return null;
-  }
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        if (!this.resetConfirmPending) {
+          this.resetConfirmPending = true;
+          resetBtn.textContent = 'WIRKLICH LÖSCHEN? (ERNEUT KLICKEN)';
+          resetBtn.style.background = '#ff1e44';
+          resetBtn.style.color = '#ffffff';
 
-  adjustOption(id, delta) {
-    if (id === 'master') {
-      this.masterVolume = Math.max(0, Math.min(1, Math.round((this.masterVolume + delta * 0.1) * 10) / 10));
-      this.applySettings();
-      this.saveSettings();
-      this.audio.playUIBlip();
-    } else if (id === 'sfx') {
-      this.sfxVolume = Math.max(0, Math.min(1, Math.round((this.sfxVolume + delta * 0.1) * 10) / 10));
-      this.applySettings();
-      this.saveSettings();
-      this.audio.playUIBlip();
-    }
-  }
+          if (this.resetConfirmTimeout) clearTimeout(this.resetConfirmTimeout);
+          this.resetConfirmTimeout = setTimeout(() => {
+            this.resetConfirmPending = false;
+            resetBtn.textContent = 'FORTSCHRITT ZURÜCKSETZEN';
+            resetBtn.style.background = 'rgba(255, 30, 68, 0.1)';
+            resetBtn.style.color = 'var(--red-danger)';
+          }, 3500);
+        } else {
+          this.resetConfirmPending = false;
+          if (this.resetConfirmTimeout) clearTimeout(this.resetConfirmTimeout);
+          resetBtn.textContent = 'FORTSCHRITT GELÖSCHT!';
+          if (typeof this.onResetProgress === 'function') {
+            this.onResetProgress();
+          }
+          if (this.audio) this.audio.playWallCrash();
 
-  toggleOption(id) {
-    if (id === 'crt') {
-      this.crtEffects = !this.crtEffects;
-      this.applySettings();
-      this.saveSettings();
-      this.audio.playUIBlip();
-    } else if (id === 'shake') {
-      this.screenShake = !this.screenShake;
-      this.applySettings();
-      this.saveSettings();
-      this.audio.playUIBlip();
-    }
-  }
-
-  handleClick(cx, cy) {
-    const startY = 150;
-    const itemH = 44;
-    for (let i = 0; i < this.options.length; i++) {
-      const y = startY + i * itemH;
-      if (cx >= 150 && cx <= 650 && cy >= y - 15 && cy <= y + 25) {
-        this.selectedIndex = i;
-        const opt = this.options[i];
-        if (opt.id === 'back') return 'BACK';
-        if (opt.id === 'level_select') return 'LEVEL_SELECT';
-        if (opt.id === 'main_menu') return 'MAIN_MENU';
-        if (opt.id === 'reset_save') return 'RESET_SAVE';
-        if (opt.id === 'crt' || opt.id === 'shake') this.toggleOption(opt.id);
-        if (opt.id === 'master' || opt.id === 'sfx') {
-          // Check if clicked left or right half of bar
-          if (cx > 400) this.adjustOption(opt.id, 1);
-          else this.adjustOption(opt.id, -1);
+          setTimeout(() => {
+            resetBtn.textContent = 'FORTSCHRITT ZURÜCKSETZEN';
+            resetBtn.style.background = 'rgba(255, 30, 68, 0.1)';
+            resetBtn.style.color = 'var(--red-danger)';
+          }, 2000);
         }
-      }
+      });
     }
-    return null;
+
+    window.addEventListener('keydown', (e) => {
+      if (this.isOpen && e.key === 'Escape') {
+        this.close();
+      }
+    });
   }
 
-  render(ctx, time) {
-    ctx.save();
+  updateDOMValues() {
+    if (!this.modalEl) return;
+    const masterSlider = this.modalEl.querySelector('#slider-master-volume');
+    const sfxSlider = this.modalEl.querySelector('#slider-sfx-volume');
+    const masterBadge = this.modalEl.querySelector('#val-master-volume');
+    const sfxBadge = this.modalEl.querySelector('#val-sfx-volume');
+    const crtBtn = this.modalEl.querySelector('#btn-toggle-crt');
+    const shakeBtn = this.modalEl.querySelector('#btn-toggle-shake');
 
-    // Dark backdrop overlay
-    ctx.fillStyle = 'rgba(3, 3, 5, 0.94)';
-    ctx.fillRect(0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
-
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-
-    ctx.font = 'bold 28px "Share Tech Mono", monospace';
-    ctx.fillStyle = CONFIG.COLORS.PLAYER;
-    ctx.shadowColor = CONFIG.COLORS.PLAYER;
-    ctx.shadowBlur = 2;
-    ctx.fillText('SYSTEM-EINSTELLUNGEN & OPTIONEN', CONFIG.CANVAS_WIDTH / 2, 75);
-
-    ctx.font = '12px "Share Tech Mono", monospace';
-    ctx.fillStyle = CONFIG.COLORS.TEXT_DIM;
-    ctx.shadowBlur = 0;
-    ctx.fillText('NAVIGIEREN: [HOCH/RUNTER] // ÄNDERN: [LINKS/RECHTS] // BESTÄTIGEN: [ENTER] / KLICK', CONFIG.CANVAS_WIDTH / 2, 110);
-
-    const startY = 150;
-    const itemH = 44;
-
-    for (let i = 0; i < this.options.length; i++) {
-      const opt = this.options[i];
-      const isSelected = i === this.selectedIndex;
-      const isReset = opt.id === 'reset_save';
-      const y = startY + i * itemH;
-
-      ctx.save();
-      if (isSelected) {
-        ctx.fillStyle = isReset ? 'rgba(255, 30, 68, 0.15)' : 'rgba(0, 240, 255, 0.12)';
-        ctx.fillRect(160, y - 16, 480, 32);
-        ctx.strokeStyle = isReset ? CONFIG.COLORS.HUNTER : CONFIG.COLORS.PLAYER;
-        ctx.lineWidth = 1.5;
-        ctx.shadowColor = isReset ? CONFIG.COLORS.HUNTER : CONFIG.COLORS.PLAYER;
-        ctx.shadowBlur = 2;
-        ctx.strokeRect(160, y - 16, 480, 32);
-      }
-
-      ctx.font = isSelected ? 'bold 13px "Share Tech Mono", monospace' : '13px "Share Tech Mono", monospace';
-      ctx.shadowBlur = 0;
-
-      if (opt.id === 'back') {
-        ctx.textAlign = 'center';
-        ctx.fillStyle = isSelected ? CONFIG.COLORS.PLAYER : CONFIG.COLORS.TEXT_DIM;
-        ctx.fillText(opt.label, CONFIG.CANVAS_WIDTH / 2, y);
-      } else {
-        ctx.textAlign = 'left';
-        ctx.fillStyle = isReset ? CONFIG.COLORS.HUNTER : (isSelected ? CONFIG.COLORS.PLAYER : CONFIG.COLORS.TEXT_MAIN);
-        ctx.fillText((isSelected ? '> ' : '  ') + opt.label, 180, y);
-
-        // Value column (Right)
-        ctx.textAlign = 'right';
-        if (opt.id === 'master') {
-          const pct = Math.round(this.masterVolume * 100);
-          ctx.fillText(`[ ${pct}% ]`, 620, y);
-        } else if (opt.id === 'sfx') {
-          const pct = Math.round(this.sfxVolume * 100);
-          ctx.fillText(`[ ${pct}% ]`, 620, y);
-        } else if (opt.id === 'crt') {
-          ctx.fillStyle = this.crtEffects ? CONFIG.COLORS.CRYSTAL : CONFIG.COLORS.HUNTER;
-          ctx.fillText(this.crtEffects ? '[ AN ]' : '[ AUS ]', 620, y);
-        } else if (opt.id === 'shake') {
-          ctx.fillStyle = this.screenShake ? CONFIG.COLORS.CRYSTAL : CONFIG.COLORS.HUNTER;
-          ctx.fillText(this.screenShake ? '[ AN ]' : '[ AUS ]', 620, y);
-        } else if (opt.id === 'reset_save') {
-          ctx.fillStyle = CONFIG.COLORS.HUNTER;
-          ctx.fillText('[ RESET ]', 620, y);
-        } else if (opt.id === 'level_select') {
-          ctx.fillStyle = CONFIG.COLORS.PLAYER;
-          ctx.fillText('[ ÖFFNEN ]', 620, y);
-        } else if (opt.id === 'main_menu') {
-          ctx.fillStyle = CONFIG.COLORS.PLAYER;
-          ctx.fillText('[ ZURÜCK ]', 620, y);
-        }
-      }
-
-      ctx.restore();
+    if (masterSlider) masterSlider.value = Math.round(this.masterVolume * 100);
+    if (sfxSlider) sfxSlider.value = Math.round(this.sfxVolume * 100);
+    if (masterBadge) masterBadge.textContent = `${Math.round(this.masterVolume * 100)}%`;
+    if (sfxBadge) sfxBadge.textContent = `${Math.round(this.sfxVolume * 100)}%`;
+    if (crtBtn) {
+      crtBtn.textContent = this.crtEffects ? 'AN' : 'AUS';
+      crtBtn.className = `modal-btn modal-btn-toggle ${this.crtEffects ? 'active' : ''}`;
     }
+    if (shakeBtn) {
+      shakeBtn.textContent = this.screenShake ? 'AN' : 'AUS';
+      shakeBtn.className = `modal-btn modal-btn-toggle ${this.screenShake ? 'active' : ''}`;
+    }
+  }
 
-    ctx.restore();
+  open() {
+    this.isOpen = true;
+    if (this.modalEl) {
+      this.updateDOMValues();
+      this.modalEl.style.display = 'flex';
+    }
+    if (this.audio) this.audio.playUIBlip();
+  }
+
+  close() {
+    this.isOpen = false;
+    if (this.modalEl) {
+      this.modalEl.style.display = 'none';
+    }
+    if (this.audio) this.audio.playUIBlip();
+  }
+
+  toggle() {
+    if (this.isOpen) this.close();
+    else this.open();
   }
 }
 

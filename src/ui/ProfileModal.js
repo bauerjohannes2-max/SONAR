@@ -58,17 +58,17 @@ export class ProfileModal {
 
           <div class="modal-actions-row">
             <button id="btn-profile-submit" class="modal-btn modal-btn-primary">
-              [ ➔ ANMELDEN / REGISTRIEREN ]
+              ➔ ANMELDEN / REGISTRIEREN
             </button>
             <button id="btn-profile-logout" class="modal-btn modal-btn-secondary">
-              [ ⎋ ABMELDEN (GAST) ]
+              ⎋ ABMELDEN (GAST)
             </button>
           </div>
         </div>
 
         <div class="modal-footer">
           <button id="btn-profile-back" class="modal-btn modal-btn-dim">
-            << ZURÜCK ZUM MENÜ [ESC]
+            ← ZURÜCK ZUM MENÜ (ESC)
           </button>
         </div>
       </div>
@@ -173,7 +173,7 @@ export class ProfileModal {
 
     if (submitBtn) {
       submitBtn.disabled = true;
-      submitBtn.textContent = '[ SYNCHRONISIERE... ]';
+      submitBtn.textContent = 'SYNCHRONISIERE...';
     }
 
     this.showMessage('Verbinde mit Sonar-Cloud...', false);
@@ -182,7 +182,7 @@ export class ProfileModal {
 
     if (submitBtn) {
       submitBtn.disabled = false;
-      submitBtn.textContent = '[ ➔ ANMELDEN / REGISTRIEREN ]';
+      submitBtn.textContent = '➔ ANMELDEN / REGISTRIEREN';
     }
 
     if (res.success) {

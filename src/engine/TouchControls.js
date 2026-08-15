@@ -17,7 +17,14 @@ export class TouchControls {
   }
 
   init() {
-    this.isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || window.matchMedia('(pointer: coarse)').matches;
+    this.isTouchDevice = ('ontouchstart' in window) || 
+                         (navigator.maxTouchPoints > 0) || 
+                         (window.innerWidth <= 1024) || 
+                         (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+
+    window.addEventListener('touchstart', () => {
+      this.isTouchDevice = true;
+    }, { once: true, passive: true });
 
     if (this.touchOverlay) {
       this.touchOverlay.style.display = 'none'; // Strictly invisible in MENU / modals
@@ -28,10 +35,11 @@ export class TouchControls {
 
   setVisible(visible) {
     if (!this.touchOverlay) return;
-    const shouldShow = visible && this.isTouchDevice;
+    const isTouch = this.isTouchDevice || ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 1024);
+    const shouldShow = visible && isTouch;
     if (this.isVisible !== shouldShow) {
       this.isVisible = shouldShow;
-      this.touchOverlay.style.display = shouldShow ? 'block' : 'none';
+      this.touchOverlay.style.display = shouldShow ? 'flex' : 'none';
       if (!shouldShow) {
         this.input.clearTouchDirection();
       }

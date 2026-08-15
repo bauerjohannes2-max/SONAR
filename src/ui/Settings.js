@@ -1,25 +1,26 @@
 /**
  * SONAR: The Echo Chamber
- * Modern Terminal Settings Modal with Sliders & Instant Feedback
+ * Unified Settings & Pause Modal with Instant In-Game Main Menu Navigation
  */
 
 import { CONFIG } from '../config.js';
 
 export class Settings {
-  constructor(audioEngine, particleEngine, onResetProgress = null) {
+  constructor(audioEngine, particleEngine, onResetProgress = null, onExitToMenu = null, onResumeGame = null) {
     this.audio = audioEngine;
     this.particles = particleEngine;
     this.onResetProgress = onResetProgress;
+    this.onExitToMenu = onExitToMenu;
+    this.onResumeGame = onResumeGame;
 
     this.masterVolume = 0.8;
     this.sfxVolume = 0.8;
-    this.crtEffects = false; // Turned off by default per user specification for maximum clarity
+    this.crtEffects = false;
     this.screenShake = true;
 
     this.isOpen = false;
+    this.isGameplay = false;
     this.modalEl = null;
-    this.resetConfirmPending = false;
-    this.resetConfirmTimeout = null;
 
     this.loadSettings();
     this.applySettings();
@@ -88,7 +89,7 @@ export class Settings {
         <div class="modal-header">
           <div class="modal-title">
             <span class="status-dot"></span>
-            <span>SYSTEM-EINSTELLUNGEN // AUDIO & GRAFIK</span>
+            <span id="settings-modal-title-text">SYSTEM-EINSTELLUNGEN</span>
           </div>
           <button id="modal-settings-close-btn" class="modal-close-btn" title="Schließen (ESC)">✕</button>
         </div>
@@ -135,10 +136,8 @@ export class Settings {
           </div>
         </div>
 
-        <div class="modal-footer">
-          <button id="btn-settings-back" class="modal-btn modal-btn-dim" style="min-height: 48px; font-weight: 700;">
-            ✕ ZURÜCK ZUM SPIEL / MENÜ (ESC)
-          </button>
+        <div class="modal-footer" id="settings-modal-footer">
+          <!-- Populated dynamically based on game state -->
         </div>
       </div>
     `;
@@ -147,9 +146,8 @@ export class Settings {
     wrapper.appendChild(container);
     this.modalEl = container;
 
-    // Attach Listeners with reliable touch & click handling
+    // Attach Sliders & Toggles Listeners
     const closeBtn = container.querySelector('#modal-settings-close-btn');
-    const backBtn = container.querySelector('#btn-settings-back');
     const masterSlider = container.querySelector('#slider-master-volume');
     const sfxSlider = container.querySelector('#slider-sfx-volume');
     const crtBtn = container.querySelector('#btn-toggle-crt');
@@ -161,15 +159,14 @@ export class Settings {
         e.stopPropagation();
       }
       this.close();
+      if (this.isGameplay && typeof this.onResumeGame === 'function') {
+        this.onResumeGame();
+      }
     };
 
     if (closeBtn) {
       closeBtn.addEventListener('click', handleClose);
       closeBtn.addEventListener('touchstart', handleClose, { passive: false });
-    }
-    if (backBtn) {
-      backBtn.addEventListener('click', handleClose);
-      backBtn.addEventListener('touchstart', handleClose, { passive: false });
     }
 
     if (masterSlider) {
@@ -219,17 +216,28 @@ export class Settings {
       });
     }
 
-
-
     window.addEventListener('keydown', (e) => {
       if (this.isOpen && e.key === 'Escape') {
         this.close();
+        if (this.isGameplay && typeof this.onResumeGame === 'function') {
+          this.onResumeGame();
+        }
       }
     });
   }
 
   updateDOMValues() {
     if (!this.modalEl) return;
+
+    // 1. Header Title
+    const titleText = this.modalEl.querySelector('#settings-modal-title-text');
+    if (titleText) {
+      titleText.textContent = this.isGameplay
+        ? 'PAUSE // SYSTEM-EINSTELLUNGEN'
+        : 'SYSTEM-EINSTELLUNGEN // AUDIO & GRAFIK';
+    }
+
+    // 2. Sliders & Toggles
     const masterSlider = this.modalEl.querySelector('#slider-master-volume');
     const sfxSlider = this.modalEl.querySelector('#slider-sfx-volume');
     const masterBadge = this.modalEl.querySelector('#val-master-volume');
@@ -249,9 +257,67 @@ export class Settings {
       shakeBtn.textContent = this.screenShake ? 'AN' : 'AUS';
       shakeBtn.className = `modal-btn modal-btn-toggle ${this.screenShake ? 'active' : ''}`;
     }
+
+    // 3. Dynamic Footer Buttons
+    const footer = this.modalEl.querySelector('#settings-modal-footer');
+    if (footer) {
+      if (this.isGameplay) {
+        footer.innerHTML = `
+          <div style="display: flex; gap: 12px; width: 100%;">
+            <button id="btn-settings-resume" class="modal-btn modal-btn-primary" style="flex: 1; min-height: 48px; font-weight: 700; font-size: 13px;">
+              ▶ WEITERSPIELEN
+            </button>
+            <button id="btn-settings-mainmenu" class="modal-btn modal-btn-secondary" style="flex: 1; min-height: 48px; font-weight: 700; font-size: 13px;">
+              ⎋ HAUPTMENÜ
+            </button>
+          </div>
+        `;
+
+        const resumeBtn = footer.querySelector('#btn-settings-resume');
+        const menuBtn = footer.querySelector('#btn-settings-mainmenu');
+
+        const handleResume = (e) => {
+          if (e) { e.preventDefault(); e.stopPropagation(); }
+          this.close();
+          if (typeof this.onResumeGame === 'function') this.onResumeGame();
+        };
+
+        const handleMainMenu = (e) => {
+          if (e) { e.preventDefault(); e.stopPropagation(); }
+          this.close();
+          if (typeof this.onExitToMenu === 'function') this.onExitToMenu();
+        };
+
+        if (resumeBtn) {
+          resumeBtn.addEventListener('click', handleResume);
+          resumeBtn.addEventListener('touchstart', handleResume, { passive: false });
+        }
+        if (menuBtn) {
+          menuBtn.addEventListener('click', handleMainMenu);
+          menuBtn.addEventListener('touchstart', handleMainMenu, { passive: false });
+        }
+      } else {
+        footer.innerHTML = `
+          <button id="btn-settings-back" class="modal-btn modal-btn-dim" style="width: 100%; min-height: 48px; font-weight: 700;">
+            ✕ ZURÜCK ZUM MENÜ (ESC)
+          </button>
+        `;
+
+        const backBtn = footer.querySelector('#btn-settings-back');
+        const handleBack = (e) => {
+          if (e) { e.preventDefault(); e.stopPropagation(); }
+          this.close();
+        };
+        if (backBtn) {
+          backBtn.addEventListener('click', handleBack);
+          backBtn.addEventListener('touchstart', handleBack, { passive: false });
+        }
+      }
+    }
   }
 
-  open() {
+  open(isGameplay = false) {
+    this.isGameplay = isGameplay;
     this.isOpen = true;
     if (this.modalEl) {
       this.updateDOMValues();
@@ -268,9 +334,15 @@ export class Settings {
     if (this.audio) this.audio.playUIBlip();
   }
 
-  toggle() {
-    if (this.isOpen) this.close();
-    else this.open();
+  toggle(isGameplay = false) {
+    if (this.isOpen) {
+      this.close();
+      if (this.isGameplay && typeof this.onResumeGame === 'function') {
+        this.onResumeGame();
+      }
+    } else {
+      this.open(isGameplay);
+    }
   }
 }
 

@@ -49,5 +49,9 @@ Grid: 25x18 (32px tiles). Screen: 800x576px.
 6. **PWA Offline Caching & Mobile Haptics**:
    - `sw.js` caches all game assets using Cache-First strategy with background revalidation for instant offline play.
    - Mobile haptic pulses are dispatched via `AudioEngine.triggerHaptic()` (Ping: 15ms, Crystal Pickup: [30, 40, 30], Collision/Death: 120ms).
+7. **Unified In-Game Navigation & Frameless Edge-to-Edge Display**:
+   - The settings gear `⚙` dynamically opens `PAUSE // SYSTEM-EINSTELLUNGEN` with `▶ WEITERSPIELEN` and `⎋ HAUPTMENÜ` in-game, and returns to `MENU` while stopping ambient sound.
+   - Container styles enforce frameless edge-to-edge fitting (`max-width: 100vw; max-height: 100vh; aspect-ratio: 25 / 18; object-fit: contain;`) without duplicate margins or borders.
+
 
 

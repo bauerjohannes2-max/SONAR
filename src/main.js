@@ -48,10 +48,26 @@ export class Game {
     // UI Modules
     this.hud = new HUD(this.canvas);
     this.menuSystem = new MenuSystem(this.audioEngine);
-    this.settingsModal = new SettingsModal(this.audioEngine, this.particleEngine, () => {
-      this.menuSystem.resetAllProgress();
-      this.endlessMode.reset();
-    });
+    this.settingsModal = new SettingsModal(
+      this.audioEngine,
+      this.particleEngine,
+      () => {
+        this.menuSystem.resetAllProgress();
+        this.endlessMode.reset();
+      },
+      () => {
+        // onExitToMenu: Abort game, stop drone audio, return to menu
+        if (this.audioEngine) this.audioEngine.stopAmbientDrone();
+        this.isEndlessActive = false;
+        this.gameState = CONFIG.STATES.MENU;
+      },
+      () => {
+        // onResumeGame: Resume playing if paused
+        if (this.gameState === CONFIG.STATES.PAUSED) {
+          this.gameState = CONFIG.STATES.PLAYING;
+        }
+      }
+    );
     this.tutorialModal = new TutorialModal(this.audioEngine);
     this.profileModal = new ProfileModal(this.audioEngine, (pilot) => this.onProfileChanged(pilot));
     this.leaderboardModal = new LeaderboardModal(this.audioEngine);
@@ -95,7 +111,11 @@ export class Game {
           e.stopPropagation();
         }
         if (this.audioEngine) this.audioEngine.playUIBlip();
-        this.settingsModal.toggle();
+        const isGameplay = this.gameState === CONFIG.STATES.PLAYING || this.gameState === CONFIG.STATES.PAUSED || this.gameState === CONFIG.STATES.ENDLESS;
+        if (isGameplay && this.gameState === CONFIG.STATES.PLAYING) {
+          this.gameState = CONFIG.STATES.PAUSED;
+        }
+        this.settingsModal.toggle(isGameplay);
       };
       gearBtn.addEventListener('click', openSettings);
       gearBtn.addEventListener('touchstart', openSettings, { passive: false });
@@ -194,7 +214,11 @@ export class Game {
     this.gameTime += dt;
 
     if (this.inputHandler && typeof this.inputHandler.consumeSettings === 'function' && this.inputHandler.consumeSettings()) {
-      if (this.settingsModal) this.settingsModal.toggle();
+      const isGameplay = this.gameState === CONFIG.STATES.PLAYING || this.gameState === CONFIG.STATES.PAUSED || this.gameState === CONFIG.STATES.ENDLESS;
+      if (isGameplay && this.gameState === CONFIG.STATES.PLAYING) {
+        this.gameState = CONFIG.STATES.PAUSED;
+      }
+      if (this.settingsModal) this.settingsModal.toggle(isGameplay);
     }
 
     switch (this.gameState) {

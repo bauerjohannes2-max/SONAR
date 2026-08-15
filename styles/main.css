@@ -59,16 +59,16 @@ html, body {
 #game-wrapper {
   position: relative;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0;
   width: 100vw;
   height: 100vh;
   max-width: 100vw;
   max-height: 100vh;
   padding: 0;
   margin: 0;
+  overflow: hidden;
+  background: #05070a;
 }
 
 /* External bars completely removed */
@@ -76,27 +76,32 @@ html, body {
   display: none !important;
 }
 
-/* Canvas Container & Crisp Display */
+/* Canvas Container & Frameless Edge-to-Edge Display */
 .canvas-container {
   position: relative;
-  width: min(800px, 98vw);
-  height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(100vw, calc(100vh * (25 / 18)));
+  height: min(100vh, calc(100vw * (18 / 25)));
   aspect-ratio: 25 / 18;
   max-width: 100vw;
   max-height: 100vh;
   background-color: #000000;
-  border: 1px solid rgba(0, 240, 255, 0.25);
+  border: none;
   overflow: hidden;
-  border-radius: 2px;
   margin: 0 auto;
-  box-shadow: 0 0 30px rgba(0, 0, 0, 0.9), 0 0 10px rgba(0, 240, 255, 0.05);
+  box-shadow: none;
 }
 
 #gameCanvas {
   display: block;
   width: 100%;
   height: 100%;
+  max-width: 100vw;
+  max-height: 100vh;
   object-fit: contain;
+  aspect-ratio: 25 / 18;
   image-rendering: -webkit-optimize-contrast;
   image-rendering: crisp-edges;
   image-rendering: pixelated;
@@ -239,8 +244,6 @@ kbd {
   padding: 16px;
 }
 
-.terminal-modal-box {
-  width: 580px;
 .terminal-modal-box {
   width: 580px;
   max-width: 95%;
@@ -707,24 +710,27 @@ kbd {
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 20;
+  z-index: 90;
   display: none;
+  justify-content: space-between;
+  align-items: flex-end;
+  box-sizing: border-box;
 }
 
 .touch-dpad {
   position: absolute;
-  left: 20px;
-  bottom: 20px;
-  width: 140px;
-  height: 140px;
+  left: 18px;
+  bottom: 18px;
+  width: 144px;
+  height: 144px;
   pointer-events: auto;
   touch-action: none;
 }
 
 .dpad-btn {
   position: absolute;
-  background: rgba(8, 20, 30, 0.65);
-  border: 1.5px solid rgba(0, 240, 255, 0.4);
+  background: rgba(8, 20, 30, 0.75);
+  border: 1.5px solid rgba(0, 240, 255, 0.45);
   color: var(--cyan-primary);
   font-family: var(--font-mono);
   font-size: 16px;
@@ -735,93 +741,104 @@ kbd {
   border-radius: 6px;
   transition: transform 0.05s, background 0.05s;
   user-select: none;
+  touch-action: none;
 }
 
 .dpad-btn.active, .dpad-btn:active {
-  background: rgba(0, 240, 255, 0.35);
+  background: rgba(0, 240, 255, 0.45);
   border-color: var(--cyan-primary);
   transform: scale(0.92);
 }
 
-.dpad-up { top: 0; left: 47px; width: 46px; height: 44px; }
-.dpad-down { bottom: 0; left: 47px; width: 46px; height: 44px; }
-.dpad-left { top: 47px; left: 0; width: 44px; height: 46px; }
-.dpad-right { top: 47px; right: 0; width: 44px; height: 46px; }
-.dpad-center { top: 47px; left: 47px; width: 46px; height: 46px; border: none; background: rgba(0, 240, 255, 0.08); }
+.dpad-up { top: 0; left: 48px; width: 48px; height: 46px; }
+.dpad-down { bottom: 0; left: 48px; width: 48px; height: 46px; }
+.dpad-left { top: 48px; left: 0; width: 46px; height: 48px; }
+.dpad-right { top: 48px; right: 0; width: 46px; height: 48px; }
+.dpad-center { top: 48px; left: 48px; width: 48px; height: 48px; border: none; background: rgba(0, 240, 255, 0.08); }
 
 .touch-actions {
   position: absolute;
-  right: 20px;
-  bottom: 20px;
+  right: 18px;
+  bottom: 18px;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 12px;
+  gap: 10px;
   pointer-events: auto;
   touch-action: none;
 }
 
 .touch-actions-row {
   display: flex;
-  gap: 12px;
+  gap: 10px;
 }
 
 .touch-btn {
-  border-radius: 50%;
   font-family: var(--font-mono);
   font-weight: bold;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  transition: transform 0.05s;
+  transition: transform 0.05s, background 0.1s;
   user-select: none;
   cursor: pointer;
+  touch-action: none;
 }
 
 .touch-btn.active, .touch-btn:active {
-  transform: scale(0.9);
+  transform: scale(0.92);
 }
 
 .touch-btn-ping {
-  width: 68px;
-  height: 68px;
-  background: rgba(0, 40, 55, 0.75);
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(0, 35, 50, 0.85);
   border: 2px solid var(--cyan-primary);
   color: var(--cyan-primary);
-  font-size: 13px;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 0 14px rgba(0, 240, 255, 0.3);
 }
 
 .touch-btn-ping.active {
-  background: rgba(0, 240, 255, 0.4);
+  background: rgba(0, 240, 255, 0.45);
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.7);
 }
 
 .touch-btn-sneak {
-  width: 52px;
-  height: 52px;
-  background: rgba(10, 25, 20, 0.75);
+  min-width: 60px;
+  height: 48px;
+  padding: 0 10px;
+  border-radius: 24px;
+  background: rgba(10, 25, 20, 0.85);
   border: 1.5px solid var(--text-dim);
   color: var(--text-dim);
-  font-size: 10px;
+  font-size: 9.5px;
 }
 
 .touch-btn-sneak.sneak-on {
   border-color: var(--green-neon);
   color: var(--green-neon);
-  background: rgba(0, 255, 136, 0.25);
+  background: rgba(0, 255, 136, 0.3);
+  box-shadow: 0 0 12px rgba(0, 255, 136, 0.35);
 }
 
 .touch-btn-decoy {
-  width: 52px;
-  height: 52px;
-  background: rgba(35, 25, 5, 0.75);
+  min-width: 60px;
+  height: 48px;
+  padding: 0 10px;
+  border-radius: 24px;
+  background: rgba(35, 25, 5, 0.85);
   border: 1.5px solid var(--yellow-warn);
   color: var(--yellow-warn);
-  font-size: 10px;
+  font-size: 9.5px;
 }
 
 .touch-btn-decoy.active {
-  background: rgba(255, 230, 0, 0.4);
+  background: rgba(255, 230, 0, 0.45);
+  box-shadow: 0 0 12px rgba(255, 230, 0, 0.4);
 }
 
 /* =========================================================

@@ -53,5 +53,18 @@ Grid: 25x18 (32px tiles). Screen: 800x576px.
    - The settings gear `⚙` dynamically opens `PAUSE // SYSTEM-EINSTELLUNGEN` with `▶ WEITERSPIELEN` and `⎋ HAUPTMENÜ` in-game, and returns to `MENU` while stopping ambient sound.
    - Container styles enforce frameless edge-to-edge fitting (`max-width: 100vw; max-height: 100vh; aspect-ratio: 25 / 18; object-fit: contain;`) without duplicate margins or borders.
 
+## Backlog / Aufgaben für nächste Session
+1. **Schleichen-Funktion (Sneak Mode) reparieren**:
+   - Touch-Toggle `[ 🤫 SCHLEICHEN ]` und Tastatur-Shift: Überprüfen, warum Schleichen (Geräuschunterdrückung & reduzierte Geschwindigkeit) im Spielablauf nicht greift oder überschrieben wird.
+2. **Touch-Controls unterhalb der Map / Spielfeld positionieren**:
+   - Bedienelemente (D-Pad & Action-Buttons) aus dem sichtbaren Spielfeld herausnehmen und in eine eigene Leiste *unter* dem Canvas setzen, damit Finger nicht den Spieler verbergen.
+3. **Pfeil-Buttons / D-Pad Fehltipp-Schutz (Direction Input Precision)**:
+   - D-Pad Trefferzonen nahtlos ohne Totzonen anlegen oder Wischgesten / Virtual-Joystick integrieren, um versehentliche Richtungswechsel oder Fehlklicks auf Mobilgeräten zu verhindern.
+4. **Tutorial Textumbruch & Box-Clamping (Karte 1/7 & Generalisierung)**:
+   - In `TutorialModal.js` automatische Textumbruch-Logik (`wrapText`) mit dynamischer Skalierung einbauen, damit Text niemals über Kartenränder hinausragt.
+5. **Game Over Buttons nach Wandkollision (Wall Crash)**:
+   - Sicherstellen, dass nach `WALL_CRASH` alle Buttons (`NEUSTART`, `LEVEL-ÜBERSICHT`, `HAUPTMENÜ`) genauso zuverlässig reagieren wie nach Predator-Kollision.
+
+
 
 

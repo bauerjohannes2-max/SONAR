@@ -127,12 +127,16 @@ export const CONFIG = {
     ENDLESS: 'ENDLESS',
     PAUSED: 'PAUSED',
     PLAYING: 'PLAYING',
+    DYING: 'DYING',
     SECTOR_CLEARED: 'SECTOR_CLEARED',
     GAME_OVER: 'GAME_OVER',
     VICTORY: 'VICTORY',
     PROFILE: 'PROFILE',
     LEADERBOARD: 'LEADERBOARD'
   },
+
+  // Versioning
+  VERSION: '1.2.1',
 
   // Storage Keys
   STORAGE: {

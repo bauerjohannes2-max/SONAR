@@ -93,6 +93,7 @@ export class Game {
     this.currentSectorIndex = 0;
     this.totalSectors = LEVELS.length; // 10
     this.deathCause = null;
+    this.deathTimer = 0;
 
     // Entities & World
     this.gridMap = null;
@@ -340,6 +341,29 @@ export class Game {
         break;
       }
 
+      case CONFIG.STATES.DYING: {
+        this.deathTimer -= dt;
+        this.waveSystem.update(dt, this.gridMap);
+        this.particleEngine.update(dt);
+        for (let i = 0; i < this.hunters.length; i++) {
+          this.hunters[i].update(dt, this.gridMap, this.player, this.waveSystem, this.audioEngine, this.particleEngine);
+        }
+        for (let i = 0; i < this.stalkers.length; i++) {
+          this.stalkers[i].update(dt, this.gridMap, this.player, this.waveSystem, this.audioEngine, this.particleEngine);
+        }
+        if (this.deathTimer <= 0) {
+          if (this.isEndlessActive) {
+            this.endlessMode.saveHighscore();
+            storageManager.saveEndlessProgress(this.endlessMode.bestFloor, this.endlessMode.bestCrystals);
+          }
+          if (this.inputHandler) {
+            this.inputHandler.resetInputState();
+          }
+          this.gameState = CONFIG.STATES.GAME_OVER;
+        }
+        break;
+      }
+
       case CONFIG.STATES.SECTOR_CLEARED: {
         if (this.inputHandler.consumeAction()) {
           if (this.isEndlessActive) {
@@ -396,7 +420,7 @@ export class Game {
         } else {
           const click = this.inputHandler.consumeMouseClick();
           if (click && click.x >= CONFIG.CANVAS_WIDTH / 2 - 200 && click.x <= CONFIG.CANVAS_WIDTH / 2 + 200) {
-            if (click.y >= 215 && click.y <= 265) {
+            if (click.y >= 300 && click.y <= 350) {
               if (this.isEndlessActive) {
                 this.endlessMode.reset();
                 this.loadEndlessFloor(1);
@@ -585,18 +609,14 @@ export class Game {
     } else {
       this.audioEngine.playDeath();
     }
-    this.particleEngine.spawnSparks(this.player.x, this.player.y, CONFIG.COLORS.HUNTER, 30);
-    this.particleEngine.addShake(12, 500);
+    this.particleEngine.spawnSparks(this.player.x, this.player.y, CONFIG.COLORS.HUNTER, 45);
+    this.particleEngine.addShake(14, 600);
 
-    if (this.isEndlessActive) {
-      this.endlessMode.saveHighscore();
-      storageManager.saveEndlessProgress(this.endlessMode.bestFloor, this.endlessMode.bestCrystals);
-    }
+    // Trigger intense red death shockwave revealing surroundings and killer for 1.5s
+    this.waveSystem.createDeathWave(this.player.x, this.player.y);
 
-    if (this.inputHandler) {
-      this.inputHandler.resetInputState();
-    }
-    this.gameState = CONFIG.STATES.GAME_OVER;
+    this.deathTimer = 1.5;
+    this.gameState = CONFIG.STATES.DYING;
   }
 
   render() {
@@ -617,7 +637,8 @@ export class Game {
         break;
 
       case CONFIG.STATES.PLAYING:
-      case CONFIG.STATES.PAUSED: {
+      case CONFIG.STATES.PAUSED:
+      case CONFIG.STATES.DYING: {
         const isChased = this.hunters.some(h => h.state === 'CHASING');
         this.renderer.render(
           ctx,
@@ -636,25 +657,27 @@ export class Game {
           isChased
         );
 
-        const currentLvl = this.isEndlessActive
-          ? { name: `ENDLESS ECHO // ETAGE ${this.endlessMode.currentFloor}` }
-          : LEVELS[this.currentSectorIndex];
+        if (this.gameState !== CONFIG.STATES.DYING) {
+          const currentLvl = this.isEndlessActive
+            ? { name: `ENDLESS ECHO // ETAGE ${this.endlessMode.currentFloor}` }
+            : LEVELS[this.currentSectorIndex];
 
-        const crystalsLeft = this.crystals.filter(c => !c.collected).length;
-        const pingRatio = this.player.getPingCooldownRatio();
+          const crystalsLeft = this.crystals.filter(c => !c.collected).length;
+          const pingRatio = this.player.getPingCooldownRatio();
 
-        this.hud.renderGameHUD(
-          currentLvl,
-          crystalsLeft,
-          this.crystals.length,
-          pingRatio,
-          this.player,
-          this.isEndlessActive,
-          this.endlessMode.currentFloor
-        );
+          this.hud.renderGameHUD(
+            currentLvl,
+            crystalsLeft,
+            this.crystals.length,
+            pingRatio,
+            this.player,
+            this.isEndlessActive,
+            this.endlessMode.currentFloor
+          );
 
-        if (this.gameState === CONFIG.STATES.PAUSED) {
-          this.hud.renderPauseMenu();
+          if (this.gameState === CONFIG.STATES.PAUSED) {
+            this.hud.renderPauseMenu();
+          }
         }
         break;
       }

@@ -3,12 +3,13 @@
  * Service Worker with Offline Cache-First Strategy for Instant Load Times
  */
 
-const CACHE_NAME = 'sonar-echo-v1.5.0';
+const CACHE_NAME = 'sonar-echo-v1.6.0';
 
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
+  './version.json',
   './styles/main.css',
   './src/main.js',
   './src/config.js',
@@ -48,32 +49,34 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME).then((cache) => {
       console.log('[SW] Pre-caching offline game assets');
       return cache.addAll(ASSETS_TO_CACHE);
-    }).then(() => self.skipWaiting())
+    })
   );
+  self.skipWaiting();
 });
 
-// 2. Activate: Clear legacy caches
+// 2. Activate: Purge obsolete previous caches immediately
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => {
+    caches.keys().then((cacheNames) => {
       return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            console.log('[SW] Removing deprecated cache:', key);
-            return caches.delete(key);
+        cacheNames.map((cache) => {
+          if (cache !== CACHE_NAME) {
+            console.log('[SW] Deleting obsolete cache:', cache);
+            return caches.delete(cache);
           }
         })
       );
-    }).then(() => self.clients.claim())
+    })
   );
+  self.clients.claim();
 });
 
-// 3. Fetch: Cache-First for local assets, Network-First for external APIs
+// 3. Fetch: Cache-First for local assets, Network-First for external APIs & version.json
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // External network calls (Google Fonts, Firestore CDN, Firebase APIs)
-  if (url.origin !== self.location.origin) {
+  // Network-First for version.json and external network calls
+  if (url.origin !== self.location.origin || url.pathname.endsWith('version.json')) {
     event.respondWith(
       fetch(event.request).catch(() => caches.match(event.request))
     );

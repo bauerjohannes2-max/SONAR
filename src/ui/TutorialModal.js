@@ -450,12 +450,13 @@ export class TutorialModal {
   reset() {
     this.currentCardIndex = 0;
     this.openedAt = Date.now();
+    this.lastCardChangeTime = performance.now();
     this.isTransitioning = false;
   }
 
   handleInput(inputHandler) {
-    if (this.isTransitioning) return null;
-    if (this.openedAt && Date.now() - this.openedAt < 500) {
+    const now = performance.now();
+    if (this.openedAt && Date.now() - this.openedAt < 400) {
       inputHandler.consumeMouseClick();
       return null;
     }
@@ -485,29 +486,45 @@ export class TutorialModal {
       } else if (click.x >= 530 && click.x <= 700 && click.y >= 460 && click.y <= 535) {
         this.nextCard();
       } else if (click.x >= 280 && click.x <= 520 && click.y >= 460 && click.y <= 535) {
-        return 'CLOSE';
+        if (now - this.lastCardChangeTime >= 350) {
+          this.lastCardChangeTime = now;
+          return 'CLOSE';
+        }
       } else if (click.x >= 620 && click.x <= 710 && click.y >= 30 && click.y <= 90) {
-        return 'CLOSE';
+        if (now - this.lastCardChangeTime >= 350) {
+          this.lastCardChangeTime = now;
+          return 'CLOSE';
+        }
       }
     }
 
     return null;
   }
 
-  prevCard() {
-    if (this.isTransitioning) return;
-    this.isTransitioning = true;
+  prevCard(e) {
+    if (e) {
+      if (typeof e.preventDefault === 'function') e.preventDefault();
+      if (typeof e.stopPropagation === 'function') e.stopPropagation();
+    }
+    const now = performance.now();
+    if (now - this.lastCardChangeTime < 350) return;
+    this.lastCardChangeTime = now;
+
     this.currentCardIndex = (this.currentCardIndex - 1 + this.cards.length) % this.cards.length;
     if (this.audio) this.audio.playCardFlip();
-    setTimeout(() => { this.isTransitioning = false; }, 280);
   }
 
-  nextCard() {
-    if (this.isTransitioning) return;
-    this.isTransitioning = true;
+  nextCard(e) {
+    if (e) {
+      if (typeof e.preventDefault === 'function') e.preventDefault();
+      if (typeof e.stopPropagation === 'function') e.stopPropagation();
+    }
+    const now = performance.now();
+    if (now - this.lastCardChangeTime < 350) return;
+    this.lastCardChangeTime = now;
+
     this.currentCardIndex = (this.currentCardIndex + 1) % this.cards.length;
     if (this.audio) this.audio.playCardFlip();
-    setTimeout(() => { this.isTransitioning = false; }, 280);
   }
 
   render(ctx, time) {

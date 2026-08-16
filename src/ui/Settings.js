@@ -134,6 +134,20 @@ export class Settings {
               ${this.screenShake ? 'AN' : 'AUS'}
             </button>
           </div>
+
+          <!-- Version & Live Update Checker -->
+          <div class="settings-row" style="margin-top: 14px; padding-top: 12px; border-top: 1px dashed rgba(0, 240, 255, 0.15);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <div>
+                <div class="settings-label">SYSTEM-VERSION</div>
+                <div class="field-hint">Aktuelle Version: <strong>v${CONFIG.VERSION || '1.2.1'}</strong></div>
+              </div>
+              <button id="btn-check-updates" class="modal-btn modal-btn-secondary" style="font-size: 11px; padding: 6px 12px; height: 34px;">
+                🔄 AUF UPDATES PRÜFEN
+              </button>
+            </div>
+            <div id="update-status-msg" style="font-size: 11px; font-family: var(--font-mono); text-align: center; min-height: 18px;"></div>
+          </div>
         </div>
 
         <div class="modal-footer" id="settings-modal-footer">
@@ -152,6 +166,7 @@ export class Settings {
     const sfxSlider = container.querySelector('#slider-sfx-volume');
     const crtBtn = container.querySelector('#btn-toggle-crt');
     const shakeBtn = container.querySelector('#btn-toggle-shake');
+    const checkUpdateBtn = container.querySelector('#btn-check-updates');
 
     const handleClose = (e) => {
       if (e) {
@@ -167,6 +182,17 @@ export class Settings {
     if (closeBtn) {
       closeBtn.addEventListener('click', handleClose);
       closeBtn.addEventListener('touchstart', handleClose, { passive: false });
+    }
+
+    if (checkUpdateBtn) {
+      checkUpdateBtn.addEventListener('click', (e) => {
+        if (e) { e.preventDefault(); e.stopPropagation(); }
+        this.checkForUpdates();
+      });
+      checkUpdateBtn.addEventListener('touchstart', (e) => {
+        if (e) { e.preventDefault(); e.stopPropagation(); }
+        this.checkForUpdates();
+      }, { passive: false });
     }
 
     const bindTouchSlider = (slider, onValChange) => {
@@ -372,6 +398,64 @@ export class Settings {
       }
     } else {
       this.open(isGameplay);
+    }
+  }
+
+  async checkForUpdates() {
+    if (!this.modalEl) return;
+    const statusEl = this.modalEl.querySelector('#update-status-msg');
+    const checkBtn = this.modalEl.querySelector('#btn-check-updates');
+
+    if (statusEl) {
+      statusEl.innerHTML = '<span style="color: var(--cyan-primary);">⏳ PRÜFE AUF UPDATES...</span>';
+    }
+    if (checkBtn) checkBtn.disabled = true;
+
+    try {
+      if ('serviceWorker' in navigator) {
+        const reg = await navigator.serviceWorker.getRegistration();
+        if (reg) await reg.update();
+      }
+
+      const res = await fetch('./version.json?t=' + Date.now());
+      if (!res.ok) throw new Error('Status: ' + res.status);
+      const data = await res.json();
+      const currentVer = CONFIG.VERSION || '1.2.1';
+
+      if (data.version && data.version !== currentVer) {
+        if (statusEl) {
+          statusEl.innerHTML = `
+            <div style="margin-top: 4px;">
+              <div style="color: #ffaa00; font-weight: 700; margin-bottom: 6px;">
+                ★ NEUE VERSION VERFÜGBAR: v${data.version}
+              </div>
+              <button id="btn-apply-update" class="modal-btn modal-btn-primary" style="width: 100%; min-height: 38px; font-size: 11.5px; font-weight: 700;">
+                🚀 JETZT AKTUALISIEREN & NEU LADEN
+              </button>
+            </div>
+          `;
+          const applyBtn = statusEl.querySelector('#btn-apply-update');
+          if (applyBtn) {
+            applyBtn.addEventListener('click', async () => {
+              if ('caches' in window) {
+                const keys = await caches.keys();
+                await Promise.all(keys.map(k => caches.delete(k)));
+              }
+              window.location.reload(true);
+            });
+          }
+        }
+      } else {
+        if (statusEl) {
+          statusEl.innerHTML = `<span style="color: #00ffaa; font-weight: 600;">✓ VERSION IST AKTUELL (v${currentVer})</span>`;
+        }
+      }
+    } catch (err) {
+      if (statusEl) {
+        statusEl.innerHTML = `<span style="color: #ff5555;">Update-Prüfung offline oder fehlgeschlagen.</span>`;
+      }
+    } finally {
+      if (checkBtn) checkBtn.disabled = false;
     }
   }
 }

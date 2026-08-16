@@ -25,6 +25,7 @@ export class InputHandler {
     this.mouseClick = null;
     this.isShiftHeld = false;
     this.ignoreClicksUntil = 0;
+    this.lastTouchTime = 0;
 
     this.touchControls = null;
 
@@ -46,6 +47,7 @@ export class InputHandler {
     this.escapeTriggered = false;
     this.mouseClick = null;
     this.isShiftHeld = false;
+    this.lastTouchTime = 0;
   }
 
   ignoreClicksFor(ms = 350) {
@@ -169,10 +171,13 @@ export class InputHandler {
     };
 
     this.canvas.addEventListener('mousedown', (e) => {
+      // Ignore synthetic mousedown fired after a touch event
+      if (Date.now() - this.lastTouchTime < 600) return;
       handlePointerDown(e.clientX, e.clientY);
     });
 
     this.canvas.addEventListener('touchstart', (e) => {
+      this.lastTouchTime = Date.now();
       if (e.touches && e.touches.length > 0) {
         const t = e.touches[0];
         handlePointerDown(t.clientX, t.clientY);

@@ -497,11 +497,16 @@ export class MenuSystem {
       ctx.fillText(`// ${currentOpt.desc}`, CONFIG.CANVAS_WIDTH / 2, descBoxY + descBoxH / 2);
     }
 
-    // 8. Clean Minimal Footer Navigation Hints
+    // 8. Clean Minimal Footer Navigation Hints & Version
     ctx.textAlign = 'center';
     ctx.font = '500 11px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = '#556e7d';
     ctx.fillText('W / S / Pfeiltasten: Navigieren  •  Enter: Bestätigen  •  F: Vollbild', CONFIG.CANVAS_WIDTH / 2, 532);
+
+    ctx.textAlign = 'right';
+    ctx.font = '600 10.5px "JetBrains Mono", "Share Tech Mono", monospace';
+    ctx.fillStyle = '#3a5465';
+    ctx.fillText(`v${CONFIG.VERSION || '1.2.1'}`, CONFIG.CANVAS_WIDTH - 20, 560);
 
     ctx.restore();
   }

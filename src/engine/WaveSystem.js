@@ -122,6 +122,24 @@ export class WaveSystem {
   }
 
   /**
+   * Spawns an intense red death shockwave that illuminates the surroundings and killer.
+   */
+  createDeathWave(x, y) {
+    this.waves.push({
+      x,
+      y,
+      radius: 8,
+      maxRadius: 420,
+      speed: 260,
+      alpha: 1.0,
+      decay: 0.65,
+      color: '#FF1E44',
+      thickness: 28,
+      type: 'DEATH'
+    });
+  }
+
+  /**
    * Update physics of waves and calculate tile visibility with phosphor decay.
    * @param {number} dt Delta time in seconds
    */

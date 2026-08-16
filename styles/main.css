@@ -63,10 +63,11 @@ html, body {
   align-items: center;
   justify-content: center;
   width: 100vw;
-  height: 100vh;
+  height: 100dvh;
   max-width: 100vw;
-  max-height: 100vh;
-  padding: 0;
+  max-height: 100dvh;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  box-sizing: border-box;
   margin: 0;
   overflow: hidden;
   background: #05070a;
@@ -83,11 +84,11 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: min(100vw, calc(100vh * (25 / 18)));
-  height: min(100vh, calc(100vw * (18 / 25)));
+  width: min(100vw, calc(100dvh * (25 / 18)));
+  height: min(100dvh, calc(100vw * (18 / 25)));
   aspect-ratio: 25 / 18;
   max-width: 100vw;
-  max-height: 100vh;
+  max-height: 100dvh;
   background-color: #000000;
   border: none;
   overflow: hidden;
@@ -108,7 +109,7 @@ body.has-touch-controls .canvas-container {
   width: 100%;
   height: 100%;
   max-width: 100vw;
-  max-height: 100vh;
+  max-height: 100dvh;
   object-fit: contain;
   aspect-ratio: 25 / 18;
   image-rendering: -webkit-optimize-contrast;
@@ -121,22 +122,23 @@ body.has-touch-controls .canvas-container {
 .canvas-quick-actions {
   position: absolute;
   top: 4px;
-  right: 8px;
+  right: 6px;
   display: flex;
   align-items: center;
   gap: 6px;
   z-index: 60;
+  height: 28px;
 }
 
 .canvas-action-btn {
-  width: 32px;
+  width: 34px;
   height: 28px;
   border-radius: 3px;
   background: rgba(4, 15, 24, 0.85);
   border: 1px solid rgba(0, 240, 255, 0.35);
   color: var(--cyan-primary);
   font-family: var(--font-mono);
-  font-size: 15px;
+  font-size: 14px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -144,6 +146,7 @@ body.has-touch-controls .canvas-container {
   transition: all 0.15s ease;
   user-select: none;
   touch-action: manipulation;
+  flex-shrink: 0;
 }
 
 .canvas-action-btn:hover {
@@ -917,8 +920,10 @@ kbd {
 }
 
 :fullscreen .canvas-container, :-webkit-full-screen .canvas-container {
+  width: min(100vw, calc(100dvh * (25 / 18)));
+  height: min(100dvh, calc(100vw * (18 / 25)));
   max-width: 100vw;
-  max-height: 100vh;
+  max-height: 100dvh;
   border: none;
   box-shadow: none;
 }
@@ -931,26 +936,100 @@ kbd {
   image-rendering: crisp-edges;
 }
 
+/* iOS Safari & PWA Pseudo-Fullscreen Fallback */
+#game-wrapper.css-fullscreen {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  max-width: 100vw !important;
+  max-height: 100dvh !important;
+  z-index: 99999 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: #000000 !important;
+}
+
+#game-wrapper.css-fullscreen .canvas-container {
+  width: min(100vw, calc(100dvh * (25 / 18))) !important;
+  height: min(100dvh, calc(100vw * (18 / 25))) !important;
+  max-width: 100vw !important;
+  max-height: 100dvh !important;
+}
+
 @media (max-width: 840px) {
   #game-wrapper {
     width: 100vw;
-    height: 100vh;
-    padding: 0;
+    height: 100dvh;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   }
 
   .canvas-container {
+    width: min(100vw, calc(100dvh * (25 / 18)));
+    height: min(100dvh, calc(100vw * (18 / 25)));
     max-width: 100vw;
+    max-height: 100dvh;
     border-radius: 0;
   }
 
   .terminal-modal-box {
     width: 96vw;
-    max-height: 94vh;
+    max-height: 94dvh;
     padding: 0;
   }
+}
 
+/* Portrait mobile & iPad optimization: place touch controls at bottom of screen for natural thumb reach */
+@media (orientation: portrait) {
   #touch-controls {
-    max-width: 100vw;
-    padding: 6px 12px env(safe-area-inset-bottom, 6px);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100dvh;
+    z-index: 90;
+    pointer-events: none;
+  }
+
+  .touch-dpad {
+    left: 20px;
+    bottom: 28px;
+    width: 150px;
+    height: 150px;
+  }
+
+  .dpad-btn {
+    font-size: 18px;
+  }
+
+  .dpad-up { top: 0; left: 50px; width: 50px; height: 48px; }
+  .dpad-down { bottom: 0; left: 50px; width: 50px; height: 48px; }
+  .dpad-left { top: 50px; left: 0; width: 48px; height: 50px; }
+  .dpad-right { top: 50px; right: 0; width: 48px; height: 50px; }
+  .dpad-center { top: 50px; left: 50px; width: 50px; height: 50px; }
+
+  .touch-actions {
+    right: 20px;
+    bottom: 28px;
+    gap: 14px;
+  }
+
+  .touch-actions-row {
+    gap: 12px;
+  }
+
+  .touch-btn-ping {
+    width: 80px;
+    height: 80px;
+    font-size: 12px;
+  }
+
+  .touch-btn-sneak, .touch-btn-decoy {
+    min-width: 66px;
+    height: 52px;
+    font-size: 10.5px;
   }
 }

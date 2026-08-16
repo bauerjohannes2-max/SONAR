@@ -55,11 +55,11 @@ export class HUD {
       ctx.fillText(`${crystalStr}${decoyStr}${sneakStr}`, this.width / 2 - 20, 18);
     }
 
-    // Top Right: Ping Cooldown Text & Bar (Positioned left of the top-right HTML buttons)
+    // Top Right: Ping Cooldown Text & Bar (Positioned safely with 150px margin from right edge)
     const pingSec = player ? player.getPingRemainingSeconds() : 0;
-    const barW = 60;
+    const barW = 50;
     const barH = 8;
-    const barX = this.width - 92 - barW; // Ends at 708px, HTML buttons start at 720px
+    const barX = this.width - 150 - barW; // 800 - 150 - 50 = 600px (Bar ends at 650px, leaving 150px for HTML buttons)
     const barY = 14;
 
     ctx.textAlign = 'right';

@@ -77,26 +77,69 @@ export class DisplayManager {
     }
   }
 
+  enableCssFullscreen() {
+    this.isCssFullscreen = true;
+    this.isFullscreen = true;
+    const wrapper = document.getElementById('game-wrapper');
+    if (wrapper) wrapper.classList.add('css-fullscreen');
+    window.scrollTo(0, 0);
+    this.updateFullscreenIcon();
+    this.setupResolution();
+  }
+
+  disableCssFullscreen() {
+    this.isCssFullscreen = false;
+    this.isFullscreen = false;
+    const wrapper = document.getElementById('game-wrapper');
+    if (wrapper) wrapper.classList.remove('css-fullscreen');
+    this.updateFullscreenIcon();
+    this.setupResolution();
+  }
+
   onFullscreenChange() {
-    this.isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement);
+    const isNative = !!(document.fullscreenElement || document.webkitFullscreenElement);
+    if (!isNative && !this.isCssFullscreen) {
+      this.isFullscreen = false;
+    } else if (isNative) {
+      this.isFullscreen = true;
+      this.isCssFullscreen = false;
+      const wrapper = document.getElementById('game-wrapper');
+      if (wrapper) wrapper.classList.remove('css-fullscreen');
+    }
     this.updateFullscreenIcon();
     this.setupResolution();
   }
 
   toggleFullscreen() {
-    if (!this.isFullscreen) {
-      const elem = document.documentElement;
+    const doc = document;
+    const elem = document.documentElement;
+    const isNativeFullscreen = !!(doc.fullscreenElement || doc.webkitFullscreenElement);
+
+    if (!this.isFullscreen && !isNativeFullscreen) {
       if (elem.requestFullscreen) {
-        elem.requestFullscreen().catch(err => console.warn('Fullscreen denied:', err));
+        elem.requestFullscreen().catch(() => this.enableCssFullscreen());
       } else if (elem.webkitRequestFullscreen) {
-        elem.webkitRequestFullscreen();
+        try {
+          elem.webkitRequestFullscreen();
+        } catch {
+          this.enableCssFullscreen();
+        }
+      } else {
+        // iOS Safari / iPhone Fallback: CSS Pseudo-Vollbild
+        this.enableCssFullscreen();
       }
     } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen().catch(err => console.warn('Exit fullscreen error:', err));
-      } else if (document.webkitExitFullscreen) {
-        document.webkitExitFullscreen();
+      if (this.isCssFullscreen) {
+        this.disableCssFullscreen();
       }
+      if (isNativeFullscreen) {
+        if (doc.exitFullscreen) {
+          doc.exitFullscreen().catch(() => {});
+        } else if (doc.webkitExitFullscreen) {
+          doc.webkitExitFullscreen();
+        }
+      }
+      this.disableCssFullscreen();
     }
   }
 

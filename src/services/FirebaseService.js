@@ -201,12 +201,17 @@ class FirebaseService {
       const { doc, setDoc, serverTimestamp } = this.firestoreModule;
       const docRef = doc(this.db, 'pilots', callsign.toLowerCase());
 
+      const maxClearedSector = progressData.maxClearedSector !== undefined
+        ? progressData.maxClearedSector
+        : (progressData.unlockedSector > 1 ? progressData.unlockedSector - 1 : 0);
+
       const payload = {
         callsign,
         unlockedSector: progressData.unlockedSector || 1,
+        maxClearedSector: maxClearedSector,
         sectorStats: progressData.sectorStats || {},
         endlessHighscore: progressData.endlessHighscore || 0,
-        highestLevel: Math.max(progressData.unlockedSector || 1, progressData.highestLevel || 1),
+        highestLevel: maxClearedSector,
         lastUpdated: serverTimestamp()
       };
 
@@ -242,16 +247,21 @@ class FirebaseService {
           const dt = d.lastUpdated.toDate();
           dateStr = `${String(dt.getDate()).padStart(2, '0')}.${String(dt.getMonth() + 1).padStart(2, '0')}.${dt.getFullYear()}`;
         }
+        const maxCleared = d.maxClearedSector !== undefined
+          ? d.maxClearedSector
+          : (d.highestLevel !== undefined ? (d.highestLevel >= 1 && d.highestLevel <= 10 && d.highestLevel === d.unlockedSector ? (d.highestLevel > 1 ? d.highestLevel - 1 : 0) : d.highestLevel) : (d.unlockedSector > 1 ? d.unlockedSector - 1 : 0));
+
         rawList.push({
           callsign: d.callsign || docSnap.id.toUpperCase(),
-          highestLevel: d.highestLevel || d.unlockedSector || 1,
+          maxClearedSector: maxCleared,
+          highestLevel: maxCleared,
           endlessHighscore: d.endlessHighscore || 0,
           date: dateStr
         });
       });
 
       rawList.sort((a, b) => {
-        if (b.highestLevel !== a.highestLevel) return b.highestLevel - a.highestLevel;
+        if (b.maxClearedSector !== a.maxClearedSector) return b.maxClearedSector - a.maxClearedSector;
         return b.endlessHighscore - a.endlessHighscore;
       });
 

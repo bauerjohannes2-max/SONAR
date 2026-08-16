@@ -51,7 +51,7 @@ export class LeaderboardModal {
                 <tr>
                   <th class="col-rank">RANG</th>
                   <th class="col-pilot">PILOT (NAME)</th>
-                  <th class="col-level">HÖCHSTES LEVEL</th>
+                  <th class="col-level">GESCHAFFTE SEKTOREN</th>
                   <th class="col-date">DATUM</th>
                 </tr>
               </thead>

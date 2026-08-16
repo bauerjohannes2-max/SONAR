@@ -395,11 +395,11 @@ export class TutorialModal {
       // Card 7: Decoy Flare
       {
         id: 'decoy',
-        title: '07. SCHALL-KÖDER // DECOY FLARE',
+        title: '07. TAKTIK: KÖDER-ABLENKUNG (E)',
         category: 'TAKTIK-AUSRÜSTUNG (E / KÖDER)',
-        role: 'Ablenkungs-Wurfkörper (1x pro Sektor)',
-        behavior: 'Fliegt 4 Kacheln vor und sendet 3 Sekunden lang laute Klick-Impulse aus.',
-        counter: 'Wirf den Köder mit E, um Hunter von Engpässen wegzulocken!',
+        role: 'Ablenkungs-Wurfkörper (HUD: 1/1)',
+        behavior: 'Beim Aktivieren (Taste E oder Touch-Button) schleudert die Drohne einen Schall-Köder exakt 3 Blöcke weit in Blickrichtung.',
+        counter: 'Der Köder sendet dort periodische Schallwellen aus und lockt alle nahen Jäger (Hunter & Stalker) gezielt zu diesem Punkt ab. Munition ist streng limitiert (HUD: 1/1).',
         renderVisual: (ctx, t) => {
           ctx.fillStyle = '#030305';
           ctx.fillRect(0, 0, 280, 140);

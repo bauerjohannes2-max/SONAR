@@ -59,6 +59,10 @@ class StorageManager {
 
     // Smart Merge: take the highest progress
     const mergedUnlockedSector = Math.max(localProgress.unlockedSector || 1, cloudData.unlockedSector || 1);
+    const mergedMaxClearedSector = Math.max(
+      localProgress.maxClearedSector || (localProgress.unlockedSector > 1 ? localProgress.unlockedSector - 1 : 0),
+      cloudData.maxClearedSector !== undefined ? cloudData.maxClearedSector : (cloudData.highestLevel > 1 ? cloudData.highestLevel - 1 : 0)
+    );
     const mergedSectorStats = { ...(cloudData.sectorStats || {}), ...(localProgress.sectorStats || {}) };
     const mergedEndlessHighscore = Math.max(localEndless.bestFloor || 1, cloudData.endlessHighscore || 0);
 
@@ -66,9 +70,10 @@ class StorageManager {
       callsign: cloudData.callsign || callsign.toUpperCase(),
       isGuest: false,
       unlockedSector: mergedUnlockedSector,
+      maxClearedSector: mergedMaxClearedSector,
       sectorStats: mergedSectorStats,
       endlessHighscore: mergedEndlessHighscore,
-      highestLevel: mergedUnlockedSector
+      highestLevel: mergedMaxClearedSector
     };
 
     // Save session to localStorage
@@ -76,6 +81,7 @@ class StorageManager {
       localStorage.setItem(CONFIG.STORAGE.PILOT_SESSION, JSON.stringify(this.currentPilot));
       localStorage.setItem(CONFIG.STORAGE.PROGRESS, JSON.stringify({
         unlockedSector: mergedUnlockedSector,
+        maxClearedSector: mergedMaxClearedSector,
         sectorStats: mergedSectorStats
       }));
       localStorage.setItem(CONFIG.STORAGE.ENDLESS, JSON.stringify({
@@ -90,9 +96,10 @@ class StorageManager {
     if (!res.offline) {
       firebaseService.savePilotProgress(this.currentPilot.callsign, {
         unlockedSector: mergedUnlockedSector,
+        maxClearedSector: mergedMaxClearedSector,
         sectorStats: mergedSectorStats,
         endlessHighscore: mergedEndlessHighscore,
-        highestLevel: mergedUnlockedSector
+        highestLevel: mergedMaxClearedSector
       });
     }
 
@@ -127,15 +134,20 @@ class StorageManager {
       const data = localStorage.getItem(CONFIG.STORAGE.PROGRESS);
       if (data) {
         const parsed = JSON.parse(data);
+        const unlockedSector = parsed.unlockedSector || 1;
+        const maxClearedSector = parsed.maxClearedSector !== undefined
+          ? parsed.maxClearedSector
+          : (unlockedSector > 1 ? unlockedSector - 1 : 0);
         return {
-          unlockedSector: parsed.unlockedSector || 1,
+          unlockedSector,
+          maxClearedSector,
           sectorStats: parsed.sectorStats || {}
         };
       }
     } catch (e) {
       console.warn('[StorageManager] Progress read error:', e);
     }
-    return { unlockedSector: 1, sectorStats: {} };
+    return { unlockedSector: 1, maxClearedSector: 0, sectorStats: {} };
   }
 
   /**
@@ -144,6 +156,7 @@ class StorageManager {
   saveCampaignProgress(sectorCleared, stats) {
     const current = this.getCampaignProgress();
     const sectorStats = { ...current.sectorStats, [sectorCleared]: stats };
+    const maxClearedSector = Math.max(current.maxClearedSector || 0, sectorCleared);
     let unlockedSector = current.unlockedSector;
 
     if (sectorCleared >= unlockedSector && unlockedSector < 10) {
@@ -152,6 +165,7 @@ class StorageManager {
 
     const payload = {
       unlockedSector,
+      maxClearedSector,
       sectorStats
     };
 
@@ -165,13 +179,15 @@ class StorageManager {
     // Cloud auto-sync
     if (!this.isGuest()) {
       this.currentPilot.unlockedSector = unlockedSector;
+      this.currentPilot.maxClearedSector = maxClearedSector;
       this.currentPilot.sectorStats = sectorStats;
-      this.currentPilot.highestLevel = unlockedSector;
+      this.currentPilot.highestLevel = maxClearedSector;
 
       firebaseService.savePilotProgress(this.currentPilot.callsign, {
         unlockedSector,
+        maxClearedSector,
         sectorStats,
-        highestLevel: unlockedSector,
+        highestLevel: maxClearedSector,
         endlessHighscore: this.currentPilot.endlessHighscore || 0
       });
     }

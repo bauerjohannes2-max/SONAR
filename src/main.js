@@ -164,8 +164,66 @@ export class Game {
     }
   }
 
+  async checkAutoUpdate() {
+    try {
+      if ('serviceWorker' in navigator) {
+        const reg = await navigator.serviceWorker.getRegistration();
+        if (reg) await reg.update();
+      }
+
+      const res = await fetch(`./version.json?t=${Date.now()}`);
+      if (!res.ok) return;
+      const data = await res.json();
+
+      if (data && data.version && (data.version !== CONFIG.VERSION || (data.build && data.build > CONFIG.BUILD))) {
+        this.showUpdateBanner(data.version);
+      }
+    } catch (err) {
+      console.warn('[AutoUpdate] Update check skipped (offline mode):', err);
+    }
+  }
+
+  showUpdateBanner(newVersion) {
+    let banner = document.getElementById('auto-update-banner');
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'auto-update-banner';
+      banner.className = 'auto-update-banner';
+      const wrapper = document.getElementById('game-wrapper') || document.body;
+      wrapper.prepend(banner);
+    }
+
+    banner.innerHTML = `
+      <div class="update-banner-content">
+        <span class="update-banner-icon">🚀</span>
+        <span class="update-banner-text">UPDATE VERFÜGBAR (v${newVersion}) — Neue Features bereit!</span>
+        <button id="btn-banner-update-now" class="btn-banner-update">
+          [ JETZT AKTUALISIEREN ]
+        </button>
+      </div>
+    `;
+
+    const updateBtn = banner.querySelector('#btn-banner-update-now');
+    if (updateBtn) {
+      const handleUpdate = (e) => {
+        if (e) e.preventDefault();
+        if ('caches' in window) {
+          caches.keys().then((keys) => {
+            keys.forEach((k) => caches.delete(k));
+            window.location.reload(true);
+          });
+        } else {
+          window.location.reload(true);
+        }
+      };
+      updateBtn.addEventListener('click', handleUpdate);
+      updateBtn.addEventListener('touchstart', handleUpdate, { passive: false });
+    }
+  }
+
   start() {
     this.lastTime = performance.now();
+    this.checkAutoUpdate();
     if (this.onboardingModal) {
       setTimeout(() => {
         this.onboardingModal.checkAndOpen();
@@ -422,6 +480,7 @@ export class Game {
           }
           if (this.inputHandler) {
             this.inputHandler.resetInputState();
+            this.inputHandler.ignoreClicksUntil = 0;
           }
           this.gameState = CONFIG.STATES.GAME_OVER;
         }
@@ -443,7 +502,8 @@ export class Game {
         } else {
           const click = this.inputHandler.consumeMouseClick();
           if (click && click.x >= CONFIG.CANVAS_WIDTH / 2 - 200 && click.x <= CONFIG.CANVAS_WIDTH / 2 + 200) {
-            if (click.y >= 300 && click.y <= 350) {
+            if (click.y >= 215 && click.y <= 265) {
+              // ↺ SEKTOR-NEUSTART
               if (this.isEndlessActive) {
                 this.endlessMode.reset();
                 this.loadEndlessFloor(1);
@@ -451,8 +511,10 @@ export class Game {
                 this.loadSector(this.currentSectorIndex);
               }
             } else if (click.y >= 275 && click.y <= 325) {
+              // ➔ LEVEL-ÜBERSICHT
               this.gameState = CONFIG.STATES.SECTOR_SELECT;
             } else if (click.y >= 335 && click.y <= 385) {
+              // ⎋ HAUPTMENÜ
               this.gameState = CONFIG.STATES.MENU;
             }
           }

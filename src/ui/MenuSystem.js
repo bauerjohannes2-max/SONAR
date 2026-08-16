@@ -79,18 +79,21 @@ export class MenuSystem {
   loadProgress() {
     const prog = storageManager.getCampaignProgress();
     this.unlockedSector = prog.unlockedSector || 1;
+    this.maxClearedSector = prog.maxClearedSector || 0;
     this.sectorStats = prog.sectorStats || {};
   }
 
   resetAllProgress() {
     storageManager.resetAll();
     this.unlockedSector = 1;
+    this.maxClearedSector = 0;
     this.sectorStats = {};
   }
 
   saveProgress(sectorCleared, stats) {
     const updated = storageManager.saveCampaignProgress(sectorCleared, stats);
     this.unlockedSector = updated.unlockedSector;
+    this.maxClearedSector = updated.maxClearedSector;
     this.sectorStats = updated.sectorStats;
   }
 
@@ -328,8 +331,10 @@ export class MenuSystem {
       ctx.fillStyle = '#00ff88';
       ctx.fillText(`PILOT: ${pilot.callsign.toUpperCase()} • CLOUD-SYNC AKTIV ★`, CONFIG.CANVAS_WIDTH / 2, badgeY + 14);
 
-      const sectorStr = this.unlockedSector < 10 ? `0${this.unlockedSector}` : `${this.unlockedSector}`;
-      let detailText = `FORTSCHRITT: SEKTOR ${sectorStr}`;
+      const maxCleared = this.maxClearedSector !== undefined ? this.maxClearedSector : (this.unlockedSector > 1 ? this.unlockedSector - 1 : 0);
+      let detailText = maxCleared === 0
+        ? `SEKTOR 01 BEREIT (0 / 10 GESCHAFFT)`
+        : `FORTSCHRITT: ${maxCleared} / 10 SEKTOREN GESCHAFFT`;
       if (endlessMode && endlessMode.bestFloor > 1) {
         detailText += `  •  ENDLESS BEST: ETAGE ${endlessMode.bestFloor}`;
       }

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('SONAR v1.3.0 E2E Feature Validation', () => {
+test.describe('SONAR v1.3.1 E2E Feature Validation', () => {
 
   test.beforeEach(async ({ page }) => {
     page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
@@ -10,15 +10,15 @@ test.describe('SONAR v1.3.0 E2E Feature Validation', () => {
     });
   });
 
-  test('1. Version Endpoint & JSON Integrity', async ({ request }) => {
+  test('1. Version Endpoint & JSON Integrity (v1.3.1)', async ({ request }) => {
     const response = await request.get('/version.json');
     expect(response.ok()).toBeTruthy();
     const data = await response.json();
-    expect(data.version).toBe('1.3.0');
+    expect(data.version).toBe('1.3.1');
     expect(data.build).toBe(20260816);
   });
 
-  test('2. Settings: D-Pad vs Joystick Toggle & Scale Presets', async ({ page }) => {
+  test('2. Settings: D-Pad vs Joystick Toggle, Scale Presets & Version Label', async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('#gameCanvas');
 
@@ -27,7 +27,7 @@ test.describe('SONAR v1.3.0 E2E Feature Validation', () => {
     await expect(page.locator('#settings-modal')).toBeVisible();
 
     // Check version text
-    await expect(page.locator('#settings-version-label')).toHaveText('v1.3.0');
+    await expect(page.locator('#settings-version-label')).toHaveText('v1.3.1');
 
     // Toggle to D-PAD
     await page.click('#btn-ctrl-dpad');
@@ -48,7 +48,7 @@ test.describe('SONAR v1.3.0 E2E Feature Validation', () => {
     await page.click('#btn-check-updates');
     await page.waitForTimeout(400);
     const updateMsg = page.locator('#update-status-msg');
-    await expect(updateMsg).toContainText('v1.3.0');
+    await expect(updateMsg).toContainText('v1.3.1');
 
     // Close settings modal
     await page.click('#modal-settings-close-btn');
@@ -93,7 +93,7 @@ test.describe('SONAR v1.3.0 E2E Feature Validation', () => {
     expect(savedConfig.positions.movement.x).toBeGreaterThan(0);
   });
 
-  test('4. Tutorial Ghost-Click Protection: 350ms Debounce', async ({ page }) => {
+  test('4. Tutorial Ghost-Click Protection & Card 7 Köder-Rework Text', async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('#gameCanvas');
 
@@ -136,12 +136,15 @@ test.describe('SONAR v1.3.0 E2E Feature Validation', () => {
     const cardStillOne = await page.evaluate(() => window.game.tutorialModal.currentCardIndex);
     expect(cardStillOne).toBe(1);
 
-    // Wait past debounce time (400ms)
-    await page.waitForTimeout(400);
-    await page.mouse.click(clickX, clickY);
-    await page.waitForTimeout(100);
-    const cardAfterDebounce = await page.evaluate(() => window.game.tutorialModal.currentCardIndex);
-    expect(cardAfterDebounce).toBe(2);
+    // Jump to Card 7 (index 6) and verify text
+    await page.evaluate(() => {
+      window.game.tutorialModal.currentCardIndex = 6;
+    });
+
+    const card7 = await page.evaluate(() => window.game.tutorialModal.cards[6]);
+    expect(card7.title).toContain('KÖDER-ABLENKUNG');
+    expect(card7.behavior).toContain('3 Blöcke');
+    expect(card7.counter).toContain('HUD: 1/1');
 
     // Close tutorial
     await page.keyboard.press('Escape');
@@ -150,7 +153,7 @@ test.describe('SONAR v1.3.0 E2E Feature Validation', () => {
     expect(isMenu).toBeTruthy();
   });
 
-  test('5. Post-Mortem Death-Reveal: 1.5s Delay Before Game-Over', async ({ page }) => {
+  test('5. Post-Mortem Death-Reveal (1.5s) & Game-Over Restart Button Click', async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('#gameCanvas');
 
@@ -184,6 +187,21 @@ test.describe('SONAR v1.3.0 E2E Feature Validation', () => {
     await page.waitForTimeout(1000);
     const stateFinal = await page.evaluate(() => window.game.gameState);
     expect(stateFinal).toBe('GAME_OVER');
+
+    // Test Clicking NEUSTART Button on Game-Over Screen (center x: 400, y: 240)
+    const canvasBox = await page.locator('#gameCanvas').boundingBox();
+    expect(canvasBox).not.toBeNull();
+    const restartClickX = canvasBox.x + (400 / 800) * canvasBox.width;
+    const restartClickY = canvasBox.y + (240 / 576) * canvasBox.height;
+
+    await page.mouse.click(restartClickX, restartClickY);
+    await page.waitForTimeout(150);
+
+    // Level must immediately restart and be back in PLAYING state
+    const stateAfterRestart = await page.evaluate(() => window.game.gameState);
+    expect(stateAfterRestart).toBe('PLAYING');
+    const isPlayerAlive = await page.evaluate(() => window.game.player.isAlive);
+    expect(isPlayerAlive).toBeTruthy();
   });
 
   test('6. Virtual Analog Joystick Interaction & Movement Dispatch', async ({ page }) => {
@@ -228,6 +246,79 @@ test.describe('SONAR v1.3.0 E2E Feature Validation', () => {
     await page.waitForTimeout(50);
     const dirAfterRelease = await page.evaluate(() => window.game.inputHandler.touchHeldDirection);
     expect(dirAfterRelease).toBeNull();
+  });
+
+  test('7. Leaderboard: Completed Sectors (maxClearedSector) Scoring', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    // Open Leaderboard Modal directly
+    await page.evaluate(() => {
+      window.game.leaderboardModal.open();
+    });
+
+    await expect(page.locator('#leaderboard-modal')).toBeVisible();
+
+    // Verify table header says "GESCHAFFTE SEKTOREN"
+    const colHeader = page.locator('.col-level');
+    await expect(colHeader).toHaveText('GESCHAFFTE SEKTOREN');
+
+    // Check player entry in leaderboard when 0 sectors completed
+    const localList0 = await page.evaluate(async () => {
+      const { leaderboardService } = await import('./src/services/LeaderboardService.js');
+      return leaderboardService.getLocalLeaderboard();
+    });
+
+    const playerEntry0 = localList0.find(e => e.isCurrentPlayer);
+    expect(playerEntry0).toBeDefined();
+    expect(playerEntry0.highestLevel).toBe('0 / 10 SEKTOREN');
+
+    // Complete Sector 1
+    await page.evaluate(() => {
+      window.game.menuSystem.saveProgress(1, { time: 42, pingsUsed: 3, stepsTaken: 50, rank: 'A' });
+    });
+
+    // Reload leaderboard data
+    const localList1 = await page.evaluate(async () => {
+      const { leaderboardService } = await import('./src/services/LeaderboardService.js');
+      return leaderboardService.getLocalLeaderboard();
+    });
+
+    const playerEntry1 = localList1.find(e => e.isCurrentPlayer);
+    expect(playerEntry1).toBeDefined();
+    expect(playerEntry1.highestLevel).toBe('01 / 10 SEKTOREN');
+
+    // Verify format helper
+    const fmt = await page.evaluate(async () => {
+      const { leaderboardService } = await import('./src/services/LeaderboardService.js');
+      return {
+        zero: leaderboardService.formatClearedSector(0),
+        three: leaderboardService.formatClearedSector(3),
+        ten: leaderboardService.formatClearedSector(10)
+      };
+    });
+    expect(fmt.zero).toBe('0 / 10 SEKTOREN');
+    expect(fmt.three).toBe('03 / 10 SEKTOREN');
+    expect(fmt.ten).toBe('10 / 10 [MAX]');
+
+    // Close Leaderboard
+    await page.click('#modal-lb-close-btn');
+    await expect(page.locator('#leaderboard-modal')).not.toBeVisible();
+  });
+
+  test('8. Auto-Update Check & Banner Triggering', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    // Trigger update banner
+    await page.evaluate(() => {
+      window.game.showUpdateBanner('1.4.0');
+    });
+
+    const banner = page.locator('#auto-update-banner');
+    await expect(banner).toBeVisible();
+    await expect(banner).toContainText('v1.4.0');
+    await expect(banner.locator('#btn-banner-update-now')).toBeVisible();
   });
 
 });

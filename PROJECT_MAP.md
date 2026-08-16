@@ -65,6 +65,10 @@ Grid: 25x18 (32px tiles). Screen: 800x576px.
 - [x] **Tutorial Textumbruch & Ghost-Click Fix**: Dynamisches `wrapText` und 350ms Timestamp-Lock gegen Ghost-Clicks.
 - [x] **Game Over nach Wandcrash & 1.5s Death-Reveal**: Rote Schockwelle deckt fatale Wände/Feinde auf, bevor Game Over aktiv wird.
 - [x] **Anpassbares Touch-Layout & Virtueller Joystick**: Drag & Drop Layout-Editor, D-Pad/Joystick-Umschaltung, Skalierung & Version-Checker.
+- [x] **Leaderboard: Nur geschaffte Sektoren werten**: `maxClearedSector` statt `unlockedSector` (z.B. 0 / 10 vor Abschluss).
+- [x] **Game-Over-Screen & Neustart-Bug behoben**: Exakte Klick-Hitboxen (y: 215..265) & sofortiger Neustart via R/Enter/Space/Klick.
+- [x] **Automatischer Update-Check beim Start**: Revalidiert Service Worker & zeigt Banner bei neuer Version (v1.3.1).
+- [x] **Tutorial-Karte 7 Köder-Rework**: Exakt 3 Blöcke Wurfweite, präziser Taktik-Text & Munitionsanzeige (HUD: 1/1).
 
 ## 🚀 Deployment & GitHub Sync Workflow
 - Repository: https://github.com/bauerjohannes2-max/SONAR.git

@@ -13,6 +13,13 @@ class LeaderboardService {
     this.lastFetchTime = 0;
   }
 
+  formatClearedSector(clearedCount) {
+    const num = Number(clearedCount) || 0;
+    if (num <= 0) return '0 / 10 SEKTOREN';
+    if (num >= 10) return '10 / 10 [MAX]';
+    return `0${num} / 10 SEKTOREN`;
+  }
+
   /**
    * Generates a realistic local fallback leaderboard based on local progress and benchmark logs.
    */
@@ -24,19 +31,19 @@ class LeaderboardService {
     const today = new Date();
     const dateStr = `${String(today.getDate()).padStart(2, '0')}.${String(today.getMonth() + 1).padStart(2, '0')}.${today.getFullYear()}`;
 
-    const playerLevel = Math.max(progress.unlockedSector || 1, endless.bestFloor || 1);
+    const playerCleared = progress.maxClearedSector || 0;
     const playerName = pilot && pilot.callsign ? pilot.callsign : 'GAST_PILOT';
 
     const defaultEntries = [
-      { callsign: 'APEX_DRONE', highestLevel: 10, endlessHighscore: 24, date: '12.08.2026' },
-      { callsign: 'ECHO_GHOST', highestLevel: 9, endlessHighscore: 19, date: '14.08.2026' },
-      { callsign: 'PHANTOM_01', highestLevel: 8, endlessHighscore: 15, date: '10.08.2026' },
-      { callsign: 'SHADOW_RUN', highestLevel: 7, endlessHighscore: 12, date: '11.08.2026' },
-      { callsign: 'CYBER_VIPER', highestLevel: 6, endlessHighscore: 10, date: '13.08.2026' },
-      { callsign: 'SONAR_PULSE', highestLevel: 5, endlessHighscore: 8, date: '09.08.2026' },
-      { callsign: 'NOVA_CORE', highestLevel: 4, endlessHighscore: 6, date: '15.08.2026' },
-      { callsign: 'VECTOR_7', highestLevel: 3, endlessHighscore: 4, date: '08.08.2026' },
-      { callsign: 'ZERO_TRACE', highestLevel: 2, endlessHighscore: 3, date: '07.08.2026' }
+      { callsign: 'APEX_DRONE', maxClearedSector: 10, endlessHighscore: 24, date: '12.08.2026' },
+      { callsign: 'ECHO_GHOST', maxClearedSector: 9, endlessHighscore: 19, date: '14.08.2026' },
+      { callsign: 'PHANTOM_01', maxClearedSector: 8, endlessHighscore: 15, date: '10.08.2026' },
+      { callsign: 'SHADOW_RUN', maxClearedSector: 7, endlessHighscore: 12, date: '11.08.2026' },
+      { callsign: 'CYBER_VIPER', maxClearedSector: 6, endlessHighscore: 10, date: '13.08.2026' },
+      { callsign: 'SONAR_PULSE', maxClearedSector: 5, endlessHighscore: 8, date: '09.08.2026' },
+      { callsign: 'NOVA_CORE', maxClearedSector: 4, endlessHighscore: 6, date: '15.08.2026' },
+      { callsign: 'VECTOR_7', maxClearedSector: 3, endlessHighscore: 4, date: '08.08.2026' },
+      { callsign: 'ZERO_TRACE', maxClearedSector: 2, endlessHighscore: 3, date: '07.08.2026' }
     ];
 
     // Insert current player's stats
@@ -44,17 +51,17 @@ class LeaderboardService {
       ...defaultEntries,
       {
         callsign: playerName,
-        highestLevel: playerLevel,
+        maxClearedSector: playerCleared,
         endlessHighscore: endless.bestFloor || 1,
         date: dateStr,
         isCurrentPlayer: true
       }
     ];
 
-    // Sort descending by highestLevel then endlessHighscore
+    // Sort descending by maxClearedSector then endlessHighscore
     all.sort((a, b) => {
-      if (b.highestLevel !== a.highestLevel) {
-        return b.highestLevel - a.highestLevel;
+      if (b.maxClearedSector !== a.maxClearedSector) {
+        return b.maxClearedSector - a.maxClearedSector;
       }
       return b.endlessHighscore - a.endlessHighscore;
     });
@@ -63,7 +70,8 @@ class LeaderboardService {
     return all.slice(0, 10).map((entry, idx) => ({
       rank: idx + 1,
       callsign: entry.callsign,
-      highestLevel: entry.highestLevel >= 10 ? 'SEKTOR 10 [MAX]' : `SEKTOR 0${entry.highestLevel}`,
+      maxClearedSector: entry.maxClearedSector,
+      highestLevel: this.formatClearedSector(entry.maxClearedSector),
       endlessHighscore: `ETAGE ${entry.endlessHighscore || 1}`,
       date: entry.date,
       isCurrentPlayer: !!entry.isCurrentPlayer
@@ -87,7 +95,8 @@ class LeaderboardService {
       const formatted = cloudData.map((d, idx) => ({
         rank: idx + 1,
         callsign: d.callsign,
-        highestLevel: d.highestLevel >= 10 ? 'SEKTOR 10 [MAX]' : `SEKTOR 0${d.highestLevel}`,
+        maxClearedSector: d.maxClearedSector,
+        highestLevel: this.formatClearedSector(d.maxClearedSector),
         endlessHighscore: `ETAGE ${d.endlessHighscore || 1}`,
         date: d.date,
         isCurrentPlayer: d.callsign.toUpperCase() === currentCallsign.toUpperCase()

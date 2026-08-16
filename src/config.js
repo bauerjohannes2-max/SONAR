@@ -69,7 +69,7 @@ export const CONFIG = {
 
   // Decoy Flare
   DECOY: {
-    THROW_DISTANCE: 4,           // Max tiles thrown
+    THROW_DISTANCE: 3,           // Max tiles thrown (exakt 3 Blöcke)
     DURATION: 3000,              // Total active ms
     PULSE_INTERVAL: 400,         // ms between acoustic beeps
     PULSE_RADIUS: 300,           // px wave radius
@@ -118,7 +118,7 @@ export const CONFIG = {
   },
 
   // Version & Build
-  VERSION: '1.3.0',
+  VERSION: '1.3.1',
   BUILD: '20260816',
 
   // Game States

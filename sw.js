@@ -3,7 +3,7 @@
  * Service Worker with Offline Cache-First Strategy for Instant Load Times
  */
 
-const CACHE_NAME = 'sonar-echo-v1.4.0';
+const CACHE_NAME = 'sonar-cache-v1.4.1';
 
 const ASSETS_TO_CACHE = [
   './',
@@ -42,7 +42,13 @@ const ASSETS_TO_CACHE = [
   './src/services/StorageManager.js',
   './src/services/LeaderboardService.js',
   './assets/icon-192.png',
-  './assets/icon-512.png'
+  './assets/icon-512.png',
+  './assets/audio/sonar_ping.mp3',
+  './assets/audio/crystal_pickup.mp3',
+  './assets/audio/death_explosion.mp3',
+  './assets/audio/enemy_alert.mp3',
+  './assets/audio/portal_open.mp3',
+  './assets/audio/ambient_drone.mp3'
 ];
 
 // 1. Install: Pre-cache static assets

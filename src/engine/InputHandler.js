@@ -183,6 +183,13 @@ export class InputHandler {
         handlePointerDown(t.clientX, t.clientY);
       }
     }, { passive: true });
+
+    // Allow mobile touch scrolling inside settings modal and overlays without preventDefault interruption
+    window.addEventListener('touchmove', (e) => {
+      if (e.target && e.target.closest && e.target.closest('.settings-modal, .terminal-modal-backdrop, .modal-card, #settings-container, #settings-modal, .terminal-modal-box, .modal-body, .lb-table-wrapper')) {
+        return; // Allow native kinetic scrolling
+      }
+    }, { passive: true });
   }
 
   isSneaking() {

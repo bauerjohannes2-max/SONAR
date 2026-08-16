@@ -52,17 +52,18 @@ export class HUD {
     const sectorTag = isEndless ? `ETAGE ${String(floor).padStart(2, '0')}` : (levelData ? `SEKTOR 0${levelData.sectorNumber || 1}` : 'MISSION');
     ctx.fillText(`${sectorTag} // DATENKERNE: ${collected} / ${totalCrystals}`, 28, 19);
 
-    // 3. Center Info: Extraction or Stealth & Decoy status
+    // 3. Center Info: Extraction Alarm or Stealth & Decoy status
     ctx.textAlign = 'center';
-    ctx.font = '600 11.5px "Chakra Petch", "JetBrains Mono", monospace';
 
     if (crystalsLeft === 0) {
+      ctx.font = '700 11px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.fillStyle = '#00FF88';
       ctx.shadowColor = '#00FF88';
-      ctx.shadowBlur = 6 * pulseFactor;
-      ctx.fillText('★ SCHLEUSE ENTSICHERT // ZUR EXTRAKTION FLIEHEN ★', this.width / 2 - 20, 19);
+      ctx.shadowBlur = 8 * pulseFactor;
+      ctx.fillText('🚨 ALLE KRISTALLE GEFUNDEN! DER GRÜNE FLUCHTAUFZUG IST OFFEN — FLIEG HINEIN!', this.width / 2 - 15, 19);
       ctx.shadowBlur = 0;
     } else {
+      ctx.font = '600 11.5px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.fillStyle = '#9cb8c8';
       const decoyStr = player ? `KÖDER: ${player.decoysRemaining}/1` : '';
       const sneakStr = (player && player.isSneaking) ? '  •  🤫 LAUTLOS' : '';

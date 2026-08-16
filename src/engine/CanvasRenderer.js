@@ -103,6 +103,7 @@ export class CanvasRenderer {
     // Render Player (Echo Drone)
     if (player && player.isAlive) {
       this.renderPlayer(ctx, player);
+      this.renderPortalWayfinder(ctx, player, gate);
     }
 
     // Render Dynamic Burst Particles
@@ -555,6 +556,47 @@ export class CanvasRenderer {
       ctx.arc(0, 0, 15, 0, Math.PI * 2);
       ctx.stroke();
     }
+
+    ctx.restore();
+  }
+
+  /**
+   * Renders pulsating directional wayfinder arrow pointing to unlocked Escape Portal.
+   */
+  renderPortalWayfinder(ctx, player, gate) {
+    if (!gate || !gate.isOpen || !player || !player.isAlive) return;
+
+    const dx = gate.x - player.x;
+    const dy = gate.y - player.y;
+    const dist = Math.hypot(dx, dy);
+    if (dist < 32) return; // Right on top of the gate
+
+    const angle = Math.atan2(dy, dx);
+    const pulse = 0.8 + 0.2 * Math.sin(this.animTime * 6);
+
+    ctx.save();
+    // Orbiting arrow 34px in front of player towards portal
+    const orbitDist = 34 + Math.sin(this.animTime * 8) * 3;
+    const px = player.x + Math.cos(angle) * orbitDist;
+    const py = player.y + Math.sin(angle) * orbitDist;
+
+    ctx.translate(px, py);
+    ctx.rotate(angle);
+
+    ctx.fillStyle = '#00FF88';
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 1.5;
+    ctx.shadowColor = '#00FF88';
+    ctx.shadowBlur = 12 * pulse;
+
+    ctx.beginPath();
+    ctx.moveTo(9, 0);
+    ctx.lineTo(-6, -6);
+    ctx.lineTo(-2, 0);
+    ctx.lineTo(-6, 6);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
 
     ctx.restore();
   }

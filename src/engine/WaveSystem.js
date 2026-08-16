@@ -139,6 +139,24 @@ export class WaveSystem {
     });
   }
 
+  /**
+   * Spawns a pulsing escape portal beacon wave (green, global reach).
+   */
+  createBeaconWave(x, y) {
+    this.waves.push({
+      x,
+      y,
+      radius: 8,
+      maxRadius: 520,
+      speed: 180,
+      alpha: 1.0,
+      decay: 0.35,
+      color: '#00FF88',
+      thickness: 18,
+      type: 'BEACON'
+    });
+  }
+
   createDeathWave(x, y) {
     this.createDeathShockwave(x, y);
   }

@@ -1,7 +1,11 @@
-/**
- * SONAR: The Echo Chamber
- * Procedural Web Audio API Synthesizer with Dark Ambient Drone & Haptic Feedback
- */
+const AUDIO_ASSETS = {
+  sonar_ping: './assets/audio/sonar_ping.mp3',
+  crystal_pickup: './assets/audio/crystal_pickup.mp3',
+  death_explosion: './assets/audio/death_explosion.mp3',
+  enemy_alert: './assets/audio/enemy_alert.mp3',
+  portal_open: './assets/audio/portal_open.mp3',
+  ambient_drone: './assets/audio/ambient_drone.mp3'
+};
 
 export class AudioEngine {
   constructor() {
@@ -13,6 +17,7 @@ export class AudioEngine {
     this.droneOsc = null;
     this.droneNoise = null;
     this.droneFilter = null;
+    this.droneSampleSource = null;
     this.isDronePlaying = false;
 
     this.isInitialized = false;
@@ -20,10 +25,13 @@ export class AudioEngine {
     this.masterVolume = 0.8;
     this.sfxVolume = 0.8;
     this.ambientVolume = 0.35;
+
+    this.buffers = new Map();
+    this.isLoadingAssets = false;
   }
 
   /**
-   * Initializes AudioContext upon first user gesture.
+   * Initializes AudioContext upon first user gesture & preloads MP3 assets.
    */
   init() {
     if (this.isInitialized && this.ctx) {
@@ -41,7 +49,7 @@ export class AudioEngine {
 
       // Master Gain -> Destination
       this.masterGain = this.ctx.createGain();
-      this.masterGain.gain.setValueAtTime(this.masterVolume, this.ctx.currentTime);
+      this.masterGain.gain.setValueAtTime(this.isMuted ? 0 : this.masterVolume, this.ctx.currentTime);
       this.masterGain.connect(this.ctx.destination);
 
       // SFX Gain -> Master Gain
@@ -59,16 +67,63 @@ export class AudioEngine {
       }
 
       this.isInitialized = true;
+      this.preloadAudioBuffers();
       this.startAmbientDrone();
     } catch (e) {
       console.warn('Web Audio API not supported or blocked:', e);
     }
   }
 
+  /**
+   * Preload all MP3/OGG sound files directly into memory for 0ms latency.
+   */
+  async preloadAudioBuffers() {
+    if (!this.ctx) return;
+    this.isLoadingAssets = true;
+
+    const promises = Object.entries(AUDIO_ASSETS).map(async ([key, url]) => {
+      try {
+        const response = await fetch(url);
+        if (response.ok) {
+          const arrayBuffer = await response.arrayBuffer();
+          const decoded = await this.ctx.decodeAudioData(arrayBuffer);
+          this.buffers.set(key, decoded);
+        }
+      } catch (err) {
+        // Silently fallback to procedural synthesizer
+        console.warn(`[AudioEngine] Asset '${key}' fallback to synth:`, err.message);
+      }
+    });
+
+    await Promise.all(promises);
+    this.isLoadingAssets = false;
+  }
+
+  /**
+   * Plays a preloaded audio sample via AudioBufferSourceNode with 0ms latency.
+   */
+  playSample(key, customGain = null, loop = false) {
+    if (!this.ensureContext() || this.isMuted) return null;
+    const buffer = this.buffers.get(key);
+    if (!buffer) return null;
+
+    try {
+      const source = this.ctx.createBufferSource();
+      source.buffer = buffer;
+      source.loop = loop;
+      source.connect(customGain || this.sfxGain);
+      source.start(0);
+      return source;
+    } catch (e) {
+      console.warn(`[AudioEngine] playSample error on '${key}':`, e);
+      return null;
+    }
+  }
+
   setMasterVolume(val) {
     this.masterVolume = Math.max(0, Math.min(1, val));
     if (this.ctx && this.masterGain) {
-      this.masterGain.gain.setValueAtTime(this.masterVolume, this.ctx.currentTime);
+      this.masterGain.gain.setValueAtTime(this.isMuted ? 0 : this.masterVolume, this.ctx.currentTime);
     }
   }
 
@@ -77,6 +132,25 @@ export class AudioEngine {
     if (this.ctx && this.sfxGain) {
       this.sfxGain.gain.setValueAtTime(this.sfxVolume, this.ctx.currentTime);
     }
+  }
+
+  setAmbientVolume(val) {
+    this.ambientVolume = Math.max(0, Math.min(1, val));
+    if (this.ctx && this.ambientGain) {
+      this.ambientGain.gain.setValueAtTime(this.ambientVolume, this.ctx.currentTime);
+    }
+  }
+
+  setMusicVolume(val) {
+    this.setAmbientVolume(val);
+  }
+
+  toggleMute() {
+    this.isMuted = !this.isMuted;
+    if (this.ctx && this.masterGain) {
+      this.masterGain.gain.setValueAtTime(this.isMuted ? 0 : this.masterVolume, this.ctx.currentTime);
+    }
+    return this.isMuted;
   }
 
   /**
@@ -93,10 +167,18 @@ export class AudioEngine {
   }
 
   /**
-   * Generative Dark Ambient Drone Generator
+   * Generative / Sample-Based Dark Ambient Drone Generator
    */
   startAmbientDrone() {
     if (!this.ensureContext() || this.isDronePlaying) return;
+
+    // Try sample-based ambient drone first
+    const sampleSrc = this.playSample('ambient_drone', this.ambientGain, true);
+    if (sampleSrc) {
+      this.droneSampleSource = sampleSrc;
+      this.isDronePlaying = true;
+      return;
+    }
 
     try {
       const now = this.ctx.currentTime;
@@ -153,6 +235,10 @@ export class AudioEngine {
   }
 
   stopAmbientDrone() {
+    if (this.droneSampleSource) {
+      try { this.droneSampleSource.stop(); } catch (e) {}
+      this.droneSampleSource = null;
+    }
     if (this.droneOsc) {
       try { this.droneOsc.stop(); } catch (e) {}
       this.droneOsc = null;
@@ -217,13 +303,15 @@ export class AudioEngine {
   }
 
   /**
-   * Sonar Ping: Swept resonant bandpass oscillator (440 Hz -> 880 Hz)
+   * Sonar Ping: Plays high-definition sub-sea ping or procedural fallback
    */
   playSonarPing() {
     this.triggerHaptic('ping');
     if (!this.ensureContext() || this.isMuted) return;
-    const now = this.ctx.currentTime;
 
+    if (this.playSample('sonar_ping')) return;
+
+    const now = this.ctx.currentTime;
     const osc1 = this.ctx.createOscillator();
     const filter = this.ctx.createBiquadFilter();
     const gain1 = this.ctx.createGain();
@@ -265,13 +353,15 @@ export class AudioEngine {
   }
 
   /**
-   * Hunter Alert: Dissonant FM-modulated sawtooth shriek
+   * Hunter Alert: Plays metallic growl sample or procedural shriek
    */
   playHunterAlert() {
     this.triggerHaptic('alarm');
     if (!this.ensureContext() || this.isMuted) return;
-    const now = this.ctx.currentTime;
 
+    if (this.playSample('enemy_alert')) return;
+
+    const now = this.ctx.currentTime;
     const carrier = this.ctx.createOscillator();
     carrier.type = 'sawtooth';
     carrier.frequency.setValueAtTime(130, now);
@@ -330,6 +420,9 @@ export class AudioEngine {
   playCrystalPickup() {
     this.triggerHaptic('pickup');
     if (!this.ensureContext() || this.isMuted) return;
+
+    if (this.playSample('crystal_pickup')) return;
+
     const now = this.ctx.currentTime;
     const notes = [523.25, 659.25, 783.99];
 
@@ -467,6 +560,9 @@ export class AudioEngine {
   playGateUnlock() {
     this.triggerHaptic('pickup');
     if (!this.ensureContext() || this.isMuted) return;
+
+    if (this.playSample('portal_open')) return;
+
     const now = this.ctx.currentTime;
 
     const freqs = [110, 164.81, 220];
@@ -519,6 +615,9 @@ export class AudioEngine {
   playDeath() {
     this.triggerHaptic('death');
     if (!this.ensureContext() || this.isMuted) return;
+
+    if (this.playSample('death_explosion')) return;
+
     const now = this.ctx.currentTime;
 
     // 1. Soft Atmospheric Pitch Drop (Sine/Triangle 300Hz -> 40Hz)
@@ -563,28 +662,25 @@ export class AudioEngine {
   }
 
   playWallCrash() {
-    this.triggerHaptic('death');
+    this.triggerHaptic('collision');
     if (!this.ensureContext() || this.isMuted) return;
+
+    if (this.playSample('death_explosion')) return;
+
     const now = this.ctx.currentTime;
 
-    // 1. Soft Cushioned Hull Impact (Triangle 260Hz -> 38Hz)
+    // 1. Low Impact Thud (Sine 120Hz -> 30Hz, 0.8s decay)
     const impactOsc = this.ctx.createOscillator();
     const impactGain = this.ctx.createGain();
-    const lowPass = this.ctx.createBiquadFilter();
 
-    impactOsc.type = 'triangle';
-    impactOsc.frequency.setValueAtTime(260, now);
-    impactOsc.frequency.exponentialRampToValueAtTime(38, now + 0.8);
+    impactOsc.type = 'sine';
+    impactOsc.frequency.setValueAtTime(120, now);
+    impactOsc.frequency.exponentialRampToValueAtTime(30, now + 0.8);
 
-    lowPass.type = 'lowpass';
-    lowPass.frequency.setValueAtTime(400, now);
-    lowPass.frequency.exponentialRampToValueAtTime(50, now + 0.85);
-
-    impactGain.gain.setValueAtTime(0.38, now);
+    impactGain.gain.setValueAtTime(0.5, now);
     impactGain.gain.exponentialRampToValueAtTime(0.001, now + 0.85);
 
-    impactOsc.connect(lowPass);
-    lowPass.connect(impactGain);
+    impactOsc.connect(impactGain);
     impactGain.connect(this.sfxGain);
 
     impactOsc.start(now);

@@ -20,14 +20,77 @@ export class TutorialModal {
     this.miniCtx = this.miniCanvas.getContext('2d');
 
     this.cards = [
-      // Card 1: Principle & Wall Hazard
+      // Card 1: Player Drone
       {
         id: 'principle',
-        title: '01. OPERATION ZERO-LIGHT // TETHYS-6',
-        category: 'GRUNDPRINZIP',
-        role: 'Tiefsee-Physik & Kollisionsgefahr',
-        behavior: '100% Dunkelheit auf Station TETHYS-6. Nur Sonar-Wellen decken Wände auf. ACHTUNG: Blindes Laufen in Wände zerstört ECHO-7 sofort!',
-        counter: 'Nutze Sonar-Pings (SPACE), präge dir das Labyrinth ein und steuere die Drohne präzise.',
+        title: '01. DU BIST DIE DROHNE ECHO',
+        category: 'DEINE SPIELFIGUR',
+        role: 'Der leuchtende Pfeil auf dem Bildschirm',
+        behavior: 'Du steuerst die kleine Unterwasser-Drohne ECHO (den leuchtenden Pfeil). Bewege dich mit WASD, Pfeiltasten oder dem Touch-Joystick!',
+        counter: 'In der Station TETHYS-6 ist der Strom ausgefallen: Du bist blind und musst dich durch Schallwellen orientieren.',
+        renderVisual: (ctx, t) => {
+          ctx.fillStyle = '#030305';
+          ctx.fillRect(0, 0, 280, 140);
+
+          // Animated Drone with glowing core
+          ctx.save();
+          ctx.translate(70, 70);
+          ctx.rotate(Math.sin(t * 2) * 0.2);
+
+          ctx.fillStyle = '#031720';
+          ctx.strokeStyle = '#00F0FF';
+          ctx.lineWidth = 2.5;
+          ctx.shadowColor = '#00F0FF';
+          ctx.shadowBlur = 12;
+
+          ctx.beginPath();
+          ctx.moveTo(16, 0);
+          ctx.lineTo(-12, -12);
+          ctx.lineTo(-6, 0);
+          ctx.lineTo(-12, 12);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+
+          // Pulsing Core
+          ctx.fillStyle = '#FFFFFF';
+          ctx.beginPath();
+          ctx.arc(0, 0, 3.5 + Math.sin(t * 6) * 1.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+
+          // Text / badges
+          const badges = [
+            { label: 'WASD / JOYSTICK', desc: 'Fliegen' },
+            { label: 'SPACE / [PING]', desc: 'Sonar senden' },
+            { label: 'SHIFT / SCHLEICHEN', desc: 'Lautlos' },
+            { label: 'E / [KÖDER]', desc: 'Ablenken' }
+          ];
+
+          badges.forEach((b, i) => {
+            const y = 22 + i * 28;
+            ctx.fillStyle = '#091520';
+            ctx.fillRect(135, y - 10, 135, 22);
+            ctx.strokeStyle = '#00F0FF';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(135, y - 10, 135, 22);
+
+            ctx.font = '700 9.5px "Chakra Petch", "JetBrains Mono", monospace';
+            ctx.fillStyle = '#00F0FF';
+            ctx.textAlign = 'left';
+            ctx.fillText(b.label, 140, y + 4);
+          });
+        }
+      },
+
+      // Card 2: Waves & Walls
+      {
+        id: 'drone',
+        title: '02. SCHALLWELLEN & WÄNDE',
+        category: 'ECHOLOT & PINGS',
+        role: 'Wände kurz aufleuchten lassen',
+        behavior: 'Drücke LEERTASTE (oder PING-Button), um Wände kurz aufleuchten zu lassen. Sieh genau hin, wo der Gang frei ist.',
+        counter: 'WICHTIG: Fliege niemals blind in eine Wand — die Drohne zerbricht sonst sofort beim Aufprall!',
         renderVisual: (ctx, t) => {
           ctx.fillStyle = '#030305';
           ctx.fillRect(0, 0, 280, 140);
@@ -73,84 +136,21 @@ export class TutorialModal {
         }
       },
 
-      // Card 2: Player Drone & Dual Controls
-      {
-        id: 'drone',
-        title: '02. DROHNE ECHO-7 // STEUERUNG',
-        category: 'SPIELER-EINHEIT',
-        role: 'Spähdrohne ECHO-7 (Wandcrash = Tod)',
-        behavior: 'Schritte erzeugen 2.5-Tile Schallwellen. Sonar-Ping deckt den Sektor für 1.5s auf (3s Cooldown).',
-        counter: 'PC: WASD / Shift (Schleichen) / Space / E (Köder) / F // Mobile: On-Screen D-Pad & Buttons.',
-        renderVisual: (ctx, t) => {
-          ctx.fillStyle = '#030305';
-          ctx.fillRect(0, 0, 280, 140);
-
-          // Animated Drone
-          ctx.save();
-          ctx.translate(65, 70);
-          ctx.rotate(Math.sin(t * 2) * 0.2);
-
-          ctx.fillStyle = '#031720';
-          ctx.strokeStyle = '#00F0FF';
-          ctx.lineWidth = 2.5;
-          ctx.shadowColor = '#00F0FF';
-          ctx.shadowBlur = 12;
-
-          ctx.beginPath();
-          ctx.moveTo(14, 0);
-          ctx.lineTo(-10, -10);
-          ctx.lineTo(-5, 0);
-          ctx.lineTo(-10, 10);
-          ctx.closePath();
-          ctx.fill();
-          ctx.stroke();
-
-          // Pulsing Core
-          ctx.fillStyle = '#FFFFFF';
-          ctx.beginPath();
-          ctx.arc(0, 0, 3 + Math.sin(t * 6) * 1.5, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.restore();
-
-          // Control Key Badges (Right side)
-          const badges = [
-            { label: 'WASD / D-PAD', desc: 'Schritt (Schall)' },
-            { label: 'SHIFT / SNEAK', desc: 'Schleichen (0 Schall)' },
-            { label: 'SPACE / PING', desc: 'Sonar-Ping (3s CD)' },
-            { label: 'E / KÖDER', desc: 'Täuschkörper (1/1)' }
-          ];
-
-          badges.forEach((b, i) => {
-            const y = 22 + i * 28;
-            ctx.fillStyle = '#091520';
-            ctx.fillRect(130, y - 10, 140, 22);
-            ctx.strokeStyle = '#00F0FF';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(130, y - 10, 140, 22);
-
-            ctx.font = '700 9.5px "Chakra Petch", "JetBrains Mono", monospace';
-            ctx.fillStyle = '#00F0FF';
-            ctx.textAlign = 'left';
-            ctx.fillText(b.label, 136, y + 4);
-          });
-        }
-      },
-
-      // Card 3: Objective
+      // Card 3: Crystals
       {
         id: 'objective',
-        title: '03. RESONANZ-DATENKERNE & SCHLEUSE',
+        title: '03. KRISTALLE EINSAMMELN',
         category: 'MISSION: ENTSCHLÜSSELUNG',
-        role: 'Datenbergung & Extraktion',
-        behavior: 'Die Extraktionsschleuse bleibt verriegelt, bis alle Resonanz-Datenkerne des Sektors geborgen sind.',
-        counter: 'Berge alle Datenkerne (grün), damit die Schleuse aktiviert wird, und fliehe hindurch.',
+        role: 'Alle Datenkristalle finden',
+        behavior: 'In jedem Sektor sind leuchtende grüne Kristalle versteckt. Finde und sammle jeden einzelnen Diamanten ein!',
+        counter: 'Oben links im HUD siehst du immer: DATENKERNE: Gesammelt / Gesamt.',
         renderVisual: (ctx, t) => {
           ctx.fillStyle = '#030305';
           ctx.fillRect(0, 0, 280, 140);
 
           // 3 Crystals
           for (let i = 0; i < 3; i++) {
-            const cx = 50 + i * 45;
+            const cx = 70 + i * 70;
             const cy = 70 + Math.sin(t * 3 + i) * 6;
 
             ctx.save();
@@ -162,55 +162,78 @@ export class TutorialModal {
             ctx.shadowBlur = 12;
 
             ctx.beginPath();
-            ctx.moveTo(0, -9);
-            ctx.lineTo(6, 0);
-            ctx.lineTo(0, 9);
-            ctx.lineTo(-6, 0);
+            ctx.moveTo(0, -12);
+            ctx.lineTo(8, 0);
+            ctx.lineTo(0, 12);
+            ctx.lineTo(-8, 0);
             ctx.closePath();
             ctx.fill();
 
             ctx.fillStyle = '#FFFFFF';
             ctx.beginPath();
-            ctx.arc(0, 0, 2.5, 0, Math.PI * 2);
+            ctx.arc(0, 0, 3, 0, Math.PI * 2);
             ctx.fill();
             ctx.restore();
           }
+        }
+      },
 
-          // Green Extraction Airlock Gate (Right side)
-          const gx = 210;
+      // Card 4: Escape Portal
+      {
+        id: 'portal',
+        title: '04. DER GRÜNE FLUCHTAUFZUG',
+        category: 'ZIEL: LEVEL GEWINNEN',
+        role: 'Rettungs-Portal öffnet sich',
+        behavior: 'Sobald du alle Kristalle hast, öffnet sich der geheime grüne Fluchtaufzug!',
+        counter: 'Folge den grünen Signal-Wellen und dem Richtungspfeil am Bildschirmrand. Flieg hinein zum Sieg!',
+        renderVisual: (ctx, t) => {
+          ctx.fillStyle = '#030305';
+          ctx.fillRect(0, 0, 280, 140);
+
+          // Green Extraction Airlock Gate (Center)
+          const gx = 140;
           const gy = 70;
           ctx.save();
           ctx.fillStyle = '#062014';
-          ctx.fillRect(gx - 20, gy - 24, 40, 48);
+          ctx.fillRect(gx - 26, gy - 30, 52, 60);
 
-          const glow = 10 + Math.sin(t * 5) * 6;
+          const glow = 12 + Math.sin(t * 5) * 8;
           ctx.strokeStyle = '#00FF88';
-          ctx.lineWidth = 2.5;
+          ctx.lineWidth = 3;
           ctx.shadowColor = '#00FF88';
           ctx.shadowBlur = glow;
-          ctx.strokeRect(gx - 20, gy - 24, 40, 48);
+          ctx.strokeRect(gx - 26, gy - 30, 52, 60);
 
           // Arrow Chevron
           ctx.strokeStyle = '#FFFFFF';
-          ctx.lineWidth = 2;
+          ctx.lineWidth = 2.5;
           ctx.beginPath();
           const bob = Math.sin(t * 4) * 4;
-          ctx.moveTo(gx - 8, gy + 6 + bob);
-          ctx.lineTo(gx, gy - 6 + bob);
-          ctx.lineTo(gx + 8, gy + 6 + bob);
+          ctx.moveTo(gx - 10, gy + 8 + bob);
+          ctx.lineTo(gx, gy - 8 + bob);
+          ctx.lineTo(gx + 10, gy + 8 + bob);
           ctx.stroke();
+
+          // Beacon Waves
+          const bR = (t * 50) % 90;
+          ctx.strokeStyle = 'rgba(0, 255, 136, ' + Math.max(0, 1 - bR / 90) + ')';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(gx, gy, bR + 20, 0, Math.PI * 2);
+          ctx.stroke();
+
           ctx.restore();
         }
       },
 
-      // Card 4: Hunter
+      // Card 5: Red Monsters (Hunters)
       {
         id: 'hunter',
-        title: '04. HUNTER // AKUSTISCHE RAUBDROHNE',
-        category: 'FEIND-TYP (SIGNAL-ROT)',
-        role: 'Akustisch jagende Raubdrohne',
-        behavior: 'Blind. Ortet Schritte & Sonar-Pings und sprintet via kürzestem Pfad (BFS) sofort zur Schallquelle.',
-        counter: 'Schleiche mit Shift / Sneak-Toggle an ihr vorbei oder lenke sie mit Köder-Fackeln (E) ab!',
+        title: '05. ROTE MONSTER',
+        category: 'FEINDE (SIGNAL-ROT)',
+        role: 'Hören deine Pings & Schritte',
+        behavior: 'Die roten Monster sind blind, haben aber super Ohren: Sie hören jeden deiner Pings und Schritte!',
+        counter: 'Wenn sie dich berühren, wirst du zerstört! Schleiche leise an ihnen vorbei oder lenke sie ab.',
         renderVisual: (ctx, t) => {
           ctx.fillStyle = '#030305';
           ctx.fillRect(0, 0, 280, 140);
@@ -241,20 +264,19 @@ export class TutorialModal {
           ctx.shadowBlur = 14;
 
           ctx.beginPath();
-          ctx.moveTo(12, 0);
-          ctx.lineTo(-9, -9);
-          ctx.lineTo(-4, 0);
-          ctx.lineTo(-9, 9);
+          ctx.moveTo(14, 0);
+          ctx.lineTo(-10, -10);
+          ctx.lineTo(-5, 0);
+          ctx.lineTo(-10, 10);
           ctx.closePath();
           ctx.fill();
           ctx.stroke();
 
-          // Alert Eye & Exclamation
+          // Alert Eye
           ctx.fillStyle = '#FFFFFF';
           ctx.beginPath();
           ctx.arc(3, 0, 3, 0, Math.PI * 2);
           ctx.fill();
-
           ctx.restore();
 
           // Exclamation icon
@@ -267,139 +289,60 @@ export class TutorialModal {
         }
       },
 
-      // Card 5: Shadow Stalker
+      // Card 6: Sneak Mode
       {
-        id: 'stalker',
-        title: '05. STALKER // SCHATTEN-RAUBDROHNE',
-        category: 'FEIND-TYP (SCHATTEN-LILA)',
-        role: 'Lautlose Infiltrations-Raubdrohne',
-        behavior: 'Schleicht im Dunkeln geräuschlos direkt auf die Position von ECHO-7 zu.',
-        counter: 'FEIND-SCHWÄCHE: Löse einen Sonar-Ping (SPACE) aus -> Erstarrt für 2.5s im Lichtfeld!',
+        id: 'sneak',
+        title: '06. LEISE SCHLEICHEN',
+        category: 'LAUTLOSE FORTBEWEGUNG',
+        role: 'Lautlos an Feinden vorbei',
+        behavior: 'Halte SHIFT gedrückt (oder tippe auf SCHLEICHEN), um dich lautlos fortzubewegen.',
+        counter: 'Beim Schleichen erzeugst du 0 Schallwellen. Monster in der Nähe bemerken dich nicht!',
         renderVisual: (ctx, t) => {
           ctx.fillStyle = '#030305';
           ctx.fillRect(0, 0, 280, 140);
 
-          // Cycle between stalking and frozen by sonar
-          const isStunned = Math.floor(t) % 2 === 1;
-          const sx = 140;
+          // Sneaking drone (slow, glowing softly cyan)
+          const sx = 80 + (t * 20) % 120;
           const sy = 70;
 
-          if (isStunned) {
-            // Sonar wave flash
-            ctx.strokeStyle = '#00F0FF';
-            ctx.lineWidth = 3;
-            ctx.shadowColor = '#00F0FF';
-            ctx.shadowBlur = 15;
-            ctx.beginPath();
-            ctx.arc(sx, sy, 40, 0, Math.PI * 2);
-            ctx.stroke();
-
-            // Frozen Stalker Crystal
-            ctx.save();
-            ctx.translate(sx, sy);
-            ctx.fillStyle = '#FFFFFF';
-            ctx.strokeStyle = '#9D00FF';
-            ctx.lineWidth = 3;
-            ctx.shadowColor = '#9D00FF';
-            ctx.shadowBlur = 18;
-            ctx.beginPath();
-            ctx.arc(0, 0, 12, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.stroke();
-
-            ctx.font = '700 11px "Chakra Petch", "JetBrains Mono", monospace';
-            ctx.fillStyle = '#00F0FF';
-            ctx.textAlign = 'center';
-            ctx.fillText('BLINDED // STUNNED 2.5s', 0, -22);
-            ctx.restore();
-          } else {
-            // Slinking in dark
-            ctx.save();
-            ctx.translate(sx, sy);
-            ctx.fillStyle = '#100518';
-            ctx.strokeStyle = '#9D00FF';
-            ctx.lineWidth = 2;
-            ctx.shadowColor = '#9D00FF';
-            ctx.shadowBlur = 10;
-
-            ctx.beginPath();
-            ctx.moveTo(12, 0);
-            ctx.lineTo(-9, -9);
-            ctx.lineTo(-3, 0);
-            ctx.lineTo(-9, 9);
-            ctx.closePath();
-            ctx.fill();
-            ctx.stroke();
-
-            ctx.fillStyle = '#9D00FF';
-            ctx.beginPath();
-            ctx.arc(3, 0, 2.5, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.restore();
-          }
-        }
-      },
-
-      // Card 6: Resonator
-      {
-        id: 'resonator',
-        title: '06. RESONATOR // DER ALARM-KNOTEN',
-        category: 'HAZARD-TYP (WARN-GELB)',
-        role: 'Akustischer Alarmposten',
-        behavior: 'Trifft ihn eine Sonar-Welle, sendet er eine kreischende Schockwelle aus.',
-        counter: 'Schockwelle weckt alle Hunter auf! Vermeide Pings in Resonator-Nähe.',
-        renderVisual: (ctx, t) => {
-          ctx.fillStyle = '#030305';
-          ctx.fillRect(0, 0, 280, 140);
-
-          const rx = 140;
-          const ry = 70;
-
-          // Expanding Yellow Alarm Shockwave
-          const waveR = (t * 80) % 130;
-          ctx.strokeStyle = '#FFE600';
-          ctx.lineWidth = 3;
-          ctx.shadowColor = '#FFE600';
-          ctx.shadowBlur = 14;
-          ctx.beginPath();
-          ctx.arc(rx, ry, waveR, 0, Math.PI * 2);
-          ctx.stroke();
-
-          // Resonator Node
           ctx.save();
-          ctx.translate(rx, ry);
-          const sz = 12;
-          ctx.fillStyle = '#FFE600';
-          ctx.shadowColor = '#FFE600';
-          ctx.shadowBlur = 14;
+          ctx.translate(sx, sy);
+          ctx.fillStyle = '#031720';
+          ctx.strokeStyle = '#00F0FF';
+          ctx.lineWidth = 2;
+          ctx.shadowColor = '#00F0FF';
+          ctx.shadowBlur = 6;
 
           ctx.beginPath();
-          ctx.moveTo(-sz, -sz * 0.4);
-          ctx.lineTo(-sz * 0.4, -sz);
-          ctx.lineTo(sz * 0.4, -sz);
-          ctx.lineTo(sz, -sz * 0.4);
-          ctx.lineTo(sz, sz * 0.4);
-          ctx.lineTo(sz * 0.4, sz);
-          ctx.lineTo(-sz * 0.4, sz);
-          ctx.lineTo(-sz, sz * 0.4);
+          ctx.moveTo(12, 0);
+          ctx.lineTo(-8, -8);
+          ctx.lineTo(-4, 0);
+          ctx.lineTo(-8, 8);
           ctx.closePath();
           ctx.fill();
-
-          ctx.strokeStyle = '#FFFFFF';
-          ctx.lineWidth = 2;
           ctx.stroke();
           ctx.restore();
+
+          // Sneak badge & silence indicator
+          ctx.font = '700 13px "Chakra Petch", "JetBrains Mono", monospace';
+          ctx.fillStyle = '#00FF88';
+          ctx.textAlign = 'center';
+          ctx.fillText('🤫 0 SCHALLWELLEN // LAUTLOS', 140, 30);
+
+          ctx.font = '600 11px "Chakra Petch", "JetBrains Mono", monospace';
+          ctx.fillStyle = '#9cb8c8';
+          ctx.fillText('Monster schlafen weiter', 140, 115);
         }
       },
 
       // Card 7: Decoy Flare
       {
         id: 'decoy',
-        title: '07. TAKTIK: KÖDER-ABLENKUNG (E)',
-        category: 'TAKTIK-AUSRÜSTUNG (E / KÖDER)',
+        title: '07. KÖDER-WURF (E)',
+        category: 'ABLENKUNG & TRICKS (E / KÖDER)',
         role: 'Ablenkungs-Wurfkörper (HUD: 1/1)',
-        behavior: 'Beim Aktivieren (Taste E oder Touch-Button) schleudert die Drohne einen Schall-Köder exakt 3 Blöcke weit in Blickrichtung.',
-        counter: 'Der Köder sendet dort periodische Schallwellen aus und lockt alle nahen Jäger (Hunter & Stalker) gezielt zu diesem Punkt ab. Munition ist streng limitiert (HUD: 1/1).',
+        behavior: 'Drücke Taste E (oder den KÖDER-Button), um einen Köder 3 Blöcke weit in Blickrichtung zu schleudern.',
+        counter: 'Der Köder piept laut und lockt alle Monster an. So hast du freie Bahn zum Fluchtaufzug!',
         renderVisual: (ctx, t) => {
           ctx.fillStyle = '#030305';
           ctx.fillRect(0, 0, 280, 140);
@@ -420,12 +363,11 @@ export class TutorialModal {
           // Decoy Flare rotating beacon
           ctx.save();
           ctx.translate(dx, dy);
-          ctx.rotate(t * 6);
+          ctx.rotate(t * 4);
           ctx.fillStyle = '#FFAA00';
+          ctx.shadowColor = '#FFAA00';
+          ctx.shadowBlur = 15;
           ctx.fillRect(-6, -6, 12, 12);
-          ctx.strokeStyle = '#FFFFFF';
-          ctx.lineWidth = 1.5;
-          ctx.strokeRect(-6, -6, 12, 12);
           ctx.restore();
 
           // Hunter running toward Decoy (Right side)

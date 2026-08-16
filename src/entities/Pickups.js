@@ -68,23 +68,34 @@ export class Gate {
     this.y = this.gridY * CONFIG.TILE_SIZE + CONFIG.TILE_SIZE / 2;
     this.isOpen = false;
     this.pulseAnim = 0;
+    this.beaconTimer = 0;
+    this.beaconInterval = 2.5; // Emits green beacon wave every 2.5s
   }
 
   reset() {
     this.isOpen = false;
     this.pulseAnim = 0;
+    this.beaconTimer = 0;
   }
 
   unlock(audioEngine) {
     if (!this.isOpen) {
       this.isOpen = true;
+      this.beaconTimer = 2.0; // Trigger first beacon wave almost immediately
       if (audioEngine) audioEngine.playGateUnlock();
     }
   }
 
-  update(dt) {
+  update(dt, waveSystem = null) {
     if (this.isOpen) {
       this.pulseAnim += dt * 4;
+      this.beaconTimer += dt;
+      if (this.beaconTimer >= this.beaconInterval) {
+        this.beaconTimer = 0;
+        if (waveSystem && typeof waveSystem.createBeaconWave === 'function') {
+          waveSystem.createBeaconWave(this.x, this.y);
+        }
+      }
     }
   }
 

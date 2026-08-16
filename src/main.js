@@ -247,6 +247,19 @@ export class Game {
     }
   }
 
+  restartLevel() {
+    if (this.inputHandler) {
+      this.inputHandler.resetInputState();
+      this.inputHandler.ignoreClicksUntil = 0;
+    }
+    if (this.isEndlessActive) {
+      this.loadEndlessFloor(this.endlessMode.currentFloor || 1);
+    } else {
+      this.loadSector(this.currentSectorIndex);
+    }
+    this.gameState = CONFIG.STATES.PLAYING;
+  }
+
   loadSector(index) {
     this.isEndlessActive = false;
     this.currentSectorIndex = Math.max(0, Math.min(index, this.totalSectors - 1));
@@ -274,6 +287,11 @@ export class Game {
     this.touchControls.updateDecoyCount(this.player.decoysRemaining);
     if (this.renderer) {
       this.renderer.camera = { x: this.player.x, y: this.player.y };
+    }
+
+    if (this.inputHandler) {
+      this.inputHandler.resetInputState();
+      this.inputHandler.ignoreClicksUntil = 0;
     }
 
     this.audioEngine.startDrone();
@@ -512,12 +530,7 @@ export class Game {
 
       case CONFIG.STATES.GAME_OVER: {
         if (this.inputHandler.consumeRestart() || this.inputHandler.consumeAction()) {
-          if (this.isEndlessActive) {
-            this.endlessMode.reset();
-            this.loadEndlessFloor(1);
-          } else {
-            this.loadSector(this.currentSectorIndex);
-          }
+          this.restartLevel();
         } else if (this.inputHandler.consumeLevelSelect()) {
           this.gameState = CONFIG.STATES.SECTOR_SELECT;
         } else if (this.inputHandler.consumeMenu() || this.inputHandler.consumeEscape()) {
@@ -527,12 +540,7 @@ export class Game {
           if (click && click.x >= CONFIG.CANVAS_WIDTH / 2 - 200 && click.x <= CONFIG.CANVAS_WIDTH / 2 + 200) {
             if (click.y >= 215 && click.y <= 265) {
               // ↺ SEKTOR-NEUSTART
-              if (this.isEndlessActive) {
-                this.endlessMode.reset();
-                this.loadEndlessFloor(1);
-              } else {
-                this.loadSector(this.currentSectorIndex);
-              }
+              this.restartLevel();
             } else if (click.y >= 275 && click.y <= 325) {
               // ➔ LEVEL-ÜBERSICHT
               this.gameState = CONFIG.STATES.SECTOR_SELECT;
@@ -572,8 +580,7 @@ export class Game {
     }
 
     if (this.inputHandler.consumeRestart()) {
-      if (this.isEndlessActive) this.loadEndlessFloor(this.endlessMode.currentFloor);
-      else this.loadSector(this.currentSectorIndex);
+      this.restartLevel();
       return;
     }
 
@@ -633,8 +640,12 @@ export class Game {
     const allCrystalsCollected = remainingCrystals === 0;
     if (allCrystalsCollected && !this.gate.isOpen) {
       this.gate.unlock(this.audioEngine);
+      this.waveSystem.createBeaconWave(this.gate.x, this.gate.y);
       this.particleEngine.spawnSparks(this.gate.x, this.gate.y, CONFIG.COLORS.GATE_OPEN, 24);
       this.particleEngine.addShake(6, 300);
+    }
+    if (this.gate) {
+      this.gate.update(dt, this.waveSystem);
     }
 
     // 6. Check Gate Extraction

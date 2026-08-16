@@ -378,12 +378,21 @@ kbd {
   transform: scale(1.05);
 }
 
-.modal-body {
+.modal-body,
+.settings-modal,
+.settings-modal-box,
+.modal-card,
+#settings-container {
   padding: 16px 20px;
   display: flex;
   flex-direction: column;
   gap: 14px;
-  overflow-y: auto;
+  max-height: min(84dvh, 600px);
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  touch-action: pan-y !important;
+  pointer-events: auto !important;
+  overscroll-behavior: contain;
 }
 
 .pilot-status-banner {

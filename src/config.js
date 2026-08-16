@@ -131,7 +131,7 @@ export const CONFIG = {
   },
 
   // Version & Build
-  VERSION: '1.4.0',
+  VERSION: '1.4.1',
   BUILD: '20260816',
 
   // Game States

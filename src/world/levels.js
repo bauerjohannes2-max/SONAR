@@ -10,8 +10,9 @@ export const LEVELS = [
   // ==========================================
   {
     sectorNumber: 1,
-    name: "SECTOR 01 // AUSGANGSLAGE",
-    description: "Sammle 3 Resonanz-Kristalle. Vermeide den Hunter im Dunkeln.",
+    name: "SECTOR 01 // REAKTOR-ABSTURZ",
+    subtitle: "Blindstart",
+    description: "Reaktor-Absturz // Blindstart. Bergen Sie 3 Resonanz-Datenkerne der TETHYS-6. Vermeiden Sie Raubdrohnen im Dunkeln.",
     playerStart: { gx: 2, gy: 15 },
     gate: { gx: 22, gy: 2 },
     crystals: [
@@ -62,8 +63,9 @@ export const LEVELS = [
   // ==========================================
   {
     sectorNumber: 2,
-    name: "SECTOR 02 // RESONANZ-KAMMER",
-    description: "Vorsicht vor gelben Resonatoren! Pings lösen Kettenreaktionen aus.",
+    name: "SECTOR 02 // DIE FLUTKAMMER",
+    subtitle: "Erstkontakt",
+    description: "Die Flutkammer // Erstkontakt. Akustische Raubdrohnen patrouillieren die Resonanzknoten.",
     playerStart: { gx: 2, gy: 15 },
     gate: { gx: 22, gy: 15 },
     crystals: [
@@ -128,8 +130,9 @@ export const LEVELS = [
   // ==========================================
   {
     sectorNumber: 3,
-    name: "SECTOR 03 // DAS ECHO-LABYRINTH",
-    description: "Maximale Dichte. Nutze das blaue Lighthouse-Signal als Orientierung.",
+    name: "SECTOR 03 // HYDROPHON-SCHACHT",
+    subtitle: "Lautlose Passage",
+    description: "Hydrophon-Schacht // Lautlose Passage. Schleich-Modus [SHIFT] zwingend erforderlich.",
     playerStart: { gx: 2, gy: 15 },
     gate: { gx: 12, gy: 2 },
     crystals: [
@@ -209,7 +212,8 @@ export const LEVELS = [
   {
     sectorNumber: 4,
     name: "SECTOR 04 // SCHATTEN-KORRIDOR",
-    description: "Der Shadow Stalker ist lautlos! Betäube ihn mit Sonar-Pings [SPACE].",
+    subtitle: "Stalker-Infiltration",
+    description: "Schatten-Korridor // Stalker-Infiltration. Stalker mit Sonar-Pings [SPACE] blenden und erstarren lassen.",
     playerStart: { gx: 2, gy: 2 },
     gate: { gx: 22, gy: 15 },
     crystals: [
@@ -263,7 +267,8 @@ export const LEVELS = [
   {
     sectorNumber: 5,
     name: "SECTOR 05 // DIE MINENFELDER",
-    description: "Halte [SHIFT] zum Schleichen gedrückt. Jeder Schritt kann Resonatoren wecken!",
+    subtitle: "Hochfrequenz-Sperre",
+    description: "Die Minenfelder // Hochfrequenz-Sperre. Halte [SHIFT] zum Schleichen gedrückt. Resonatoren meiden!",
     playerStart: { gx: 2, gy: 15 },
     gate: { gx: 22, gy: 2 },
     crystals: [
@@ -332,7 +337,8 @@ export const LEVELS = [
   {
     sectorNumber: 6,
     name: "SECTOR 06 // THE CORE",
-    description: "3 Ringe, 1 Kern. Nutze den Köder [E] um Jägern zu entkommen!",
+    subtitle: "Hyper-Resonanz",
+    description: "Kernreaktor-Sektor // Hyper-Resonanz. 3 Ringe, 1 Kern. Nutze Köder [E] um Jäger wegzulocken.",
     playerStart: { gx: 12, gy: 16 },
     gate: { gx: 12, gy: 1 },
     crystals: [
@@ -353,20 +359,20 @@ export const LEVELS = [
         startGy: 5,
         waypoints: [
           { gx: 5, gy: 5 },
-          { gx: 19, gy: 5 },
-          { gx: 19, gy: 12 },
+          { gx: 9, gy: 5 },
+          { gx: 9, gy: 12 },
           { gx: 5, gy: 12 }
         ]
       },
       {
         id: 'h6_2',
-        startGx: 8,
-        startGy: 7,
+        startGx: 19,
+        startGy: 5,
         waypoints: [
-          { gx: 8, gy: 7 },
-          { gx: 16, gy: 7 },
-          { gx: 16, gy: 10 },
-          { gx: 8, gy: 10 }
+          { gx: 19, gy: 5 },
+          { gx: 15, gy: 5 },
+          { gx: 15, gy: 12 },
+          { gx: 19, gy: 12 }
         ]
       },
       {
@@ -386,18 +392,18 @@ export const LEVELS = [
       [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
       [1,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,1],
       [1,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,1],
-      [1,0,0,0,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,0,0,0,1],
-      [1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1],
-      [1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1],
-      [1,0,0,0,1,0,0,1,1,1,1,1,0,1,1,1,1,1,0,0,1,0,0,0,1],
-      [1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1],
-      [1,0,0,0,1,0,0,1,0,0,1,1,0,1,1,0,0,1,0,0,1,0,0,0,1],
-      [1,0,0,0,1,0,0,1,0,0,1,0,0,0,1,0,0,1,0,0,1,0,0,0,1],
-      [1,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,1],
-      [1,0,0,0,0,0,0,1,1,1,1,0,1,1,1,1,1,1,0,0,0,0,0,0,1],
-      [1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1],
-      [1,0,0,0,1,1,1,1,1,1,0,1,1,1,0,1,1,1,1,1,1,0,0,0,1],
-      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,0,1],
+      [1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1],
+      [1,0,0,1,0,0,1,1,1,1,1,0,1,1,1,1,1,0,0,1,0,1,0,0,1],
+      [1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,1,0,1,0,0,1],
+      [1,0,0,1,0,0,1,0,1,1,1,0,1,1,1,0,1,0,0,1,0,1,0,0,1],
+      [1,0,0,1,0,0,1,0,1,0,0,0,0,0,1,0,1,0,0,1,0,1,0,0,1],
+      [1,0,0,1,0,0,1,0,1,0,0,0,0,0,1,0,1,0,0,1,0,1,0,0,1],
+      [1,0,0,1,0,0,1,0,1,1,1,0,1,1,1,0,1,0,0,1,0,1,0,0,1],
+      [1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,1,0,1,0,0,1],
+      [1,0,0,1,0,0,1,1,1,1,1,0,1,1,1,1,1,0,0,1,0,1,0,0,1],
+      [1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1],
+      [1,0,0,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,0,1],
       [1,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,1],
       [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
       [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
@@ -410,7 +416,8 @@ export const LEVELS = [
   {
     sectorNumber: 7,
     name: "SECTOR 07 // DOPPEL-RESONANZ",
-    description: "Zwei Flügel, eine schmale Brücke. Schleichen [SHIFT] ist überlebenswichtig!",
+    subtitle: "Gefahrenzone",
+    description: "Doppel-Resonanz // Gefahrenzone. Zwei Flügel, schmale Brücke. Resonatoren meiden!",
     playerStart: { gx: 2, gy: 2 },
     gate: { gx: 22, gy: 15 },
     crystals: [
@@ -479,7 +486,8 @@ export const LEVELS = [
   {
     sectorNumber: 8,
     name: "SECTOR 08 // DIE BLINDE JAGD",
-    description: "4 Hunter auf engstem Raum! Setze deine Köder-Fackel [E] präzise ein.",
+    subtitle: "Apex-Verfolgung",
+    description: "Die blinde Jagd // Apex-Verfolgung. 4 Hunter im Sektor. Schnelle Reflexe & Köder-Einsatz.",
     playerStart: { gx: 12, gy: 9 },
     gate: { gx: 12, gy: 1 },
     crystals: [
@@ -525,7 +533,8 @@ export const LEVELS = [
   {
     sectorNumber: 9,
     name: "SECTOR 09 // SCHATTEN-LABYRINTH",
-    description: "2 Stalker und 2 Hunter im Labyrinth. Pings betäuben Stalker, wecken aber Hunter!",
+    subtitle: "Dunkle Tiefe",
+    description: "Schatten-Labyrinth // Dunkle Tiefe. 2 Stalker & 2 Hunter. Pings betäuben Stalker!",
     playerStart: { gx: 2, gy: 15 },
     gate: { gx: 22, gy: 2 },
     crystals: [
@@ -574,7 +583,8 @@ export const LEVELS = [
   {
     sectorNumber: 10,
     name: "SECTOR 10 // APEX : NULLPUNKT",
-    description: "Das ultimative Finale: 3 Hunter, 2 Stalker, 3 Resonatoren, 1 Lighthouse, 5 Kristalle!",
+    subtitle: "Letzter Datenkern",
+    description: "Apex : Nullpunkt // Letzter Datenkern. Entschlüsseln Sie das Zero-Light Protokoll der TETHYS-6!",
     playerStart: { gx: 12, gy: 16 },
     gate: { gx: 12, gy: 1 },
     crystals: [

@@ -20,9 +20,9 @@ export class MenuSystem {
       {
         id: 'SECTOR_SELECT',
         title: 'KAMPAGNE',
-        subtitle: 'Sektoren 01 – 10',
+        subtitle: 'Operation Zero-Light // Sektoren 01 – 10',
         tag: '10 SEKTOREN',
-        desc: 'Kampagne: 10 taktische Sektoren mit steigender Bedrohung & Rang-Wertung'
+        desc: 'TETHYS-6: Berge Resonanz-Datenkerne aus 10 taktischen Sektoren unter dem Zero-Light Protocol'
       },
       {
         id: 'ENDLESS',
@@ -569,34 +569,51 @@ export class MenuSystem {
       ctx.strokeRect(x, y, cardW, cardH);
 
       const numStr = i + 1 < 10 ? `0${i + 1}` : `${i + 1}`;
+      const lvl = LEVELS[i];
       ctx.textAlign = 'center';
 
       if (isUnlocked) {
-        ctx.font = '700 17px "Chakra Petch", "JetBrains Mono", monospace';
+        ctx.font = '700 15px "Chakra Petch", "JetBrains Mono", monospace';
         ctx.fillStyle = isSelected ? '#FFFFFF' : '#00f0ff';
-        ctx.fillText(`SEKTOR ${numStr}`, x + cardW / 2, y + 28);
+        ctx.fillText(`SEKTOR ${numStr}`, x + cardW / 2, y + 24);
+
+        if (lvl && lvl.subtitle) {
+          ctx.font = '600 9.5px "Chakra Petch", "JetBrains Mono", monospace';
+          ctx.fillStyle = isSelected ? '#a0f0ff' : '#00c8d8';
+          ctx.fillText(`// ${lvl.subtitle}`, x + cardW / 2, y + 42);
+        }
 
         if (stats) {
-          ctx.font = '700 13px "Chakra Petch", "JetBrains Mono", monospace';
+          ctx.font = '700 12.5px "Chakra Petch", "JetBrains Mono", monospace';
           ctx.fillStyle = stats.rank === 'S' ? '#FFE600' : '#00ff88';
-          ctx.fillText(`RANG ${stats.rank}`, x + cardW / 2, y + 58);
+          ctx.fillText(`RANG ${stats.rank}`, x + cardW / 2, y + 68);
 
-          ctx.font = '500 11px "Chakra Petch", "JetBrains Mono", monospace';
+          ctx.font = '500 10.5px "Chakra Petch", "JetBrains Mono", monospace';
           ctx.fillStyle = '#607b8b';
-          ctx.fillText(`${stats.time.toFixed(1)}s`, x + cardW / 2, y + 84);
+          ctx.fillText(`${stats.time.toFixed(1)}s`, x + cardW / 2, y + 92);
         } else {
           ctx.font = '600 11px "Chakra Petch", "JetBrains Mono", monospace';
+          ctx.fillStyle = '#00ff88';
+          ctx.fillText('BEREIT', x + cardW / 2, y + 72);
+
+          ctx.font = '500 9.5px "Chakra Petch", "JetBrains Mono", monospace';
           ctx.fillStyle = '#607b8b';
-          ctx.fillText('OFFEN', x + cardW / 2, y + 68);
+          ctx.fillText('3 DATENKERNE', x + cardW / 2, y + 92);
         }
       } else {
-        ctx.font = '700 16px "Chakra Petch", "JetBrains Mono", monospace';
+        ctx.font = '700 15px "Chakra Petch", "JetBrains Mono", monospace';
         ctx.fillStyle = '#4a5760';
-        ctx.fillText(`SEKTOR ${numStr}`, x + cardW / 2, y + 32);
+        ctx.fillText(`SEKTOR ${numStr}`, x + cardW / 2, y + 30);
 
-        ctx.font = '700 12px "Chakra Petch", "JetBrains Mono", monospace';
+        if (lvl && lvl.subtitle) {
+          ctx.font = '500 9px "Chakra Petch", "JetBrains Mono", monospace';
+          ctx.fillStyle = '#3a4750';
+          ctx.fillText(`// ${lvl.subtitle}`, x + cardW / 2, y + 48);
+        }
+
+        ctx.font = '700 11.5px "Chakra Petch", "JetBrains Mono", monospace';
         ctx.fillStyle = '#883344';
-        ctx.fillText('GESPERRT', x + cardW / 2, y + 70);
+        ctx.fillText('GESPERRT', x + cardW / 2, y + 78);
       }
       ctx.restore();
     }

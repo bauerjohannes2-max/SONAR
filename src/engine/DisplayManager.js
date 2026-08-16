@@ -110,6 +110,39 @@ export class DisplayManager {
     this.setupResolution();
   }
 
+  requestSilentFullscreen() {
+    if (this.isFullscreen) return;
+    const doc = document;
+    const elem = document.documentElement;
+    const isNativeFullscreen = !!(doc.fullscreenElement || doc.webkitFullscreenElement);
+    if (isNativeFullscreen) {
+      this.isFullscreen = true;
+      this.updateFullscreenIcon();
+      return;
+    }
+
+    if (elem.requestFullscreen) {
+      elem.requestFullscreen().then(() => {
+        this.isFullscreen = true;
+        this.updateFullscreenIcon();
+        this.setupResolution();
+      }).catch(() => {
+        this.enableCssFullscreen();
+      });
+    } else if (elem.webkitRequestFullscreen) {
+      try {
+        elem.webkitRequestFullscreen();
+        this.isFullscreen = true;
+        this.updateFullscreenIcon();
+        this.setupResolution();
+      } catch {
+        this.enableCssFullscreen();
+      }
+    } else {
+      this.enableCssFullscreen();
+    }
+  }
+
   toggleFullscreen() {
     const doc = document;
     const elem = document.documentElement;

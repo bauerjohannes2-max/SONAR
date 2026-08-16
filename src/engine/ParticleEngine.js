@@ -16,17 +16,19 @@ export class ParticleEngine {
     this.initDust();
   }
 
-  initDust(count = 35) {
+  initDust(count = 45) {
     this.ambientDust = [];
     for (let i = 0; i < count; i++) {
+      const baseAlpha = Math.random() * 0.25 + 0.08;
       this.ambientDust.push({
         x: Math.random() * 800,
         y: Math.random() * 576,
-        vx: (Math.random() - 0.5) * 0.4,
-        vy: (Math.random() - 0.5) * 0.4,
-        alpha: Math.random() * 0.4 + 0.1,
-        baseAlpha: Math.random() * 0.4 + 0.1,
-        size: Math.random() * 1.5 + 0.5
+        vx: (Math.random() - 0.5) * 0.25,
+        vy: (Math.random() - 0.5) * 0.25,
+        alpha: baseAlpha,
+        baseAlpha: baseAlpha,
+        glow: 0,
+        size: Math.random() * 1.5 + 0.6
       });
     }
   }
@@ -37,6 +39,9 @@ export class ParticleEngine {
     this.shakeDuration = 0;
     this.shakeTimer = 0;
     this.shakeOffset = { x: 0, y: 0 };
+    for (let d of this.ambientDust) {
+      d.glow = 0;
+    }
   }
 
   clear() {
@@ -81,7 +86,7 @@ export class ParticleEngine {
     this.spawnSparks(x, y, '#FFFFFF', 12, 2.5, 30, 1.5);
   }
 
-  update(dt) {
+  update(dt, waveSystem = null) {
     const timeScale = dt * 60;
 
     // 1. Update Screen Shake
@@ -114,7 +119,7 @@ export class ParticleEngine {
       }
     }
 
-    // 3. Update ambient phosphor dust (for menus & atmosphere)
+    // 3. Update ambient phosphor micro-dust & wave illumination
     for (let i = 0; i < this.ambientDust.length; i++) {
       const d = this.ambientDust[i];
       d.x += d.vx * timeScale;
@@ -124,6 +129,22 @@ export class ParticleEngine {
       if (d.x > 800) d.x = 0;
       if (d.y < 0) d.y = 576;
       if (d.y > 576) d.y = 0;
+
+      // Illuminate particle if active sound wave passes over it
+      if (waveSystem && Array.isArray(waveSystem.waves)) {
+        for (let j = 0; j < waveSystem.waves.length; j++) {
+          const w = waveSystem.waves[j];
+          const distToWaveCenter = Math.hypot(d.x - w.x, d.y - w.y);
+          if (Math.abs(distToWaveCenter - w.radius) < 22) {
+            d.glow = Math.max(d.glow, (w.alpha || 0.8) * 1.0);
+          }
+        }
+      }
+
+      // Smooth decay of excitation glow
+      if (d.glow > 0) {
+        d.glow = Math.max(0, d.glow - 0.022 * timeScale);
+      }
     }
   }
 
@@ -151,10 +172,21 @@ export class ParticleEngine {
     ctx.save();
     for (let i = 0; i < this.ambientDust.length; i++) {
       const d = this.ambientDust[i];
-      ctx.fillStyle = '#00F0FF';
-      ctx.globalAlpha = d.alpha * 0.3;
+      const glow = d.glow || 0;
+      const alpha = Math.min(1.0, d.baseAlpha + glow * 0.75);
+
+      ctx.fillStyle = glow > 0.3 ? '#e0f8ff' : '#00F0FF';
+      ctx.globalAlpha = alpha;
+
+      if (glow > 0.15) {
+        ctx.shadowColor = '#00F0FF';
+        ctx.shadowBlur = 8 * glow;
+      } else {
+        ctx.shadowBlur = 0;
+      }
+
       ctx.beginPath();
-      ctx.arc(d.x, d.y, d.size, 0, Math.PI * 2);
+      ctx.arc(d.x, d.y, d.size + glow * 1.2, 0, Math.PI * 2);
       ctx.fill();
     }
     ctx.restore();

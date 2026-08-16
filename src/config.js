@@ -117,14 +117,28 @@ export const CONFIG = {
     WAVE_RING_THICKNESS: 14      // px width of illuminated wavefront
   },
 
+  // Worldbuilding & Lore: Operation Zero-Light
+  LORE: {
+    OPERATION: 'OPERATION ZERO-LIGHT',
+    DRONE_MODEL: 'ECHO-7',
+    STATION: 'TETHYS-6',
+    PROTOCOL: 'ZERO-LIGHT PROTOCOL',
+    OBJECTIVE_ITEM: 'RESONANZ-DATENKERNE',
+    ENEMIES: {
+      HUNTER: 'Akustische Raubdrohne (HUNTER)',
+      STALKER: 'Schatten-Raubdrohne (STALKER)'
+    }
+  },
+
   // Version & Build
-  VERSION: '1.3.1',
+  VERSION: '1.4.0',
   BUILD: '20260816',
 
   // Game States
   STATES: {
     MENU: 'MENU',
     SECTOR_SELECT: 'SECTOR_SELECT',
+    STORY_INTRO: 'STORY_INTRO',
     SETTINGS: 'SETTINGS',
     DATABASE: 'DATABASE',
     TUTORIAL: 'TUTORIAL',

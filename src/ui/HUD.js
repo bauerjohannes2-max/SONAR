@@ -16,64 +16,95 @@ export class HUD {
   /**
    * Main Gameplay Tactical HUD
    */
-  renderGameHUD(levelData, crystalsLeft, totalCrystals, pingCooldownRatio, player, isEndless = false, floor = 1) {
+  /**
+   * Main Gameplay Tactical HUD (Modern Cyber-Glassmorphism)
+   */
+  renderGameHUD(levelData, crystalsLeft, totalCrystals, pingCooldownRatio, player, isEndless = false, floor = 1, time = 0) {
     const ctx = this.ctx;
     ctx.save();
 
-    // Top Status Header Banner
-    ctx.fillStyle = 'rgba(3, 7, 12, 0.90)';
-    ctx.fillRect(0, 0, this.width, 36);
+    // 1. Top Cyber-Glassmorphism Header Banner
+    ctx.fillStyle = 'rgba(6, 12, 22, 0.78)';
+    ctx.fillRect(0, 0, this.width, 38);
 
-    ctx.strokeStyle = 'rgba(0, 240, 255, 0.2)';
+    // Glowing 1px bottom border
+    ctx.strokeStyle = 'rgba(0, 240, 255, 0.35)';
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(0, 36);
-    ctx.lineTo(this.width, 36);
+    ctx.moveTo(0, 38);
+    ctx.lineTo(this.width, 38);
     ctx.stroke();
 
     ctx.textBaseline = 'middle';
     ctx.shadowBlur = 0;
 
-    // Sector / Endless Floor Title (Top Left)
-    ctx.font = '700 12px "Chakra Petch", "JetBrains Mono", monospace';
-    ctx.textAlign = 'left';
-    ctx.fillStyle = isEndless ? CONFIG.COLORS.RESONATOR : CONFIG.COLORS.PLAYER;
-    ctx.fillText(isEndless ? `ENDLESS ECHO // ETAGE ${String(floor).padStart(2, '0')}` : levelData.name, 16, 18);
+    // 2. Top Left: Missionsziel with Pulsing Datenkern Symbol
+    const pulseFactor = 0.75 + 0.25 * Math.sin((time || performance.now() * 0.001) * 6);
+    const collected = totalCrystals - crystalsLeft;
 
-    // Center Info: Crystals & Decoy & Sneak
+    ctx.textAlign = 'left';
+    ctx.font = '700 12.5px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.fillStyle = crystalsLeft === 0 ? '#00FF88' : `rgba(0, 255, 136, ${pulseFactor})`;
+    ctx.fillText('◆', 14, 19);
+
+    ctx.font = '700 11.5px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.fillStyle = crystalsLeft === 0 ? '#00FF88' : '#e0f8ff';
+    const sectorTag = isEndless ? `ETAGE ${String(floor).padStart(2, '0')}` : (levelData ? `SEKTOR 0${levelData.sectorNumber || 1}` : 'MISSION');
+    ctx.fillText(`${sectorTag} // DATENKERNE: ${collected} / ${totalCrystals}`, 28, 19);
+
+    // 3. Center Info: Extraction or Stealth & Decoy status
     ctx.textAlign = 'center';
-    ctx.font = '600 12px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.font = '600 11.5px "Chakra Petch", "JetBrains Mono", monospace';
 
     if (crystalsLeft === 0) {
-      ctx.fillStyle = CONFIG.COLORS.CRYSTAL;
-      ctx.fillText('★ SCHLEUSE OFFEN! FLÜCHTE ZUR EXTRAKTION ★', this.width / 2 - 20, 18);
+      ctx.fillStyle = '#00FF88';
+      ctx.shadowColor = '#00FF88';
+      ctx.shadowBlur = 6 * pulseFactor;
+      ctx.fillText('★ SCHLEUSE ENTSICHERT // ZUR EXTRAKTION FLIEHEN ★', this.width / 2 - 20, 19);
+      ctx.shadowBlur = 0;
     } else {
-      ctx.fillStyle = CONFIG.COLORS.TEXT_MAIN;
-      const crystalStr = `KRISTALLE: ${totalCrystals - crystalsLeft} / ${totalCrystals}`;
-      const decoyStr = player ? `  •  KÖDER (E): ${player.decoysRemaining}/1` : '';
+      ctx.fillStyle = '#9cb8c8';
+      const decoyStr = player ? `KÖDER: ${player.decoysRemaining}/1` : '';
       const sneakStr = (player && player.isSneaking) ? '  •  🤫 LAUTLOS' : '';
-      ctx.fillText(`${crystalStr}${decoyStr}${sneakStr}`, this.width / 2 - 20, 18);
+      ctx.fillText(`${decoyStr}${sneakStr}`, this.width / 2 - 20, 19);
     }
 
-    // Top Right: Ping Cooldown Text & Bar (Positioned safely with 150px margin from right edge)
+    // 4. Top Right: Animated Sonar-Frequenzbalken & Pulse Ready
     const pingSec = player ? player.getPingRemainingSeconds() : 0;
-    const barW = 50;
+    const isReady = pingCooldownRatio >= 1.0;
+    const barW = 60;
     const barH = 8;
-    const barX = this.width - 150 - barW; // 800 - 150 - 50 = 600px (Bar ends at 650px, leaving 150px for HTML buttons)
-    const barY = 14;
+    const barX = this.width - 150 - barW; // Leaves 150px safe margin for HTML quick-action buttons
+    const barY = 15;
 
     ctx.textAlign = 'right';
     ctx.font = '700 11px "Chakra Petch", "JetBrains Mono", monospace';
-    ctx.fillStyle = pingSec > 0 ? '#ff8899' : CONFIG.COLORS.PLAYER;
-    ctx.fillText(pingSec > 0 ? `PING: ${pingSec}s` : 'PING: BEREIT', barX - 8, 18);
+    if (isReady) {
+      ctx.fillStyle = `rgba(0, 240, 255, ${pulseFactor})`;
+      ctx.fillText('PULSE READY', barX - 8, 19);
+    } else {
+      ctx.fillStyle = '#ff7788';
+      ctx.fillText(`PING: ${pingSec}s`, barX - 8, 19);
+    }
 
-    ctx.fillStyle = '#061520';
+    // Frequency Meter Background
+    ctx.fillStyle = 'rgba(6, 21, 32, 0.9)';
     ctx.fillRect(barX, barY, barW, barH);
 
-    ctx.fillStyle = pingCooldownRatio >= 1.0 ? CONFIG.COLORS.PLAYER : '#006677';
-    ctx.fillRect(barX, barY, barW * Math.min(1.0, pingCooldownRatio), barH);
+    // Frequency Meter Fill
+    if (isReady) {
+      ctx.fillStyle = '#00F0FF';
+      ctx.shadowColor = '#00F0FF';
+      ctx.shadowBlur = 6 * pulseFactor;
+      ctx.fillRect(barX, barY, barW, barH);
+      ctx.shadowBlur = 0;
+    } else {
+      ctx.fillStyle = '#008899';
+      ctx.fillRect(barX, barY, barW * Math.min(1.0, pingCooldownRatio), barH);
+    }
 
-    ctx.strokeStyle = CONFIG.COLORS.PLAYER;
+    // Frequency Meter Border
+    ctx.strokeStyle = isReady ? 'rgba(0, 240, 255, 0.9)' : 'rgba(0, 240, 255, 0.35)';
     ctx.lineWidth = 1;
     ctx.strokeRect(barX, barY, barW, barH);
 

@@ -23,11 +23,11 @@ export class TutorialModal {
       // Card 1: Principle & Wall Hazard
       {
         id: 'principle',
-        title: '01. ZERO-LIGHT & MAUER-GEFAHR',
+        title: '01. OPERATION ZERO-LIGHT // TETHYS-6',
         category: 'GRUNDPRINZIP',
-        role: 'Umgebungsphysik & Kollision',
-        behavior: '100% Dunkelheit. Nur Schallwellen decken Wände auf. ACHTUNG: Blindes Laufen in Wände zerstört die Drohne sofort!',
-        counter: 'Nutze Sonar-Pings (SPACE), merke dir das Labyrinth und steuere präzise.',
+        role: 'Tiefsee-Physik & Kollisionsgefahr',
+        behavior: '100% Dunkelheit auf Station TETHYS-6. Nur Sonar-Wellen decken Wände auf. ACHTUNG: Blindes Laufen in Wände zerstört ECHO-7 sofort!',
+        counter: 'Nutze Sonar-Pings (SPACE), präge dir das Labyrinth ein und steuere die Drohne präzise.',
         renderVisual: (ctx, t) => {
           ctx.fillStyle = '#030305';
           ctx.fillRect(0, 0, 280, 140);
@@ -76,11 +76,11 @@ export class TutorialModal {
       // Card 2: Player Drone & Dual Controls
       {
         id: 'drone',
-        title: '02. STEUERUNG (PC & TOUCH)',
+        title: '02. DROHNE ECHO-7 // STEUERUNG',
         category: 'SPIELER-EINHEIT',
-        role: 'Späh-Drohne (Wandkollision = Tod)',
-        behavior: 'Schritte erzeugen 2.5-Tile Schallwelle. Sonar-Ping deckt Raum für 1.5s auf (3s Cooldown).',
-        counter: 'PC: WASD / Shift / Space / E / F (Vollbild) // Mobile: On-Screen D-Pad & Buttons.',
+        role: 'Spähdrohne ECHO-7 (Wandcrash = Tod)',
+        behavior: 'Schritte erzeugen 2.5-Tile Schallwellen. Sonar-Ping deckt den Sektor für 1.5s auf (3s Cooldown).',
+        counter: 'PC: WASD / Shift (Schleichen) / Space / E (Köder) / F // Mobile: On-Screen D-Pad & Buttons.',
         renderVisual: (ctx, t) => {
           ctx.fillStyle = '#030305';
           ctx.fillRect(0, 0, 280, 140);
@@ -139,11 +139,11 @@ export class TutorialModal {
       // Card 3: Objective
       {
         id: 'objective',
-        title: '03. MISSION: KRISTALLE & SCHLEUSE',
-        category: 'SEKTOR-ZIEL',
-        role: 'Energiegewinnung & Extraktion',
-        behavior: 'Schleuse bleibt gesperrt, bis alle Resonanz-Kristalle eingesammelt sind.',
-        counter: 'Sammle 3-5 Kristalle, damit die Schleuse grün pulsiert, und flüchte hindurch.',
+        title: '03. RESONANZ-DATENKERNE & SCHLEUSE',
+        category: 'MISSION: ENTSCHLÜSSELUNG',
+        role: 'Datenbergung & Extraktion',
+        behavior: 'Die Extraktionsschleuse bleibt verriegelt, bis alle Resonanz-Datenkerne des Sektors geborgen sind.',
+        counter: 'Berge alle Datenkerne (grün), damit die Schleuse aktiviert wird, und fliehe hindurch.',
         renderVisual: (ctx, t) => {
           ctx.fillStyle = '#030305';
           ctx.fillRect(0, 0, 280, 140);
@@ -206,11 +206,11 @@ export class TutorialModal {
       // Card 4: Hunter
       {
         id: 'hunter',
-        title: '04. HUNTER // DER BLINDE JÄGER',
+        title: '04. HUNTER // AKUSTISCHE RAUBDROHNE',
         category: 'FEIND-TYP (SIGNAL-ROT)',
-        role: 'Aggressiver Spitzenprädator',
-        behavior: 'Blind. Hört Schritte & Pings und sprintet via kürzestem Pfad (BFS) zur Quelle.',
-        counter: 'Schleiche mit Shift an ihm vorbei oder lenke ihn mit Schall-Ködern (E) ab!',
+        role: 'Akustisch jagende Raubdrohne',
+        behavior: 'Blind. Ortet Schritte & Sonar-Pings und sprintet via kürzestem Pfad (BFS) sofort zur Schallquelle.',
+        counter: 'Schleiche mit Shift / Sneak-Toggle an ihr vorbei oder lenke sie mit Köder-Fackeln (E) ab!',
         renderVisual: (ctx, t) => {
           ctx.fillStyle = '#030305';
           ctx.fillRect(0, 0, 280, 140);
@@ -270,11 +270,11 @@ export class TutorialModal {
       // Card 5: Shadow Stalker
       {
         id: 'stalker',
-        title: '05. SHADOW STALKER // LAUTLOSER JÄGER',
+        title: '05. STALKER // SCHATTEN-RAUBDROHNE',
         category: 'FEIND-TYP (SCHATTEN-LILA)',
-        role: 'Lautloser Infiltrator',
-        behavior: 'Schleicht im Dunkeln geräuschlos direkt auf deine Position zu.',
-        counter: 'FEIND-SCHWÄCHE: Löse einen Sonar-Ping (SPACE) aus -> Erstarrt 2.5s im Licht!',
+        role: 'Lautlose Infiltrations-Raubdrohne',
+        behavior: 'Schleicht im Dunkeln geräuschlos direkt auf die Position von ECHO-7 zu.',
+        counter: 'FEIND-SCHWÄCHE: Löse einen Sonar-Ping (SPACE) aus -> Erstarrt für 2.5s im Lichtfeld!',
         renderVisual: (ctx, t) => {
           ctx.fillStyle = '#030305';
           ctx.fillRect(0, 0, 280, 140);

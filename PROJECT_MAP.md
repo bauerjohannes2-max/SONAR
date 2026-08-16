@@ -27,11 +27,13 @@ Grid: 25x18 (32px tiles). Screen: 800x576px.
 - `src/ui/TouchLayoutEditor.js`: Drag-and-drop touch layout repositioning & element scaling overlay.
 - `src/ui/TutorialModal.js`: 7-Card procedural canvas tutorial with touch debounce.
 - `src/ui/OnboardingModal.js`: First-time player welcome modal with tutorial briefing.
+- `src/ui/StoryIntro.js`: 3-Line Terminal Boot Log ("Operation Zero-Light" Narrative Intro).
 - `src/ui/ProfileModal.js`: Pilot Profile (Callsign + 4-digit PIN) authentication modal.
 - `src/ui/LeaderboardModal.js`: Top 10 Global Firestore / fallback leaderboard overlay.
 - `src/services/FirebaseService.js`: Zero-build Firestore ESM CDN integration & PIN hashing.
 - `src/services/StorageManager.js`: Unified local progress and cloud sync manager.
 - `src/services/LeaderboardService.js`: Global ranking query and offline fallback provider.
+- `MARKETING_STRATEGY.md`: High-CTR video hook & viral launch strategy.
 
 ## Architecture Guardrails & Learned Invariants
 1. **Data Integrity & Constructors**:
@@ -39,8 +41,9 @@ Grid: 25x18 (32px tiles). Screen: 800x576px.
 2. **Phosphor & Zero-Light Rendering Standard**:
    - In zero-light / sonar stealth scenes, solid objects (walls) must ALWAYS maintain a subtle permanent baseline contour (`rgba(0, 240, 255, 0.05)`, 1px stroke) in the dark (`vis <= 0.05`) so players retain spatial orientation.
    - Illuminated walls (`vis > 0.05`) render with `rgba(18, 26, 38, vis * 0.95)` fill, `#00F0FF` (1.5px) stroke, and `shadowBlur: 6 * vis`.
-3. **Crisp Canvas Typography**:
+3. **Crisp Canvas Typography & Modern Glassmorphism**:
    - Canvas text: `shadowBlur` strictly <= 2px or disabled to prevent blurry monospace typography.
+   - UI frames: `rgba(6, 12, 22, 0.78)` background with `backdrop-filter: blur(14px)` and 1px cyan glow border (`rgba(0, 240, 255, 0.35)`).
    - Scanline CRT overlays: opacity capped at <= 0.12.
    - Canvas CSS: always enforce `image-rendering: pixelated; image-rendering: crisp-edges;`.
 4. **Token-Optimized Onboarding**:
@@ -57,8 +60,13 @@ Grid: 25x18 (32px tiles). Screen: 800x576px.
 8. **Unified In-Game Navigation & Frameless Edge-to-Edge Display**:
    - The settings gear `⚙` dynamically opens `PAUSE // SYSTEM-EINSTELLUNGEN` with `▶ WEITERSPIELEN` and `⎋ HAUPTMENÜ` in-game, and returns to `MENU` while stopping ambient sound.
    - Container styles enforce clean vertical layout (`#game-wrapper` with responsive scaling for canvas + bottom controls).
+   - Instant silent fullscreen and Web Audio unlock on very first touch/click.
 
 ## Backlog / Erledigt
+- [x] **Milestone 1: Storyline & Lore-Integration ("Operation Zero-Light")**: Drohne `ECHO-7`, Station `TETHYS-6`, `RESONANZ-DATENKERNE`, Raubdrohnen (`HUNTER`, `STALKER`), Missions-Untertitel für alle 10 Sektoren & 3-zeiliges Terminal-Bootlog.
+- [x] **Milestone 1: Marketing-Strategie & High-CTR App-Icon**: `MARKETING_STRATEGY.md`, Icons `icon-192.png` & `icon-512.png`.
+- [x] **Milestone 1: Modern Cyber-Glassmorphism UI & HUD-Polish**: In-Game HUD mit pulsierenden Datenkernen `◆ DATENKERNE`, Sonar-Frequenzbalken `PULSE READY`, wellen-reaktiver Echo-Staub im Spielfeld.
+- [x] **Milestone 1: Instant-App Launch (Vollbild ohne Klick)**: Standalone PWA, randloses iOS Safari (`viewport-fit=cover`), geräuschloses Fullscreen-Triggering beim ersten Touch.
 - [x] **Schleichen-Funktion (Sneak Mode) repariert**: Touch-Toggle & Shift synchronisiert, 50% Speed & 0 Schallwellen.
 - [x] **Touch-Controls unterhalb der Map positioniert**: Spielfeld bleibt 100% frei von Fingern.
 - [x] **D-Pad Präzision & Sliding**: Nahtlose Trefferzonen, kontinuierliches Daumen-Sliding & Multi-Touch-Schutz.
@@ -67,7 +75,7 @@ Grid: 25x18 (32px tiles). Screen: 800x576px.
 - [x] **Anpassbares Touch-Layout & Virtueller Joystick**: Drag & Drop Layout-Editor, D-Pad/Joystick-Umschaltung, Skalierung & Version-Checker.
 - [x] **Leaderboard: Nur geschaffte Sektoren werten**: `maxClearedSector` statt `unlockedSector` (z.B. 0 / 10 vor Abschluss).
 - [x] **Game-Over-Screen & Neustart-Bug behoben**: Exakte Klick-Hitboxen (y: 215..265) & sofortiger Neustart via R/Enter/Space/Klick.
-- [x] **Automatischer Update-Check beim Start**: Revalidiert Service Worker & zeigt Banner bei neuer Version (v1.3.1).
+- [x] **Automatischer Update-Check beim Start**: Revalidiert Service Worker & zeigt Banner bei neuer Version (v1.4.0).
 - [x] **Tutorial-Karte 7 Köder-Rework**: Exakt 3 Blöcke Wurfweite, präziser Taktik-Text & Munitionsanzeige (HUD: 1/1).
 
 ## 🚀 Deployment & GitHub Sync Workflow

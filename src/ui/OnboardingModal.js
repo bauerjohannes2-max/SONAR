@@ -25,16 +25,17 @@ export class OnboardingModal {
         <div class="modal-header">
           <div class="modal-title">
             <span>📡</span>
-            <span>PILOTEN-BRIEFING // WILLKOMMEN</span>
+            <span>OPERATION ZERO-LIGHT // BRIEFING</span>
           </div>
         </div>
 
         <div class="modal-body onboarding-modal-body">
           <div class="onboarding-banner-icon">🛸</div>
-          <h2 class="onboarding-headline">WILLKOMMEN BEI SONAR</h2>
+          <h2 class="onboarding-headline">OPERATION ZERO-LIGHT</h2>
           <p class="onboarding-text">
-            Bist du neu hier? Im ewigen Nichts existiert Sicht nur durch Schall.
-            Schau dir das <strong>2-Minuten-Tutorial</strong> an, um Drohnensteuerung, Sonar-Pings und Feindverhalten zu lernen.
+            Tiefseestation <strong>TETHYS-6</strong> havariert. Als Aufklärungsdrohne <strong>ECHO-7</strong> musst du Resonanz-Datenkerne bergen.
+            Im ewigen Nichts existiert Sicht nur durch Schall – doch Raubdrohnen hören dich!
+            Lerne Steuerung, Sonar-Pings und Taktiken im <strong>2-Minuten-Tutorial</strong>.
           </p>
 
           <div class="onboarding-actions">

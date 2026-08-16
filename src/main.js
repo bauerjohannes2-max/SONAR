@@ -25,6 +25,7 @@ import { MenuSystem } from './ui/MenuSystem.js';
 import { Settings as SettingsModal } from './ui/Settings.js';
 import { TutorialModal } from './ui/TutorialModal.js';
 import { OnboardingModal } from './ui/OnboardingModal.js';
+import { StoryIntro } from './ui/StoryIntro.js';
 import { ProfileModal } from './ui/ProfileModal.js';
 import { LeaderboardModal } from './ui/LeaderboardModal.js';
 import { TouchLayoutEditor } from './ui/TouchLayoutEditor.js';
@@ -52,6 +53,9 @@ export class Game {
     // UI Modules
     this.hud = new HUD(this.canvas);
     this.menuSystem = new MenuSystem(this.audioEngine);
+    this.storyIntro = new StoryIntro(this.audioEngine, () => {
+      this.loadSector(0);
+    });
     this.settingsModal = new SettingsModal(
       this.audioEngine,
       this.particleEngine,
@@ -232,6 +236,17 @@ export class Game {
     requestAnimationFrame((t) => this.loop(t));
   }
 
+  startCampaignSector(index) {
+    if (index === 0) {
+      this.storyIntro.start(() => {
+        this.loadSector(0);
+      });
+      this.gameState = CONFIG.STATES.STORY_INTRO;
+    } else {
+      this.loadSector(index);
+    }
+  }
+
   loadSector(index) {
     this.isEndlessActive = false;
     this.currentSectorIndex = Math.max(0, Math.min(index, this.totalSectors - 1));
@@ -333,11 +348,19 @@ export class Game {
         break;
       }
 
+      case CONFIG.STATES.STORY_INTRO: {
+        const res = this.storyIntro.handleInput(this.inputHandler);
+        if (res === 'COMPLETE') {
+          this.loadSector(0);
+        }
+        break;
+      }
+
       case CONFIG.STATES.SECTOR_SELECT: {
         const res = this.menuSystem.handleSectorSelectInput(this.inputHandler);
         if (res) {
           if (res.action === 'START_SECTOR') {
-            this.loadSector(res.sectorIndex);
+            this.startCampaignSector(res.sectorIndex);
           } else if (res.action === 'BACK') {
             this.gameState = CONFIG.STATES.MENU;
           }
@@ -668,9 +691,9 @@ export class Game {
       }
     }
 
-    // 10. Update Waves & Particles
+    // 10. Update Waves & Particles (particles react to active sound waves)
     this.waveSystem.update(dt, this.gridMap);
-    this.particleEngine.update(dt);
+    this.particleEngine.update(dt, this.waveSystem);
   }
 
   onSectorCleared() {
@@ -722,6 +745,10 @@ export class Game {
         this.menuSystem.renderMenu(ctx, time, this.endlessMode);
         break;
 
+      case CONFIG.STATES.STORY_INTRO:
+        this.storyIntro.render(ctx, time);
+        break;
+
       case CONFIG.STATES.SECTOR_SELECT:
         this.menuSystem.renderSectorSelect(ctx);
         break;
@@ -767,7 +794,7 @@ export class Game {
         }
 
         const currentLvl = this.isEndlessActive
-          ? { name: `ENDLESS ECHO // ETAGE ${this.endlessMode.currentFloor}` }
+          ? { name: `ENDLESS ECHO // ETAGE ${this.endlessMode.currentFloor}`, sectorNumber: this.endlessMode.currentFloor }
           : LEVELS[this.currentSectorIndex];
 
         const crystalsLeft = this.crystals.filter(c => !c.collected).length;
@@ -780,7 +807,8 @@ export class Game {
           pingRatio,
           this.player,
           this.isEndlessActive,
-          this.endlessMode.currentFloor
+          this.endlessMode.currentFloor,
+          time
         );
 
         if (this.gameState === CONFIG.STATES.PAUSED) {
@@ -857,13 +885,31 @@ function registerServiceWorker() {
   }
 }
 
-// Start Game Instance
+// Start Game Instance with Instant Silent Fullscreen & Audio Unlock on first interaction
 function initGame() {
   if (!window.game) {
     const game = new Game();
     window.game = game;
     game.start();
     registerServiceWorker();
+
+    const handleFirstInteraction = () => {
+      if (game.displayManager && !game.displayManager.isFullscreen) {
+        game.displayManager.requestSilentFullscreen();
+      }
+      if (game.audioEngine && game.audioEngine.ctx && game.audioEngine.ctx.state === 'suspended') {
+        game.audioEngine.ctx.resume().catch(() => {});
+      }
+      window.removeEventListener('pointerdown', handleFirstInteraction);
+      window.removeEventListener('touchstart', handleFirstInteraction);
+      window.removeEventListener('click', handleFirstInteraction);
+      window.removeEventListener('keydown', handleFirstInteraction);
+    };
+
+    window.addEventListener('pointerdown', handleFirstInteraction, { passive: true });
+    window.addEventListener('touchstart', handleFirstInteraction, { passive: true });
+    window.addEventListener('click', handleFirstInteraction, { passive: true });
+    window.addEventListener('keydown', handleFirstInteraction, { passive: true });
   }
 }
 

@@ -3,7 +3,7 @@
  * Service Worker with Offline Cache-First Strategy for Instant Load Times
  */
 
-const CACHE_NAME = 'sonar-echo-v1.3.1';
+const CACHE_NAME = 'sonar-echo-v1.4.0';
 
 const ASSETS_TO_CACHE = [
   './',
@@ -35,12 +35,12 @@ const ASSETS_TO_CACHE = [
   './src/ui/TouchLayoutEditor.js',
   './src/ui/TutorialModal.js',
   './src/ui/OnboardingModal.js',
+  './src/ui/StoryIntro.js',
   './src/ui/ProfileModal.js',
   './src/ui/LeaderboardModal.js',
   './src/services/FirebaseService.js',
   './src/services/StorageManager.js',
   './src/services/LeaderboardService.js',
-  './version.json',
   './assets/icon-192.png',
   './assets/icon-512.png'
 ];

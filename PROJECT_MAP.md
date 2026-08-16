@@ -44,26 +44,37 @@ Grid: 25x18 (32px tiles). Screen: 800x576px.
 4. **Token-Optimized Onboarding**:
    - At the start of a session, read ONLY `PROJECT_MAP.md` and target specifically modified files without blind workspace scans.
 5. **Integrated Canvas UI & Touch State Isolation**:
-   - All HUD & Quick-Actions (`[ ⛶ ]`, `[ ⚙ ]`) are contained inside `.canvas-container` without outside header/footer bars.
-   - Touch Controls overlay `#touch-controls` must ONLY be active during `PLAYING`/`ENDLESS` states and remain strictly invisible (`display: none`) in `MENU`, `SECTOR_SELECT`, and modals.
-6. **PWA Offline Caching & Mobile Haptics**:
+   - All HUD & Quick-Actions (`[ ⛶ ]`, `[ ⚙ ]`) are contained inside `.canvas-container`.
+   - Touch Controls bar `#touch-controls` is positioned cleanly *below* the canvas (`.touch-controls-bar`), active only during `PLAYING`/`ENDLESS` states, and strictly hidden (`display: none`) in `MENU`, `SECTOR_SELECT`, and modals.
+   - D-Pad features seamless thumb-sliding with quadrant angle resolution and multi-touch isolation from action buttons (Ping, Sneak, Decoy).
+6. **Stealth Mode & Zero Sound Waves**:
+   - Sneak mode (Shift or Touch toggle) halves drone movement speed and completely suppresses footstep waves and sound events.
+7. **PWA Offline Caching & Mobile Haptics**:
    - `sw.js` caches all game assets using Cache-First strategy with background revalidation for instant offline play.
    - Mobile haptic pulses are dispatched via `AudioEngine.triggerHaptic()` (Ping: 15ms, Crystal Pickup: [30, 40, 30], Collision/Death: 120ms).
-7. **Unified In-Game Navigation & Frameless Edge-to-Edge Display**:
+8. **Unified In-Game Navigation & Frameless Edge-to-Edge Display**:
    - The settings gear `⚙` dynamically opens `PAUSE // SYSTEM-EINSTELLUNGEN` with `▶ WEITERSPIELEN` and `⎋ HAUPTMENÜ` in-game, and returns to `MENU` while stopping ambient sound.
-   - Container styles enforce frameless edge-to-edge fitting (`max-width: 100vw; max-height: 100vh; aspect-ratio: 25 / 18; object-fit: contain;`) without duplicate margins or borders.
+   - Container styles enforce clean vertical layout (`#game-wrapper` with responsive scaling for canvas + bottom controls).
 
-## Backlog / Aufgaben für nächste Session
-1. **Schleichen-Funktion (Sneak Mode) reparieren**:
-   - Touch-Toggle `[ 🤫 SCHLEICHEN ]` und Tastatur-Shift: Überprüfen, warum Schleichen (Geräuschunterdrückung & reduzierte Geschwindigkeit) im Spielablauf nicht greift oder überschrieben wird.
-2. **Touch-Controls unterhalb der Map / Spielfeld positionieren**:
-   - Bedienelemente (D-Pad & Action-Buttons) aus dem sichtbaren Spielfeld herausnehmen und in eine eigene Leiste *unter* dem Canvas setzen, damit Finger nicht den Spieler verbergen.
-3. **Pfeil-Buttons / D-Pad Fehltipp-Schutz (Direction Input Precision)**:
-   - D-Pad Trefferzonen nahtlos ohne Totzonen anlegen oder Wischgesten / Virtual-Joystick integrieren, um versehentliche Richtungswechsel oder Fehlklicks auf Mobilgeräten zu verhindern.
-4. **Tutorial Textumbruch & Box-Clamping (Karte 1/7 & Generalisierung)**:
-   - In `TutorialModal.js` automatische Textumbruch-Logik (`wrapText`) mit dynamischer Skalierung einbauen, damit Text niemals über Kartenränder hinausragt.
-5. **Game Over Buttons nach Wandkollision (Wall Crash)**:
-   - Sicherstellen, dass nach `WALL_CRASH` alle Buttons (`NEUSTART`, `LEVEL-ÜBERSICHT`, `HAUPTMENÜ`) genauso zuverlässig reagieren wie nach Predator-Kollision.
+## Backlog / Erledigt
+- [x] **Schleichen-Funktion (Sneak Mode) repariert**: Touch-Toggle & Shift synchronisiert, 50% Speed & 0 Schallwellen.
+- [x] **Touch-Controls unterhalb der Map positioniert**: Spielfeld bleibt 100% frei von Fingern.
+- [x] **D-Pad Präzision & Sliding**: Nahtlose Trefferzonen, kontinuierliches Daumen-Sliding & Multi-Touch-Schutz.
+- [x] **Tutorial Textumbruch**: Dynamisches `wrapText` in `TutorialModal.js` auf allen 7 Karten.
+- [x] **Game Over nach Wandcrash**: Alle Buttons (`NEUSTART`, `LEVEL-ÜBERSICHT`, `HAUPTMENÜ`) und Shortcuts (<kbd>R</kbd>, <kbd>L</kbd>, <kbd>M</kbd>, <kbd>ESC</kbd>) sofort klick- & tastbar.
+
+## 🚀 Deployment & GitHub Sync Workflow
+- Repository: https://github.com/bauerjohannes2-max/SONAR.git
+- Branch: main
+- Live-URL (GitHub Pages): https://bauerjohannes2-max.github.io/SONAR/
+- Credential Helper: Windows Credential Manager (credential.helper = manager)
+- Standard-Workflow für zukünftige Agenten-Updates:
+  1. Änderungen lokal testen & verifizieren.
+  2. `git add .`
+  3. `git commit -m "<Aussagekräftige Nachricht>"`
+  4. `git push origin main` (oder `npm run push`)
+- Live-Aktualisierung: GitHub Pages baut das Projekt nach jedem Push innerhalb von 30–60 Sekunden automatisch neu.
+
 
 
 

@@ -115,9 +115,10 @@ export class Player {
     }
 
     // 4. Movement Step Interpolation
-    const stepDuration = this.isSneaking
+    this.isSneaking = inputHandler.isSneaking();
+    const stepDuration = this.currentStepDuration || (this.isSneaking
       ? CONFIG.PLAYER.SNEAK_STEP_DURATION
-      : CONFIG.PLAYER.STEP_DURATION;
+      : CONFIG.PLAYER.STEP_DURATION);
 
     if (this.isMoving) {
       this.moveTimer += dt * 1000;
@@ -133,6 +134,7 @@ export class Player {
         this.x = this.endX;
         this.y = this.endY;
         this.isMoving = false;
+        this.currentStepDuration = null;
         this.stepsTaken++;
 
         // Only emit footstep noise & waves if NOT sneaking!
@@ -175,6 +177,9 @@ export class Player {
           this.endX = nextGx * CONFIG.TILE_SIZE + CONFIG.TILE_SIZE / 2;
           this.endY = nextGy * CONFIG.TILE_SIZE + CONFIG.TILE_SIZE / 2;
           this.moveTimer = 0;
+          this.currentStepDuration = this.isSneaking
+            ? CONFIG.PLAYER.SNEAK_STEP_DURATION
+            : CONFIG.PLAYER.STEP_DURATION;
           this.isMoving = true;
         } else {
           // LETHAL WALL COLLISION: Crash into wall & destroy drone!

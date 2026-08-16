@@ -6,7 +6,9 @@
   "type": "module",
   "scripts": {
     "start": "npx -y serve . -l 3005",
-    "dev": "npx -y serve . -l 3005"
+    "dev": "npx -y serve . -l 3005",
+    "push": "git push origin main",
+    "deploy": "git add . && git commit -m \"Automated build update\" && git push origin main"
   },
   "keywords": [
     "game",
@@ -17,5 +19,8 @@
     "sonar"
   ],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "isomorphic-git": "^1.41.4"
+  }
 }

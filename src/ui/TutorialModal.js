@@ -545,7 +545,7 @@ export class TutorialModal {
     const tblX = boxX + 24;
     const tblY = boxY + 235;
     const tblW = boxW - 48;
-    const tblH = 185;
+    const tblH = 195;
 
     ctx.fillStyle = '#04080c';
     ctx.fillRect(tblX, tblY, tblW, tblH);
@@ -559,22 +559,23 @@ export class TutorialModal {
       { label: 'GEGENMASSNAHME', val: card.counter, color: CONFIG.COLORS.CRYSTAL }
     ];
 
-    rows.forEach((r, i) => {
-      const ry = tblY + 28 + i * 55;
+    let currentY = tblY + 18;
+    rows.forEach((r) => {
       ctx.textAlign = 'left';
       ctx.font = '700 11px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.fillStyle = r.color;
       ctx.shadowBlur = 0;
-      ctx.fillText(`• ${r.label}:`, tblX + 16, ry);
+      ctx.fillText(`• ${r.label}:`, tblX + 16, currentY);
 
-      ctx.font = '500 11px "Chakra Petch", "JetBrains Mono", monospace';
+      ctx.font = '500 10.5px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.fillStyle = CONFIG.COLORS.TEXT_MAIN;
       ctx.shadowBlur = 0;
-      ctx.fillText(r.val, tblX + 16, ry + 20);
+      currentY = this.wrapText(ctx, r.val, tblX + 16, currentY + 16, tblW - 32, 14);
+      currentY += 6;
     });
 
     // Navigation Buttons at Bottom (36px high for touch accessibility)
-    const btnY = boxY + boxH - 28;
+    const btnY = boxY + boxH - 24;
 
     // VORHERIGE
     ctx.fillStyle = '#091520';
@@ -604,5 +605,25 @@ export class TutorialModal {
     ctx.fillText('NÄCHSTE →', boxX + boxW - 84, btnY);
 
     ctx.restore();
+  }
+
+  wrapText(ctx, text, x, startY, maxWidth, lineHeight) {
+    const words = text.split(' ');
+    let line = '';
+    let y = startY;
+
+    for (let n = 0; n < words.length; n++) {
+      const testLine = line + (line.length > 0 ? ' ' : '') + words[n];
+      const metrics = ctx.measureText(testLine);
+      if (metrics.width > maxWidth && n > 0) {
+        ctx.fillText(line, x, y);
+        line = words[n];
+        y += lineHeight;
+      } else {
+        line = testLine;
+      }
+    }
+    ctx.fillText(line, x, y);
+    return y + lineHeight;
   }
 }

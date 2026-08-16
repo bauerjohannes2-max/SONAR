@@ -21,13 +21,30 @@ export class InputHandler {
     this.restartTriggered = false;
     this.menuTriggered = false;
     this.settingsTriggered = false;
-    this.escapeTriggered = false;
+    this.levelSelectTriggered = false;
     this.mouseClick = null;
     this.isShiftHeld = false;
 
     this.touchControls = null;
 
     this.setupListeners();
+  }
+
+  resetInputState() {
+    this.keys = {};
+    this.moveQueue = null;
+    this.heldDirection = null;
+    this.touchHeldDirection = null;
+    this.pingTriggered = false;
+    this.decoyTriggered = false;
+    this.actionTriggered = false;
+    this.restartTriggered = false;
+    this.menuTriggered = false;
+    this.levelSelectTriggered = false;
+    this.settingsTriggered = false;
+    this.escapeTriggered = false;
+    this.mouseClick = null;
+    this.isShiftHeld = false;
   }
 
   setTouchControls(touchControls) {
@@ -101,6 +118,8 @@ export class InputHandler {
         this.restartTriggered = true;
       } else if (e.code === 'KeyM') {
         this.menuTriggered = true;
+      } else if (e.code === 'KeyL') {
+        this.levelSelectTriggered = true;
       } else if (e.code === 'KeyO') {
         this.settingsTriggered = true;
       } else if (e.code === 'Escape') {
@@ -206,6 +225,12 @@ export class InputHandler {
     const m = this.menuTriggered;
     this.menuTriggered = false;
     return m;
+  }
+
+  consumeLevelSelect() {
+    const l = this.levelSelectTriggered;
+    this.levelSelectTriggered = false;
+    return l;
   }
 
   consumeEscape() {

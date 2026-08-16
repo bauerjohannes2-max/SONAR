@@ -42,6 +42,7 @@ export class Game {
     this.waveSystem = new WaveSystem();
     this.renderer = new CanvasRenderer(this.canvas);
     this.touchControls = new TouchControls(this.audioEngine, this.inputHandler);
+    this.inputHandler.setTouchControls(this.touchControls);
     this.displayManager = new DisplayManager(this.canvas);
     this.inputHandler.displayManager = this.displayManager;
 
@@ -320,7 +321,9 @@ export class Game {
               this.gameState = CONFIG.STATES.VICTORY;
             }
           }
-        } else if (this.inputHandler.consumeMenu()) {
+        } else if (this.inputHandler.consumeLevelSelect()) {
+          this.gameState = CONFIG.STATES.SECTOR_SELECT;
+        } else if (this.inputHandler.consumeMenu() || this.inputHandler.consumeEscape()) {
           this.gameState = CONFIG.STATES.MENU;
         } else {
           // Check mouse / touch clicks on Clear buttons (w: 380, center x: 400)
@@ -355,7 +358,9 @@ export class Game {
           } else {
             this.loadSector(this.currentSectorIndex);
           }
-        } else if (this.inputHandler.consumeMenu()) {
+        } else if (this.inputHandler.consumeLevelSelect()) {
+          this.gameState = CONFIG.STATES.SECTOR_SELECT;
+        } else if (this.inputHandler.consumeMenu() || this.inputHandler.consumeEscape()) {
           this.gameState = CONFIG.STATES.MENU;
         } else {
           const click = this.inputHandler.consumeMouseClick();
@@ -378,8 +383,10 @@ export class Game {
       }
 
       case CONFIG.STATES.VICTORY: {
-        if (this.inputHandler.consumeAction() || this.inputHandler.consumeMenu()) {
+        if (this.inputHandler.consumeAction() || this.inputHandler.consumeMenu() || this.inputHandler.consumeEscape()) {
           this.gameState = CONFIG.STATES.MENU;
+        } else if (this.inputHandler.consumeLevelSelect()) {
+          this.gameState = CONFIG.STATES.SECTOR_SELECT;
         } else {
           const click = this.inputHandler.consumeMouseClick();
           if (click && click.x >= CONFIG.CANVAS_WIDTH / 2 - 200 && click.x <= CONFIG.CANVAS_WIDTH / 2 + 200) {
@@ -534,6 +541,9 @@ export class Game {
       this.menuSystem.saveProgress(this.currentSectorIndex + 1, this.sectorClearStats);
     }
 
+    if (this.inputHandler) {
+      this.inputHandler.resetInputState();
+    }
     this.gameState = CONFIG.STATES.SECTOR_CLEARED;
   }
 
@@ -552,6 +562,9 @@ export class Game {
       storageManager.saveEndlessProgress(this.endlessMode.bestFloor, this.endlessMode.bestCrystals);
     }
 
+    if (this.inputHandler) {
+      this.inputHandler.resetInputState();
+    }
     this.gameState = CONFIG.STATES.GAME_OVER;
   }
 

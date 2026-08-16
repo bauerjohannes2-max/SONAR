@@ -81,12 +81,15 @@ export class LeaderboardModal {
     const refreshBtn = container.querySelector('#btn-lb-refresh');
 
     const handleClose = (e) => {
-      if (e) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
       this.close();
     };
+
+    // Backdrop Click to close
+    container.addEventListener('click', (e) => {
+      if (e.target === container) {
+        handleClose(e);
+      }
+    });
 
     if (closeBtn) {
       closeBtn.addEventListener('click', handleClose);

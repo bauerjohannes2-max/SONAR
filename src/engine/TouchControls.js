@@ -32,7 +32,13 @@ export class TouchControls {
   getDefaultConfig() {
     return {
       controlType: 'JOYSTICK', // 'JOYSTICK' | 'DPAD'
-      scale: 1.0,              // 0.8 | 1.0 | 1.25 | 1.5
+      scale: 1.0,              // global fallback
+      elementScales: {
+        movement: 1.0,
+        sneak: 1.0,
+        decoy: 1.0,
+        ping: 1.0
+      },
       positions: null          // null means default layout
     };
   }
@@ -44,6 +50,7 @@ export class TouchControls {
         const parsed = JSON.parse(data);
         if (parsed.controlType) this.config.controlType = parsed.controlType;
         if (parsed.scale !== undefined) this.config.scale = parsed.scale;
+        if (parsed.elementScales) this.config.elementScales = parsed.elementScales;
         if (parsed.positions) this.config.positions = parsed.positions;
       }
     } catch (e) {
@@ -98,42 +105,32 @@ export class TouchControls {
   }
 
   updateControlVisibility() {
-    if (!this.dpadContainer || !this.joystickContainer) return;
-    const isJoystick = this.config.controlType === 'JOYSTICK';
-    this.dpadContainer.style.display = isJoystick ? 'none' : 'block';
-    this.joystickContainer.style.display = isJoystick ? 'flex' : 'none';
+    if (this.config.controlType === 'JOYSTICK') {
+      if (this.joystickContainer) this.joystickContainer.style.display = 'block';
+      if (this.dpadContainer) this.dpadContainer.style.display = 'none';
+    } else {
+      if (this.joystickContainer) this.joystickContainer.style.display = 'none';
+      if (this.dpadContainer) this.dpadContainer.style.display = 'block';
+    }
   }
 
   applyScaleAndPositions() {
-    const scale = this.config.scale || 1.0;
+    const defaultScale = this.config.scale || 1.0;
+    const elemScales = this.config.elementScales || {};
+    const moveScale = elemScales.movement || defaultScale;
+    const sneakScale = elemScales.sneak || defaultScale;
+    const decoyScale = elemScales.decoy || defaultScale;
+    const pingScale = elemScales.ping || defaultScale;
+
     const moveEl = this.config.controlType === 'JOYSTICK' ? this.joystickContainer : this.dpadContainer;
     const sneakBtn = document.getElementById('touch-sneak');
     const decoyBtn = document.getElementById('touch-decoy');
     const pingBtn = document.getElementById('touch-ping');
 
-    if (this.config.positions) {
-      if (this.touchOverlay) {
-        this.touchOverlay.style.position = 'relative';
-      }
-      if (moveEl && this.config.positions.movement) {
-        moveEl.style.transform = `scale(${scale})`;
-      }
-      if (sneakBtn && this.config.positions.sneak) {
-        sneakBtn.style.transform = `scale(${scale})`;
-      }
-      if (decoyBtn && this.config.positions.decoy) {
-        decoyBtn.style.transform = `scale(${scale})`;
-      }
-      if (pingBtn && this.config.positions.ping) {
-        pingBtn.style.transform = `scale(${scale})`;
-      }
-    } else {
-      // Default bottom bar scaling
-      if (moveEl) moveEl.style.transform = `scale(${scale})`;
-      if (sneakBtn) sneakBtn.style.transform = `scale(${scale})`;
-      if (decoyBtn) decoyBtn.style.transform = `scale(${scale})`;
-      if (pingBtn) pingBtn.style.transform = `scale(${scale})`;
-    }
+    if (moveEl) moveEl.style.transform = `scale(${moveScale})`;
+    if (sneakBtn) sneakBtn.style.transform = `scale(${sneakScale})`;
+    if (decoyBtn) decoyBtn.style.transform = `scale(${decoyScale})`;
+    if (pingBtn) pingBtn.style.transform = `scale(${pingScale})`;
   }
 
   setControlType(type) {
@@ -473,6 +470,9 @@ export class TouchControls {
     bindBtn('touch-ping', () => {
       this.input.pingTriggered = true;
       this.input.actionTriggered = true;
+      if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+        try { navigator.vibrate(15); } catch (e) {}
+      }
     });
 
     bindBtn('touch-decoy', () => {

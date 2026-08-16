@@ -1175,18 +1175,60 @@ kbd {
 
 .layout-element-label {
   position: absolute;
-  top: -18px;
+  top: -24px;
   left: 0;
-  background: rgba(0, 240, 255, 0.2);
+  background: rgba(4, 18, 28, 0.92);
   border: 1px solid #00F0FF;
   color: #00F0FF;
   font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  pointer-events: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+.elem-scale-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 4px;
+}
+
+.btn-elem-scale {
+  background: rgba(0, 240, 255, 0.25);
+  border: 1px solid rgba(0, 240, 255, 0.6);
+  color: #FFFFFF;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+  width: 17px;
+  height: 17px;
+  line-height: 15px;
+  text-align: center;
+  border-radius: 2px;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.1s ease;
+}
+
+.btn-elem-scale:hover, .btn-elem-scale:active {
+  background: #00F0FF;
+  color: #03070D;
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.8);
+}
+
+.elem-scale-val {
   font-size: 9px;
   font-weight: 700;
-  padding: 1px 5px;
-  border-radius: 2px;
-  white-space: nowrap;
-  pointer-events: none;
+  color: #E0F8FF;
+  min-width: 28px;
+  text-align: center;
 }
 
 /* =========================================================

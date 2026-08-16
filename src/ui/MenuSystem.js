@@ -356,6 +356,14 @@ export class MenuSystem {
       const isSelected = this.selectedIndex === item.idx;
 
       ctx.save();
+
+      // Living Cyan Focus Glow on Campaign (Item 0)
+      if (item.idx === 0) {
+        const pulse = 0.7 + 0.3 * Math.sin(time * 4);
+        ctx.shadowColor = '#00F0FF';
+        ctx.shadowBlur = isSelected ? (14 * pulse) : (6 * pulse);
+      }
+
       if (isSelected) {
         // Active Primary Card
         ctx.fillStyle = 'rgba(0, 240, 255, 0.12)';
@@ -387,10 +395,10 @@ export class MenuSystem {
         ctx.fillText(opt.tag, cardX + cardW - 20, item.y + 34);
       } else {
         // Inactive Primary Card
-        ctx.fillStyle = 'rgba(5, 14, 22, 0.75)';
+        ctx.fillStyle = item.idx === 0 ? 'rgba(0, 240, 255, 0.04)' : 'rgba(5, 14, 22, 0.75)';
         ctx.fillRect(cardX, item.y, cardW, item.h);
 
-        ctx.strokeStyle = 'rgba(0, 240, 255, 0.22)';
+        ctx.strokeStyle = item.idx === 0 ? 'rgba(0, 240, 255, 0.45)' : 'rgba(0, 240, 255, 0.22)';
         ctx.lineWidth = 1;
         ctx.strokeRect(cardX, item.y, cardW, item.h);
 

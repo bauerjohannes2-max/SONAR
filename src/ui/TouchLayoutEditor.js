@@ -40,7 +40,15 @@ export class TouchLayoutEditor {
     overlay.id = 'touch-layout-editor';
 
     const isJoystick = this.currentConfig.controlType === 'JOYSTICK';
-    const scale = this.currentConfig.scale || 1.0;
+    const globalScale = this.currentConfig.scale || 1.0;
+    if (!this.currentConfig.elementScales) {
+      this.currentConfig.elementScales = { movement: globalScale, sneak: globalScale, decoy: globalScale, ping: globalScale };
+    }
+    const elemScales = this.currentConfig.elementScales;
+    const moveScale = elemScales.movement || globalScale;
+    const sneakScale = elemScales.sneak || globalScale;
+    const decoyScale = elemScales.decoy || globalScale;
+    const pingScale = elemScales.ping || globalScale;
 
     overlay.innerHTML = `
       <div class="layout-editor-toolbar">
@@ -49,16 +57,16 @@ export class TouchLayoutEditor {
             <span>🛠️</span> TOUCH-LAYOUT ANPASSEN
           </div>
           <div class="layout-editor-title-hint">
-            Elemente per Drag & Drop verschieben • Größe wählen • Speichern
+            Verschieben per Drag & Drop • Größe einzeln über [ - ] / [ + ] (70%–160%) anpassen • Speichern
           </div>
         </div>
 
         <div class="layout-editor-actions">
           <div class="btn-segment-group" style="margin: 0;">
-            <button class="btn-segment scale-btn ${scale === 0.8 ? 'active' : ''}" data-scale="0.8">80%</button>
-            <button class="btn-segment scale-btn ${scale === 1.0 ? 'active' : ''}" data-scale="1.0">100%</button>
-            <button class="btn-segment scale-btn ${scale === 1.25 ? 'active' : ''}" data-scale="1.25">125%</button>
-            <button class="btn-segment scale-btn ${scale === 1.5 ? 'active' : ''}" data-scale="1.5">150%</button>
+            <button class="btn-segment scale-btn ${globalScale === 0.8 ? 'active' : ''}" data-scale="0.8">80%</button>
+            <button class="btn-segment scale-btn ${globalScale === 1.0 ? 'active' : ''}" data-scale="1.0">100%</button>
+            <button class="btn-segment scale-btn ${globalScale === 1.25 ? 'active' : ''}" data-scale="1.25">125%</button>
+            <button class="btn-segment scale-btn ${globalScale === 1.5 ? 'active' : ''}" data-scale="1.5">150%</button>
           </div>
           <button id="btn-editor-reset" class="layout-editor-btn btn-reset">↺ STANDARD</button>
           <button id="btn-editor-save" class="layout-editor-btn btn-save">✓ SPEICHERN & BEENDEN</button>
@@ -67,8 +75,15 @@ export class TouchLayoutEditor {
 
       <div class="layout-editor-canvas-bounds" id="editor-workspace">
         <!-- Draggable Movement Control -->
-        <div class="layout-editable-item" id="editor-elem-move" data-item="movement" style="transform: scale(${scale});">
-          <div class="layout-element-label">${isJoystick ? 'JOYSTICK' : 'D-PAD'}</div>
+        <div class="layout-editable-item" id="editor-elem-move" data-item="movement" style="transform: scale(${moveScale});">
+          <div class="layout-element-label">
+            <span>${isJoystick ? 'JOYSTICK' : 'D-PAD'}</span>
+            <div class="elem-scale-controls">
+              <button class="btn-elem-scale" data-action="dec" data-target="movement">−</button>
+              <span class="elem-scale-val" id="scale-val-movement">${Math.round(moveScale * 100)}%</span>
+              <button class="btn-elem-scale" data-action="inc" data-target="movement">+</button>
+            </div>
+          </div>
           ${isJoystick ? `
             <div class="touch-joystick" style="pointer-events: none;">
               <div class="joystick-base">
@@ -92,8 +107,15 @@ export class TouchLayoutEditor {
         </div>
 
         <!-- Draggable Sneak Button -->
-        <div class="layout-editable-item" id="editor-elem-sneak" data-item="sneak" style="transform: scale(${scale});">
-          <div class="layout-element-label">SCHLEICHEN</div>
+        <div class="layout-editable-item" id="editor-elem-sneak" data-item="sneak" style="transform: scale(${sneakScale});">
+          <div class="layout-element-label">
+            <span>SCHLEICHEN</span>
+            <div class="elem-scale-controls">
+              <button class="btn-elem-scale" data-action="dec" data-target="sneak">−</button>
+              <span class="elem-scale-val" id="scale-val-sneak">${Math.round(sneakScale * 100)}%</span>
+              <button class="btn-elem-scale" data-action="inc" data-target="sneak">+</button>
+            </div>
+          </div>
           <button class="touch-btn touch-btn-sneak" style="pointer-events: none;">
             <span class="sneak-icon">🤫</span>
             <span class="sneak-label">SCHLEICHEN</span>
@@ -102,8 +124,15 @@ export class TouchLayoutEditor {
         </div>
 
         <!-- Draggable Decoy Button -->
-        <div class="layout-editable-item" id="editor-elem-decoy" data-item="decoy" style="transform: scale(${scale});">
-          <div class="layout-element-label">KÖDER</div>
+        <div class="layout-editable-item" id="editor-elem-decoy" data-item="decoy" style="transform: scale(${decoyScale});">
+          <div class="layout-element-label">
+            <span>KÖDER</span>
+            <div class="elem-scale-controls">
+              <button class="btn-elem-scale" data-action="dec" data-target="decoy">−</button>
+              <span class="elem-scale-val" id="scale-val-decoy">${Math.round(decoyScale * 100)}%</span>
+              <button class="btn-elem-scale" data-action="inc" data-target="decoy">+</button>
+            </div>
+          </div>
           <button class="touch-btn touch-btn-decoy" style="pointer-events: none;">
             <span class="decoy-label">💣 KÖDER</span>
             <span class="decoy-count">1/1</span>
@@ -111,8 +140,15 @@ export class TouchLayoutEditor {
         </div>
 
         <!-- Draggable Ping Button -->
-        <div class="layout-editable-item" id="editor-elem-ping" data-item="ping" style="transform: scale(${scale});">
-          <div class="layout-element-label">PING</div>
+        <div class="layout-editable-item" id="editor-elem-ping" data-item="ping" style="transform: scale(${pingScale});">
+          <div class="layout-element-label">
+            <span>PING</span>
+            <div class="elem-scale-controls">
+              <button class="btn-elem-scale" data-action="dec" data-target="ping">−</button>
+              <span class="elem-scale-val" id="scale-val-ping">${Math.round(pingScale * 100)}%</span>
+              <button class="btn-elem-scale" data-action="inc" data-target="ping">+</button>
+            </div>
+          </div>
           <button class="touch-btn touch-btn-ping" style="pointer-events: none;">
             <span class="ping-icon">📡</span>
             <span class="ping-label">PING</span>
@@ -168,12 +204,18 @@ export class TouchLayoutEditor {
     const saveBtn = this.overlayEl.querySelector('#btn-editor-save');
     const scaleBtns = this.overlayEl.querySelectorAll('.scale-btn');
 
-    // Scale buttons
+    // Global Scale buttons
     scaleBtns.forEach((btn) => {
       const handleScale = (e) => {
         if (e) e.preventDefault();
         const sc = parseFloat(btn.dataset.scale);
         this.currentConfig.scale = sc;
+        if (!this.currentConfig.elementScales) this.currentConfig.elementScales = {};
+        ['movement', 'sneak', 'decoy', 'ping'].forEach((k) => {
+          this.currentConfig.elementScales[k] = sc;
+          const valBadge = this.overlayEl.querySelector(`#scale-val-${k}`);
+          if (valBadge) valBadge.textContent = `${Math.round(sc * 100)}%`;
+        });
 
         scaleBtns.forEach((b) => b.classList.remove('active'));
         btn.classList.add('active');
@@ -187,6 +229,41 @@ export class TouchLayoutEditor {
       };
       btn.addEventListener('click', handleScale);
       btn.addEventListener('touchstart', handleScale, { passive: false });
+    });
+
+    // Individual Element Scale [ - ] and [ + ] buttons (70% - 160%)
+    const elemScaleBtns = this.overlayEl.querySelectorAll('.btn-elem-scale');
+    elemScaleBtns.forEach((btn) => {
+      const handleElemScale = (e) => {
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+        const action = btn.dataset.action;
+        const target = btn.dataset.target;
+        if (!this.currentConfig.elementScales) {
+          this.currentConfig.elementScales = {};
+        }
+        let cur = this.currentConfig.elementScales[target] || this.currentConfig.scale || 1.0;
+        if (action === 'inc') {
+          cur = Math.min(1.6, Math.round((cur + 0.1) * 10) / 10);
+        } else if (action === 'dec') {
+          cur = Math.max(0.7, Math.round((cur - 0.1) * 10) / 10);
+        }
+        this.currentConfig.elementScales[target] = cur;
+
+        const targetEl = this.overlayEl.querySelector(`[data-item="${target}"]`);
+        if (targetEl) {
+          targetEl.style.transform = `scale(${cur})`;
+        }
+        const valBadge = this.overlayEl.querySelector(`#scale-val-${target}`);
+        if (valBadge) {
+          valBadge.textContent = `${Math.round(cur * 100)}%`;
+        }
+        if (this.audio) this.audio.playUIBlip();
+      };
+      btn.addEventListener('click', handleElemScale);
+      btn.addEventListener('touchstart', handleElemScale, { passive: false });
     });
 
     // Reset Button

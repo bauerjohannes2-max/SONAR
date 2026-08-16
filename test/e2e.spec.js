@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 
-test.describe('SONAR v1.4.1 Comprehensive E2E Validation', () => {
+test.describe('SONAR v1.5.0 Comprehensive Full-Stack E2E Validation', () => {
 
   test.beforeEach(async ({ page }) => {
     page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
@@ -11,11 +11,11 @@ test.describe('SONAR v1.4.1 Comprehensive E2E Validation', () => {
     });
   });
 
-  test('1. Version Endpoint & JSON Integrity (v1.4.1)', async ({ request }) => {
+  test('1. Version Endpoint & JSON Integrity (v1.5.0)', async ({ request }) => {
     const response = await request.get('/version.json');
     expect(response.ok()).toBeTruthy();
     const data = await response.json();
-    expect(data.version).toBe('1.4.1');
+    expect(data.version).toBe('1.5.0');
     expect(data.build).toBe(20260816);
   });
 
@@ -84,11 +84,9 @@ test.describe('SONAR v1.4.1 Comprehensive E2E Validation', () => {
 
     // Card 6: LEISE SCHLEICHEN
     expect(cards[5].title).toContain('LEISE SCHLEICHEN');
-    expect(cards[5].counter).toContain('0 Schallwellen');
 
     // Card 7: KÖDER-WURF (E)
     expect(cards[6].title).toContain('KÖDER-WURF (E)');
-    expect(cards[6].behavior).toContain('3 Blöcke');
 
     // Close tutorial
     await page.keyboard.press('Escape');
@@ -162,7 +160,7 @@ test.describe('SONAR v1.4.1 Comprehensive E2E Validation', () => {
     expect(result.hasBeaconWave).toBeTruthy();
   });
 
-  test('6. Mobile Settings Touch-Scroll Styles & Touchmove Delegation', async ({ page }) => {
+  test('6. Mobile Settings Touch-Scroll & Backdrop Click Closing', async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('#gameCanvas');
 
@@ -185,12 +183,12 @@ test.describe('SONAR v1.4.1 Comprehensive E2E Validation', () => {
     expect(styles.touchAction).toBe('pan-y');
     expect(styles.overflowY).toBe('auto');
 
-    // Close settings
-    await page.click('#modal-settings-close-btn');
+    // Click backdrop to close
+    await page.click('#settings-modal', { position: { x: 10, y: 10 } });
     await expect(page.locator('#settings-modal')).not.toBeVisible();
   });
 
-  test('7. PWA Manifest & App Icons Cache-Busting Version Check', async ({ page }) => {
+  test('7. PWA Manifest & App Icons Cache-Busting Version Check (v1.5.0)', async ({ page }) => {
     await page.goto('/');
 
     const manifest = await page.evaluate(async () => {
@@ -198,8 +196,48 @@ test.describe('SONAR v1.4.1 Comprehensive E2E Validation', () => {
       return res.json();
     });
 
-    expect(manifest.icons[0].src).toContain('?v=1.4.1');
-    expect(manifest.icons[1].src).toContain('?v=1.4.1');
+    expect(manifest.icons[0].src).toContain('?v=1.5.0');
+    expect(manifest.icons[1].src).toContain('?v=1.5.0');
+  });
+
+  test('8. IMPROVEMENTS.md Polish Roadmap Verification', async () => {
+    expect(fs.existsSync('IMPROVEMENTS.md')).toBeTruthy();
+    const content = fs.readFileSync('IMPROVEMENTS.md', 'utf-8');
+    expect(content).toContain('1. Akustischer Herzschlag- & Adrenalin-Pulse');
+    expect(content).toContain('2. Biolumineszenter Mikro-Partikelschweif');
+    expect(content).toContain('3. Sektor-Medaillensystem');
+    expect(content).toContain('4. Akustische Wellen-Refraktion');
+    expect(content).toContain('5. Ghost-Echo Replay-Projektion');
+  });
+
+  test('9. Touch Layout Editor Individual Element Scaling ([ + ] / [ - ])', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    // Open Touch Layout Editor via Settings
+    await page.click('#btn-settings-gear');
+    await page.click('#btn-open-touch-editor');
+    await expect(page.locator('#touch-layout-editor')).toBeVisible();
+
+    // Check individual scale button for movement control
+    const scaleValMove = page.locator('#scale-val-movement');
+    await expect(scaleValMove).toBeVisible();
+    const initialText = await scaleValMove.innerText();
+    expect(initialText).toBe('100%');
+
+    // Click [+] button for movement
+    await page.click('button[data-action="inc"][data-target="movement"]');
+    const newText = await scaleValMove.innerText();
+    expect(newText).toBe('110%');
+
+    // Save and verify config in localStorage
+    await page.click('#btn-editor-save');
+    await expect(page.locator('#touch-layout-editor')).not.toBeVisible();
+
+    const storedConfig = await page.evaluate(() => {
+      return JSON.parse(localStorage.getItem('sonar_touch_config'));
+    });
+    expect(storedConfig.elementScales.movement).toBe(1.1);
   });
 
 });

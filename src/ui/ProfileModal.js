@@ -94,6 +94,13 @@ export class ProfileModal {
       this.close();
     };
 
+    // Backdrop Click to close
+    container.addEventListener('click', (e) => {
+      if (e.target === container) {
+        handleClose(e);
+      }
+    });
+
     if (closeBtn) {
       closeBtn.addEventListener('click', handleClose);
       closeBtn.addEventListener('touchstart', handleClose, { passive: false });
@@ -111,7 +118,7 @@ export class ProfileModal {
       logoutBtn.addEventListener('click', () => this.handleLogout());
     }
 
-    // Submit on Enter
+    // Submit on Enter & Live input hints
     const handleKey = (e) => {
       if (e.key === 'Enter') {
         this.handleSubmit();
@@ -133,14 +140,14 @@ export class ProfileModal {
     if (banner) {
       if (isGuest) {
         banner.innerHTML = `
-          <div class="status-badge guest">STATUS: GAST-MODUS (NUR LOKAL)</div>
+          <div class="status-badge guest">STATUS: [ LOKALER GAST ] (NUR BROWSER-SPEICHER)</div>
           <div class="status-detail">Erstelle ein Pilot-Profil mit Callsign & PIN, um deinen Fortschritt global in der Cloud zu sichern.</div>
         `;
         if (logoutBtn) logoutBtn.style.display = 'none';
       } else {
-        const cloudLabel = isFbOnline ? 'FIRESTORE CLOUD-SYNC AKTIV' : 'OFFLINE / LOKAL AKTIV';
+        const cloudLabel = isFbOnline ? 'CLOUD-SYNC AKTIV ★' : 'LOKAL GESICHERT';
         banner.innerHTML = `
-          <div class="status-badge logged-in">PILOT: <strong>${pilot.callsign}</strong> // ${cloudLabel}</div>
+          <div class="status-badge logged-in">PILOT: <strong>${pilot.callsign}</strong> // [ ${cloudLabel} ]</div>
           <div class="status-detail">Höchster Sektor: 0${pilot.unlockedSector || 1} • Endless Rekord: Etage ${pilot.endlessHighscore || 1}</div>
         `;
         if (logoutBtn) logoutBtn.style.display = 'inline-block';
@@ -201,7 +208,7 @@ export class ProfileModal {
 
     if (res.success) {
       if (this.audio) this.audio.playCrystalPickup();
-      this.showMessage(res.message || `Pilot ${callsign} eingeloggt!`, false);
+      this.showMessage(res.message || '✓ CLOUD-SPIELSTAND ERFOLGREICH GELADEN', false);
       this.updateStatusBanner();
       if (pinInput) pinInput.value = '';
       if (callsignInput) callsignInput.value = '';

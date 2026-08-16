@@ -86,6 +86,18 @@ export class OnboardingModal {
       skipBtn.addEventListener('click', handleSkip);
       skipBtn.addEventListener('touchstart', handleSkip, { passive: false });
     }
+
+    container.addEventListener('click', (e) => {
+      if (e.target === container) {
+        handleSkip(e);
+      }
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (this.isOpen && e.key === 'Escape') {
+        handleSkip(e);
+      }
+    });
   }
 
   checkAndOpen() {

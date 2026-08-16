@@ -236,6 +236,13 @@ export class Settings {
       }
     };
 
+    // Backdrop Click to close
+    container.addEventListener('click', (e) => {
+      if (e.target === container) {
+        handleClose(e);
+      }
+    });
+
     if (closeBtn) {
       closeBtn.addEventListener('click', handleClose);
       closeBtn.addEventListener('touchstart', handleClose, { passive: false });

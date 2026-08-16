@@ -1,17 +1,27 @@
 /**
  * SONAR: The Echo Chamber
- * Unified Settings & Pause Modal with Instant In-Game Main Menu Navigation
+ * Unified Settings & Pause Modal with Touch Layout Controls, Joystick/D-Pad Switcher & Version Checker
  */
 
 import { CONFIG } from '../config.js';
 
 export class Settings {
-  constructor(audioEngine, particleEngine, onResetProgress = null, onExitToMenu = null, onResumeGame = null) {
+  constructor(
+    audioEngine,
+    particleEngine,
+    onResetProgress = null,
+    onExitToMenu = null,
+    onResumeGame = null,
+    touchControls = null,
+    onOpenTouchEditor = null
+  ) {
     this.audio = audioEngine;
     this.particles = particleEngine;
     this.onResetProgress = onResetProgress;
     this.onExitToMenu = onExitToMenu;
     this.onResumeGame = onResumeGame;
+    this.touchControls = touchControls;
+    this.onOpenTouchEditor = onOpenTouchEditor;
 
     this.masterVolume = 0.8;
     this.sfxVolume = 0.8;
@@ -84,6 +94,8 @@ export class Settings {
     container.className = 'terminal-modal-backdrop';
     container.style.display = 'none';
 
+    const touchConfig = this.touchControls ? this.touchControls.getConfig() : { controlType: 'JOYSTICK', scale: 1.0 };
+
     container.innerHTML = `
       <div class="terminal-modal-box settings-modal-box">
         <div class="modal-header">
@@ -95,6 +107,12 @@ export class Settings {
         </div>
 
         <div class="modal-body">
+          <!-- AUDIO & GRAFIK SECTION -->
+          <div class="settings-section-divider">
+            <span class="settings-section-title">AUDIO & GRAFIK</span>
+            <div class="settings-section-line"></div>
+          </div>
+
           <!-- Master Volume Slider -->
           <div class="settings-row">
             <div class="settings-header-row">
@@ -135,19 +153,59 @@ export class Settings {
             </button>
           </div>
 
-          <!-- Version & Live Update Checker -->
-          <div class="settings-row" style="margin-top: 14px; padding-top: 12px; border-top: 1px dashed rgba(0, 240, 255, 0.15);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-              <div>
-                <div class="settings-label">SYSTEM-VERSION</div>
-                <div class="field-hint">Aktuelle Version: <strong>v${CONFIG.VERSION || '1.2.1'}</strong></div>
-              </div>
-              <button id="btn-check-updates" class="modal-btn modal-btn-secondary" style="font-size: 11px; padding: 6px 12px; height: 34px;">
-                🔄 AUF UPDATES PRÜFEN
+          <!-- STEUERUNG & TOUCH-LAYOUT SECTION -->
+          <div class="settings-section-divider">
+            <span class="settings-section-title">STEUERUNG & TOUCH-LAYOUT</span>
+            <div class="settings-section-line"></div>
+          </div>
+
+          <!-- Control Type Toggle: Joystick vs. D-Pad -->
+          <div class="settings-row">
+            <div class="settings-label">MOBILE STEUERUNGSTYP</div>
+            <div class="btn-segment-group">
+              <button id="btn-ctrl-joystick" class="btn-segment ${touchConfig.controlType === 'JOYSTICK' ? 'active' : ''}">
+                🕹️ JOYSTICK
+              </button>
+              <button id="btn-ctrl-dpad" class="btn-segment ${touchConfig.controlType === 'DPAD' ? 'active' : ''}">
+                🔲 D-PAD
               </button>
             </div>
-            <div id="update-status-msg" style="font-size: 11px; font-family: var(--font-mono); text-align: center; min-height: 18px;"></div>
           </div>
+
+          <!-- Element Size / Scale -->
+          <div class="settings-row">
+            <div class="settings-header-row">
+              <div class="settings-label">ELEMENT-GRÖSSE (SKALIERUNG)</div>
+              <span id="val-touch-scale" class="settings-value-badge">${Math.round((touchConfig.scale || 1.0) * 100)}%</span>
+            </div>
+            <div class="btn-segment-group">
+              <button class="btn-segment btn-scale-step ${touchConfig.scale === 0.8 ? 'active' : ''}" data-scale="0.8">80%</button>
+              <button class="btn-segment btn-scale-step ${touchConfig.scale === 1.0 || !touchConfig.scale ? 'active' : ''}" data-scale="1.0">100%</button>
+              <button class="btn-segment btn-scale-step ${touchConfig.scale === 1.25 ? 'active' : ''}" data-scale="1.25">125%</button>
+              <button class="btn-segment btn-scale-step ${touchConfig.scale === 1.5 ? 'active' : ''}" data-scale="1.5">150%</button>
+            </div>
+          </div>
+
+          <!-- Visual Layout Editor Action Button -->
+          <button id="btn-open-touch-editor" class="btn-full-action">
+            🛠️ TOUCH-LAYOUT ANPASSEN (DRAG & DROP)
+          </button>
+
+          <!-- SYSTEM-VERSION & UPDATES SECTION -->
+          <div class="settings-section-divider">
+            <span class="settings-section-title">SYSTEM-VERSION & UPDATES</span>
+            <div class="settings-section-line"></div>
+          </div>
+
+          <div class="version-info-box">
+            <div class="version-text">
+              VERSION: <span id="settings-version-label">v${CONFIG.VERSION}</span> (Build ${CONFIG.BUILD})
+            </div>
+            <button id="btn-check-updates" class="btn-check-update">
+              🔄 AUF UPDATES PRÜFEN
+            </button>
+          </div>
+          <div id="update-status-msg" style="font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); margin-top: 4px; min-height: 16px;"></div>
         </div>
 
         <div class="modal-footer" id="settings-modal-footer">
@@ -166,7 +224,6 @@ export class Settings {
     const sfxSlider = container.querySelector('#slider-sfx-volume');
     const crtBtn = container.querySelector('#btn-toggle-crt');
     const shakeBtn = container.querySelector('#btn-toggle-shake');
-    const checkUpdateBtn = container.querySelector('#btn-check-updates');
 
     const handleClose = (e) => {
       if (e) {
@@ -182,17 +239,6 @@ export class Settings {
     if (closeBtn) {
       closeBtn.addEventListener('click', handleClose);
       closeBtn.addEventListener('touchstart', handleClose, { passive: false });
-    }
-
-    if (checkUpdateBtn) {
-      checkUpdateBtn.addEventListener('click', (e) => {
-        if (e) { e.preventDefault(); e.stopPropagation(); }
-        this.checkForUpdates();
-      });
-      checkUpdateBtn.addEventListener('touchstart', (e) => {
-        if (e) { e.preventDefault(); e.stopPropagation(); }
-        this.checkForUpdates();
-      }, { passive: false });
     }
 
     const bindTouchSlider = (slider, onValChange) => {
@@ -272,6 +318,125 @@ export class Settings {
       shakeBtn.addEventListener('touchstart', toggleShake, { passive: false });
     }
 
+    // Touch Control Type Toggle
+    const joystickBtn = container.querySelector('#btn-ctrl-joystick');
+    const dpadBtn = container.querySelector('#btn-ctrl-dpad');
+
+    if (joystickBtn && dpadBtn) {
+      const selectType = (type) => {
+        if (this.touchControls) {
+          this.touchControls.setControlType(type);
+        }
+        joystickBtn.classList.toggle('active', type === 'JOYSTICK');
+        dpadBtn.classList.toggle('active', type === 'DPAD');
+        if (this.audio) this.audio.playUIBlip();
+      };
+
+      joystickBtn.addEventListener('click', () => selectType('JOYSTICK'));
+      joystickBtn.addEventListener('touchstart', (e) => { e.preventDefault(); selectType('JOYSTICK'); }, { passive: false });
+
+      dpadBtn.addEventListener('click', () => selectType('DPAD'));
+      dpadBtn.addEventListener('touchstart', (e) => { e.preventDefault(); selectType('DPAD'); }, { passive: false });
+    }
+
+    // Touch Scale Step Buttons
+    const scaleBtns = container.querySelectorAll('.btn-scale-step');
+    const scaleBadge = container.querySelector('#val-touch-scale');
+    scaleBtns.forEach((btn) => {
+      const selectScale = (e) => {
+        if (e) e.preventDefault();
+        const sc = parseFloat(btn.dataset.scale);
+        if (this.touchControls) {
+          this.touchControls.setScale(sc);
+        }
+        scaleBtns.forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        if (scaleBadge) scaleBadge.textContent = `${Math.round(sc * 100)}%`;
+        if (this.audio) this.audio.playUIBlip();
+      };
+      btn.addEventListener('click', selectScale);
+      btn.addEventListener('touchstart', selectScale, { passive: false });
+    });
+
+    // Touch Layout Editor Trigger
+    const openEditorBtn = container.querySelector('#btn-open-touch-editor');
+    if (openEditorBtn) {
+      const handleOpenEditor = (e) => {
+        if (e) { e.preventDefault(); e.stopPropagation(); }
+        this.close();
+        if (typeof this.onOpenTouchEditor === 'function') {
+          this.onOpenTouchEditor();
+        }
+      };
+      openEditorBtn.addEventListener('click', handleOpenEditor);
+      openEditorBtn.addEventListener('touchstart', handleOpenEditor, { passive: false });
+    }
+
+    // Update Checker Button
+    const checkUpdateBtn = container.querySelector('#btn-check-updates');
+    const updateMsg = container.querySelector('#update-status-msg');
+    if (checkUpdateBtn) {
+      const handleCheckUpdate = async (e) => {
+        if (e) { e.preventDefault(); e.stopPropagation(); }
+        if (this.audio) this.audio.playUIBlip();
+
+        if (updateMsg) {
+          updateMsg.style.color = 'var(--cyan-primary)';
+          updateMsg.textContent = 'Prüfe Server auf Updates...';
+        }
+
+        try {
+          // 1. Revalidate Service Worker if active
+          if ('serviceWorker' in navigator) {
+            const reg = await navigator.serviceWorker.getRegistration();
+            if (reg) await reg.update();
+          }
+
+          // 2. Fetch version.json with cache bust
+          const res = await fetch(`./version.json?t=${Date.now()}`);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+
+          if (data && data.version) {
+            if (data.version === CONFIG.VERSION && (!data.build || data.build === CONFIG.BUILD)) {
+              if (updateMsg) {
+                updateMsg.style.color = '#00FF88';
+                updateMsg.textContent = `✓ Du nutzt die neueste Version (v${CONFIG.VERSION}).`;
+              }
+            } else {
+              if (updateMsg) {
+                updateMsg.style.color = '#FFAA00';
+                updateMsg.innerHTML = `⚡ Neue Version v${data.version} verfügbar! <a href="#" id="link-reload-update" style="color: #00F0FF; font-weight: 700; text-decoration: underline; margin-left: 6px;">[ JETZT AKTUALISIEREN ]</a>`;
+                const reloadLink = container.querySelector('#link-reload-update');
+                if (reloadLink) {
+                  reloadLink.addEventListener('click', (ev) => {
+                    ev.preventDefault();
+                    if ('caches' in window) {
+                      caches.keys().then((keys) => {
+                        keys.forEach((k) => caches.delete(k));
+                        window.location.reload();
+                      });
+                    } else {
+                      window.location.reload();
+                    }
+                  });
+                }
+              }
+            }
+          }
+        } catch (err) {
+          console.warn('Update check error:', err);
+          if (updateMsg) {
+            updateMsg.style.color = 'var(--text-dim)';
+            updateMsg.textContent = `✓ Version v${CONFIG.VERSION} ist aktuell (Offline-Modus).`;
+          }
+        }
+      };
+
+      checkUpdateBtn.addEventListener('click', handleCheckUpdate);
+      checkUpdateBtn.addEventListener('touchstart', handleCheckUpdate, { passive: false });
+    }
+
     window.addEventListener('keydown', (e) => {
       if (this.isOpen && e.key === 'Escape') {
         this.close();
@@ -314,7 +479,27 @@ export class Settings {
       shakeBtn.className = `modal-btn modal-btn-toggle ${this.screenShake ? 'active' : ''}`;
     }
 
-    // 3. Dynamic Footer Buttons
+    // 3. Touch Config State
+    if (this.touchControls) {
+      const tc = this.touchControls.getConfig();
+      const joystickBtn = this.modalEl.querySelector('#btn-ctrl-joystick');
+      const dpadBtn = this.modalEl.querySelector('#btn-ctrl-dpad');
+      const scaleBadge = this.modalEl.querySelector('#val-touch-scale');
+      const scaleBtns = this.modalEl.querySelectorAll('.btn-scale-step');
+
+      if (joystickBtn && dpadBtn) {
+        joystickBtn.classList.toggle('active', tc.controlType === 'JOYSTICK');
+        dpadBtn.classList.toggle('active', tc.controlType === 'DPAD');
+      }
+
+      if (scaleBadge) scaleBadge.textContent = `${Math.round((tc.scale || 1.0) * 100)}%`;
+      scaleBtns.forEach((btn) => {
+        const sc = parseFloat(btn.dataset.scale);
+        btn.classList.toggle('active', Math.abs(sc - (tc.scale || 1.0)) < 0.05);
+      });
+    }
+
+    // 4. Dynamic Footer Buttons
     const footer = this.modalEl.querySelector('#settings-modal-footer');
     if (footer) {
       if (this.isGameplay) {

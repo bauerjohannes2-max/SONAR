@@ -117,6 +117,10 @@ export const CONFIG = {
     WAVE_RING_THICKNESS: 14      // px width of illuminated wavefront
   },
 
+  // Version & Build
+  VERSION: '1.3.0',
+  BUILD: '20260816',
+
   // Game States
   STATES: {
     MENU: 'MENU',
@@ -135,16 +139,14 @@ export const CONFIG = {
     LEADERBOARD: 'LEADERBOARD'
   },
 
-  // Versioning
-  VERSION: '1.2.1',
-
   // Storage Keys
   STORAGE: {
     SETTINGS: 'sonar_settings_v1',
     PROGRESS: 'sonar_progress_v1',
     ENDLESS: 'sonar_endless_v1',
     PILOT_SESSION: 'sonar_pilot_session_v1',
-    LOCAL_LEADERBOARD: 'sonar_local_leaderboard_v1'
+    LOCAL_LEADERBOARD: 'sonar_local_leaderboard_v1',
+    TOUCH_CONFIG: 'sonar_touch_config'
   }
 };
 

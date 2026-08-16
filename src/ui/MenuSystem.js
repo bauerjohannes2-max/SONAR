@@ -294,10 +294,10 @@ export class MenuSystem {
     ctx.fillStyle = '#00f0ff';
     ctx.fillText('S O N A R', CONFIG.CANVAS_WIDTH / 2, 46);
 
-    // Subtitle
+    // Subtitle & Version
     ctx.font = '600 10.5px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = '#607b8b';
-    ctx.fillText('// ZERO-LIGHT SURVIVAL', CONFIG.CANVAS_WIDTH / 2, 70);
+    ctx.fillText(`// ZERO-LIGHT SURVIVAL • v${CONFIG.VERSION}`, CONFIG.CANVAS_WIDTH / 2, 70);
 
     // Pilot Status Banner Box (Clear Cloud-Save & Guest Notice)
     const badgeW = 520;

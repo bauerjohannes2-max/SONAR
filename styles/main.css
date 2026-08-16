@@ -962,6 +962,350 @@ kbd {
 }
 
 /* =========================================================
+   VIRTUAL ANALOG JOYSTICK
+   ========================================================= */
+.touch-joystick {
+  position: relative;
+  width: 126px;
+  height: 126px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: auto;
+  touch-action: none;
+  user-select: none;
+}
+
+.joystick-base {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 240, 255, 0.08) 0%, rgba(4, 10, 16, 0.95) 75%);
+  border: 1.5px solid rgba(0, 240, 255, 0.45);
+  box-shadow: 0 0 16px rgba(0, 240, 255, 0.15), inset 0 0 12px rgba(0, 240, 255, 0.1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  touch-action: none;
+  user-select: none;
+  cursor: pointer;
+}
+
+.joystick-ring {
+  position: absolute;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 1px dashed rgba(0, 240, 255, 0.25);
+  pointer-events: none;
+}
+
+.joystick-dir-indicator {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(0, 240, 255, 0.35);
+  pointer-events: none;
+  transition: color 0.1s, text-shadow 0.1s;
+}
+
+.joystick-dir-indicator.active {
+  color: #00F0FF;
+  text-shadow: 0 0 8px #00F0FF;
+}
+
+.joystick-dir-up { top: 6px; left: calc(50% - 5px); }
+.joystick-dir-down { bottom: 6px; left: calc(50% - 5px); }
+.joystick-dir-left { left: 8px; top: calc(50% - 7px); }
+.joystick-dir-right { right: 8px; top: calc(50% - 7px); }
+
+.joystick-knob {
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #00f0ff 0%, #007099 55%, #051824 100%);
+  border: 2px solid var(--cyan-primary);
+  box-shadow: 0 0 14px rgba(0, 240, 255, 0.65), inset 0 0 8px rgba(255, 255, 255, 0.4);
+  top: calc(50% - 24px);
+  left: calc(50% - 24px);
+  pointer-events: none;
+  will-change: transform;
+  transform: translate(0px, 0px);
+}
+
+.joystick-knob.active {
+  box-shadow: 0 0 22px rgba(0, 240, 255, 0.95), inset 0 0 10px rgba(255, 255, 255, 0.7);
+}
+
+/* =========================================================
+   TOUCH LAYOUT EDITOR & DRAG-AND-DROP OVERLAY
+   ========================================================= */
+#touch-layout-editor {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: rgba(2, 5, 8, 0.92);
+  backdrop-filter: blur(6px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  user-select: none;
+  touch-action: none;
+}
+
+.layout-editor-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 18px;
+  background: rgba(5, 12, 20, 0.95);
+  border-bottom: 1.5px solid rgba(0, 240, 255, 0.35);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7);
+  gap: 12px;
+  flex-wrap: wrap;
+  z-index: 1000;
+}
+
+.layout-editor-title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.layout-editor-title-main {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--cyan-primary);
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.layout-editor-title-hint {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+}
+
+.layout-editor-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.layout-editor-btn {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  background: rgba(0, 240, 255, 0.1);
+  color: var(--cyan-primary);
+  transition: all 0.1s;
+}
+
+.layout-editor-btn:hover, .layout-editor-btn:active {
+  background: rgba(0, 240, 255, 0.3);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+}
+
+.layout-editor-btn.btn-save {
+  background: rgba(0, 255, 136, 0.2);
+  border-color: #00FF88;
+  color: #00FF88;
+}
+
+.layout-editor-btn.btn-save:hover {
+  background: rgba(0, 255, 136, 0.4);
+  box-shadow: 0 0 14px rgba(0, 255, 136, 0.6);
+}
+
+.layout-editor-btn.btn-reset {
+  background: rgba(255, 170, 0, 0.15);
+  border-color: rgba(255, 170, 0, 0.6);
+  color: var(--yellow-warn);
+}
+
+.layout-editor-canvas-bounds {
+  flex: 1;
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border: 1px dashed rgba(0, 240, 255, 0.15);
+}
+
+.layout-editable-item {
+  position: absolute;
+  touch-action: none;
+  user-select: none;
+  cursor: grab;
+  outline: 2px dashed #00F0FF;
+  outline-offset: 4px;
+  border-radius: 6px;
+  transition: outline-color 0.15s, box-shadow 0.15s;
+  z-index: 10;
+}
+
+.layout-editable-item:active, .layout-editable-item.dragging {
+  cursor: grabbing;
+  outline-color: #00FF88;
+  outline-style: solid;
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.6);
+  z-index: 100;
+}
+
+.layout-element-label {
+  position: absolute;
+  top: -18px;
+  left: 0;
+  background: rgba(0, 240, 255, 0.2);
+  border: 1px solid #00F0FF;
+  color: #00F0FF;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 2px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* =========================================================
+   SETTINGS MODAL SEGMENTED CONTROLS & SECTIONS
+   ========================================================= */
+.settings-section-divider {
+  display: flex;
+  align-items: center;
+  margin: 16px 0 10px 0;
+  gap: 10px;
+}
+
+.settings-section-title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--cyan-primary);
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.settings-section-line {
+  flex: 1;
+  height: 1px;
+  background: rgba(0, 240, 255, 0.2);
+}
+
+.btn-segment-group {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.btn-segment {
+  flex: 1;
+  min-height: 36px;
+  padding: 6px 10px;
+  background: rgba(8, 18, 28, 0.9);
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  border-radius: 4px;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.12s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-segment:hover {
+  border-color: var(--cyan-primary);
+  color: #E0F8FF;
+}
+
+.btn-segment.active {
+  background: rgba(0, 240, 255, 0.2);
+  border-color: var(--cyan-primary);
+  color: var(--cyan-primary);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.35);
+}
+
+.btn-full-action {
+  width: 100%;
+  min-height: 42px;
+  margin-top: 8px;
+  background: rgba(0, 240, 255, 0.12);
+  border: 1.5px solid var(--cyan-primary);
+  border-radius: 4px;
+  color: var(--cyan-primary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.15s;
+}
+
+.btn-full-action:hover, .btn-full-action:active {
+  background: rgba(0, 240, 255, 0.25);
+  box-shadow: 0 0 14px rgba(0, 240, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+.version-info-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: rgba(4, 10, 16, 0.8);
+  border: 1px solid rgba(0, 240, 255, 0.15);
+  border-radius: 4px;
+  margin-top: 6px;
+}
+
+.version-text {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.version-text span {
+  color: var(--cyan-primary);
+  font-weight: 700;
+}
+
+.btn-check-update {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 4px;
+  background: rgba(0, 240, 255, 0.1);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  color: var(--cyan-primary);
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.btn-check-update:hover {
+  background: rgba(0, 240, 255, 0.25);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+}
+
+/* =========================================================
    RESPONSIVE SCALING & FULLSCREEN
    ========================================================= */
 :fullscreen #game-wrapper, :-webkit-full-screen #game-wrapper {

@@ -32,6 +32,7 @@ const ASSETS_TO_CACHE = [
   './src/ui/HUD.js',
   './src/ui/MenuSystem.js',
   './src/ui/Settings.js',
+  './src/ui/TouchLayoutEditor.js',
   './src/ui/TutorialModal.js',
   './src/ui/OnboardingModal.js',
   './src/ui/ProfileModal.js',
@@ -39,6 +40,7 @@ const ASSETS_TO_CACHE = [
   './src/services/FirebaseService.js',
   './src/services/StorageManager.js',
   './src/services/LeaderboardService.js',
+  './version.json',
   './assets/icon-192.png',
   './assets/icon-512.png'
 ];

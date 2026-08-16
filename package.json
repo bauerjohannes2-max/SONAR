@@ -22,5 +22,8 @@
   "license": "MIT",
   "dependencies": {
     "isomorphic-git": "^1.41.4"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1"
   }
 }

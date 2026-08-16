@@ -27,6 +27,7 @@ import { TutorialModal } from './ui/TutorialModal.js';
 import { OnboardingModal } from './ui/OnboardingModal.js';
 import { ProfileModal } from './ui/ProfileModal.js';
 import { LeaderboardModal } from './ui/LeaderboardModal.js';
+import { TouchLayoutEditor } from './ui/TouchLayoutEditor.js';
 import { storageManager } from './services/StorageManager.js';
 
 export class Game {
@@ -46,6 +47,7 @@ export class Game {
     this.inputHandler.setTouchControls(this.touchControls);
     this.displayManager = new DisplayManager(this.canvas);
     this.inputHandler.displayManager = this.displayManager;
+    this.touchLayoutEditor = new TouchLayoutEditor(this.touchControls, this.audioEngine);
 
     // UI Modules
     this.hud = new HUD(this.canvas);
@@ -68,6 +70,10 @@ export class Game {
         if (this.gameState === CONFIG.STATES.PAUSED) {
           this.gameState = CONFIG.STATES.PLAYING;
         }
+      },
+      this.touchControls,
+      () => {
+        if (this.touchLayoutEditor) this.touchLayoutEditor.open();
       }
     );
     this.tutorialModal = new TutorialModal(this.audioEngine);
@@ -405,6 +411,23 @@ export class Game {
         break;
       }
 
+      case CONFIG.STATES.DYING: {
+        this.deathTimer -= dt;
+        this.waveSystem.update(dt, this.gridMap);
+        this.particleEngine.update(dt);
+        if (this.deathTimer <= 0) {
+          if (this.isEndlessActive) {
+            this.endlessMode.saveHighscore();
+            storageManager.saveEndlessProgress(this.endlessMode.bestFloor, this.endlessMode.bestCrystals);
+          }
+          if (this.inputHandler) {
+            this.inputHandler.resetInputState();
+          }
+          this.gameState = CONFIG.STATES.GAME_OVER;
+        }
+        break;
+      }
+
       case CONFIG.STATES.GAME_OVER: {
         if (this.inputHandler.consumeRestart() || this.inputHandler.consumeAction()) {
           if (this.isEndlessActive) {
@@ -603,17 +626,26 @@ export class Game {
   }
 
   onGameOver(cause = 'PREDATOR') {
+    if (this.gameState === CONFIG.STATES.DYING || this.gameState === CONFIG.STATES.GAME_OVER) return;
+
     this.deathCause = cause || 'PREDATOR';
+    this.deathTimer = 1.5; // 1500ms post-mortem reveal phase
+
+    if (this.player) {
+      this.player.isAlive = false;
+    }
+
     if (cause === 'WALL_CRASH') {
       this.audioEngine.playWallCrash();
     } else {
       this.audioEngine.playDeath();
     }
-    this.particleEngine.spawnSparks(this.player.x, this.player.y, CONFIG.COLORS.HUNTER, 45);
-    this.particleEngine.addShake(14, 600);
+    const posX = this.player ? this.player.x : CONFIG.CANVAS_WIDTH / 2;
+    const posY = this.player ? this.player.y : CONFIG.CANVAS_HEIGHT / 2;
 
-    // Trigger intense red death shockwave revealing surroundings and killer for 1.5s
-    this.waveSystem.createDeathWave(this.player.x, this.player.y);
+    this.particleEngine.spawnSparks(posX, posY, CONFIG.COLORS.HUNTER, 45);
+    this.particleEngine.addShake(14, 600);
+    this.waveSystem.createDeathShockwave(posX, posY);
 
     this.deathTimer = 1.5;
     this.gameState = CONFIG.STATES.DYING;
@@ -657,27 +689,40 @@ export class Game {
           isChased
         );
 
-        if (this.gameState !== CONFIG.STATES.DYING) {
-          const currentLvl = this.isEndlessActive
-            ? { name: `ENDLESS ECHO // ETAGE ${this.endlessMode.currentFloor}` }
-            : LEVELS[this.currentSectorIndex];
+        if (this.gameState === CONFIG.STATES.DYING) {
+          // Post-Mortem Death-Reveal Tactical Warning Overlay
+          ctx.save();
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.font = '700 18px "Chakra Petch", "JetBrains Mono", monospace';
+          ctx.fillStyle = '#FF1E44';
+          ctx.shadowColor = '#FF1E44';
+          ctx.shadowBlur = 12;
+          const msg = this.deathCause === 'WALL_CRASH' ? '⚠ KOLLISION // DROHNE ZERSTÖRT' : '⚠ PRÄDATOR-KONTAKT // SIGNALVERLUST';
+          ctx.fillText(msg, CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT / 2 - 30);
+          ctx.restore();
+          break;
+        }
 
-          const crystalsLeft = this.crystals.filter(c => !c.collected).length;
-          const pingRatio = this.player.getPingCooldownRatio();
+        const currentLvl = this.isEndlessActive
+          ? { name: `ENDLESS ECHO // ETAGE ${this.endlessMode.currentFloor}` }
+          : LEVELS[this.currentSectorIndex];
 
-          this.hud.renderGameHUD(
-            currentLvl,
-            crystalsLeft,
-            this.crystals.length,
-            pingRatio,
-            this.player,
-            this.isEndlessActive,
-            this.endlessMode.currentFloor
-          );
+        const crystalsLeft = this.crystals.filter(c => !c.collected).length;
+        const pingRatio = this.player.getPingCooldownRatio();
 
-          if (this.gameState === CONFIG.STATES.PAUSED) {
-            this.hud.renderPauseMenu();
-          }
+        this.hud.renderGameHUD(
+          currentLvl,
+          crystalsLeft,
+          this.crystals.length,
+          pingRatio,
+          this.player,
+          this.isEndlessActive,
+          this.endlessMode.currentFloor
+        );
+
+        if (this.gameState === CONFIG.STATES.PAUSED) {
+          this.hud.renderPauseMenu();
         }
         break;
       }
@@ -710,12 +755,13 @@ export class Game {
   }
 
   syncDOMState() {
-    // Only show touch controls during active gameplay when no modal is open
+    // Only show touch controls during active gameplay when no modal or editor is open
     const isPlaying = (this.gameState === CONFIG.STATES.PLAYING || this.gameState === CONFIG.STATES.ENDLESS) &&
                       !this.settingsModal.isOpen &&
                       !this.profileModal.isOpen &&
                       !this.leaderboardModal.isOpen &&
-                      (!this.onboardingModal || !this.onboardingModal.isOpen);
+                      (!this.onboardingModal || !this.onboardingModal.isOpen) &&
+                      !(this.touchLayoutEditor && this.touchLayoutEditor.isOpen);
 
     if (this.touchControls) {
       this.touchControls.setVisible(isPlaying);

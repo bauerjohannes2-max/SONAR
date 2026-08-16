@@ -122,21 +122,25 @@ export class WaveSystem {
   }
 
   /**
-   * Spawns an intense red death shockwave that illuminates the surroundings and killer.
+   * Spawns a high-intensity red death shockwave that reveals the obstacle/predator for 1.5s.
    */
-  createDeathWave(x, y) {
+  createDeathShockwave(x, y) {
     this.waves.push({
       x,
       y,
       radius: 8,
-      maxRadius: 420,
-      speed: 260,
+      maxRadius: 600,
+      speed: 12,
       alpha: 1.0,
-      decay: 0.65,
-      color: '#FF1E44',
-      thickness: 28,
+      decay: 0.010,
+      color: 'rgba(255, 30, 68, 0.95)',
+      thickness: 22,
       type: 'DEATH'
     });
+  }
+
+  createDeathWave(x, y) {
+    this.createDeathShockwave(x, y);
   }
 
   /**

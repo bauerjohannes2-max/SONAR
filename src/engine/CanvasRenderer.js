@@ -43,62 +43,77 @@ export class CanvasRenderer {
     this.animTime = (typeof time === 'number' && !isNaN(time)) ? time : ((typeof this.animTime === 'number' && !isNaN(this.animTime)) ? this.animTime + 0.016 : 0);
     ctx = ctx || this.ctx;
 
-    // Apply Screen Shake Camera Translation
-    ctx.save();
-    if (particleEngine) {
-      ctx.translate(particleEngine.shakeOffset.x, particleEngine.shakeOffset.y);
+    // 1. Smooth Camera Tracking (Player Centered)
+    if (player && typeof player.x === 'number') {
+      if (!this.camera) {
+        this.camera = { x: player.x, y: player.y };
+      } else {
+        this.camera.x += (player.x - this.camera.x) * 0.16;
+        this.camera.y += (player.y - this.camera.y) * 0.16;
+      }
+    } else {
+      this.camera = { x: CONFIG.CANVAS_WIDTH / 2, y: CONFIG.CANVAS_HEIGHT / 2 };
     }
 
-    // 1. Clear background to pitch black
+    const camX = Math.round(CONFIG.CANVAS_WIDTH / 2 - this.camera.x);
+    const camY = Math.round(CONFIG.CANVAS_HEIGHT / 2 - this.camera.y);
+
+    // 2. Clear background to pitch black in screen space
     ctx.fillStyle = CONFIG.COLORS.BG;
     ctx.fillRect(0, 0, this.width, this.height);
 
-    // 2. Render ambient phosphor dust
+    // 3. World Space Rendering with Camera Translation & Screen Shake
+    ctx.save();
+    const shakeX = particleEngine ? particleEngine.shakeOffset.x : 0;
+    const shakeY = particleEngine ? particleEngine.shakeOffset.y : 0;
+    ctx.translate(camX + shakeX, camY + shakeY);
+
+    // Render ambient phosphor dust in world
     if (particleEngine) {
       particleEngine.renderAmbientDust(ctx);
     }
 
-    // 3. Render illuminated floor grid & walls
+    // Render illuminated floor grid & walls
     this.renderWorldGrid(ctx, gridMap, waveSystem);
 
-    // 4. Render Gate (Airlock)
+    // Render Gate (Airlock)
     this.renderGate(ctx, gate, waveSystem);
 
-    // 5. Render Crystals
+    // Render Crystals
     this.renderCrystals(ctx, crystals, waveSystem);
 
-    // 6. Render Decoys
+    // Render Decoys
     this.renderDecoys(ctx, decoys, waveSystem);
 
-    // 7. Render Resonators
+    // Render Resonators
     this.renderResonators(ctx, resonators, waveSystem);
 
-    // 8. Render Lighthouses
+    // Render Lighthouses
     this.renderLighthouses(ctx, lighthouses, waveSystem);
 
-    // 9. Render Active Sound Wavefronts
+    // Render Active Sound Wavefronts
     this.renderWaves(ctx, waveSystem);
 
-    // 10. Render Stalkers (Purple Silent Predators)
+    // Render Stalkers (Purple Silent Predators)
     this.renderStalkers(ctx, stalkers, waveSystem);
 
-    // 11. Render Hunters (Red Blind Predators)
+    // Render Hunters (Red Blind Predators)
     this.renderHunters(ctx, hunters, waveSystem);
 
-    // 12. Render Player (Echo Drone)
-    if (player.isAlive) {
+    // Render Player (Echo Drone)
+    if (player && player.isAlive) {
       this.renderPlayer(ctx, player);
     }
 
-    // 13. Render Dynamic Burst Particles
+    // Render Dynamic Burst Particles
     if (particleEngine) {
       particleEngine.render(ctx);
     }
 
-    // 14. Render Red Chase Vignette if any Hunter is sprinting
-    this.renderChaseVignette(ctx, hunters);
-
     ctx.restore();
+
+    // 4. Render Red Chase Vignette in Screen Space
+    this.renderChaseVignette(ctx, hunters);
   }
 
   /**
@@ -530,6 +545,16 @@ export class CanvasRenderer {
     ctx.beginPath();
     ctx.arc(0, 0, corePulse, 0, Math.PI * 2);
     ctx.fill();
+
+    // Stealth Aura when sneaking
+    if (player.isSneaking) {
+      ctx.strokeStyle = 'rgba(0, 255, 170, 0.5)';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.arc(0, 0, 15, 0, Math.PI * 2);
+      ctx.stroke();
+    }
 
     ctx.restore();
   }

@@ -24,7 +24,8 @@ Grid: 25x18 (32px tiles). Screen: 800x576px.
 - `src/ui/HUD.js`: Tactical top HUD & Rank cards.
 - `src/ui/MenuSystem.js`: Terminal main menu & 10-Sector selection grid.
 - `src/ui/Settings.js`: Settings modal & localStorage sync.
-- `src/ui/TutorialModal.js`: 7-Card procedural canvas tutorial.
+- `src/ui/TutorialModal.js`: 7-Card procedural canvas tutorial with iOS touch debounce.
+- `src/ui/OnboardingModal.js`: First-time player welcome modal with tutorial briefing.
 - `src/ui/ProfileModal.js`: Pilot Profile (Callsign + 4-digit PIN) authentication modal.
 - `src/ui/LeaderboardModal.js`: Top 10 Global Firestore / fallback leaderboard overlay.
 - `src/services/FirebaseService.js`: Zero-build Firestore ESM CDN integration & PIN hashing.
@@ -37,16 +38,15 @@ Grid: 25x18 (32px tiles). Screen: 800x576px.
 2. **Phosphor & Zero-Light Rendering Standard**:
    - In zero-light / sonar stealth scenes, solid objects (walls) must ALWAYS maintain a subtle permanent baseline contour (`rgba(0, 240, 255, 0.05)`, 1px stroke) in the dark (`vis <= 0.05`) so players retain spatial orientation.
    - Illuminated walls (`vis > 0.05`) render with `rgba(18, 26, 38, vis * 0.95)` fill, `#00F0FF` (1.5px) stroke, and `shadowBlur: 6 * vis`.
-3. **Crisp Canvas Typography**:
-   - Canvas text: `shadowBlur` strictly <= 2px or disabled to prevent blurry monospace typography.
-   - Scanline CRT overlays: opacity capped at <= 0.12.
-   - Canvas CSS: always enforce `image-rendering: pixelated; image-rendering: crisp-edges;`.
+3. **Centered Player Camera & Floating Mobile HUD**:
+   - Canvas 2D matrix translates by `(CONFIG.CANVAS_WIDTH / 2 - camera.x + shakeX, CONFIG.CANVAS_HEIGHT / 2 - camera.y + shakeY)` keeping the player centered at all times.
+   - Screen-space elements (HUD, game over modal, quick-actions) render outside camera translation.
+   - Virtual touch controls float over the canvas with `pointer-events: none` on the overlay and `pointer-events: auto` on interactive D-pad / action buttons.
 4. **Token-Optimized Onboarding**:
    - At the start of a session, read ONLY `PROJECT_MAP.md` and target specifically modified files without blind workspace scans.
-5. **Integrated Canvas UI & Touch State Isolation**:
-   - All HUD & Quick-Actions (`[ ⛶ ]`, `[ ⚙ ]`) are contained inside `.canvas-container`.
-   - Touch Controls bar `#touch-controls` is positioned cleanly *below* the canvas (`.touch-controls-bar`), active only during `PLAYING`/`ENDLESS` states, and strictly hidden (`display: none`) in `MENU`, `SECTOR_SELECT`, and modals.
-   - D-Pad features seamless thumb-sliding with quadrant angle resolution and multi-touch isolation from action buttons (Ping, Sneak, Decoy).
+5. **Touch Ghosting Prevention & Modal Debounce**:
+   - Canvas inputs ignore pointerdown during modal transitions via `inputHandler.ignoreClicksFor(350)`.
+   - Tutorial and modal card navigations use a 280ms debounce lock to prevent iOS double-tap skipping.
 6. **Stealth Mode & Zero Sound Waves**:
    - Sneak mode (Shift or Touch toggle) halves drone movement speed and completely suppresses footstep waves and sound events.
 7. **PWA Offline Caching & Mobile Haptics**:

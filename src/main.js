@@ -24,6 +24,7 @@ import { HUD } from './ui/HUD.js';
 import { MenuSystem } from './ui/MenuSystem.js';
 import { Settings as SettingsModal } from './ui/Settings.js';
 import { TutorialModal } from './ui/TutorialModal.js';
+import { OnboardingModal } from './ui/OnboardingModal.js';
 import { ProfileModal } from './ui/ProfileModal.js';
 import { LeaderboardModal } from './ui/LeaderboardModal.js';
 import { storageManager } from './services/StorageManager.js';
@@ -70,6 +71,15 @@ export class Game {
       }
     );
     this.tutorialModal = new TutorialModal(this.audioEngine);
+    this.onboardingModal = new OnboardingModal(
+      this.audioEngine,
+      () => {
+        this.openTutorial();
+      },
+      () => {
+        this.menuSystem.triggerTutorialPulse(8000);
+      }
+    );
     this.profileModal = new ProfileModal(this.audioEngine, (pilot) => this.onProfileChanged(pilot));
     this.leaderboardModal = new LeaderboardModal(this.audioEngine);
 
@@ -134,6 +144,13 @@ export class Game {
   }
 
   openTutorial() {
+    if (this.inputHandler) {
+      this.inputHandler.resetInputState();
+      this.inputHandler.ignoreClicksFor(600);
+    }
+    if (this.tutorialModal) {
+      this.tutorialModal.reset();
+    }
     if (this.gameState !== CONFIG.STATES.TUTORIAL) {
       this.previousState = this.gameState;
       this.gameState = CONFIG.STATES.TUTORIAL;
@@ -142,6 +159,11 @@ export class Game {
 
   start() {
     this.lastTime = performance.now();
+    if (this.onboardingModal) {
+      setTimeout(() => {
+        this.onboardingModal.checkAndOpen();
+      }, 250);
+    }
     requestAnimationFrame((t) => this.loop(t));
   }
 
@@ -170,6 +192,9 @@ export class Game {
     this.waveSystem.clear();
     this.particleEngine.clear();
     this.touchControls.updateDecoyCount(this.player.decoysRemaining);
+    if (this.renderer) {
+      this.renderer.camera = { x: this.player.x, y: this.player.y };
+    }
 
     this.audioEngine.startDrone();
     this.gameState = CONFIG.STATES.PLAYING;
@@ -200,6 +225,9 @@ export class Game {
     this.waveSystem.clear();
     this.particleEngine.clear();
     this.touchControls.updateDecoyCount(this.player.decoysRemaining);
+    if (this.renderer) {
+      this.renderer.camera = { x: this.player.x, y: this.player.y };
+    }
 
     this.audioEngine.startDrone();
     this.gameState = CONFIG.STATES.PLAYING;
@@ -256,6 +284,9 @@ export class Game {
         const res = this.tutorialModal.handleInput(this.inputHandler);
         if (res === 'CLOSE') {
           this.gameState = this.previousState || CONFIG.STATES.MENU;
+          if (this.menuSystem) {
+            this.menuSystem.triggerTutorialPulse(8000);
+          }
         }
         break;
       }
@@ -660,7 +691,8 @@ export class Game {
     const isPlaying = (this.gameState === CONFIG.STATES.PLAYING || this.gameState === CONFIG.STATES.ENDLESS) &&
                       !this.settingsModal.isOpen &&
                       !this.profileModal.isOpen &&
-                      !this.leaderboardModal.isOpen;
+                      !this.leaderboardModal.isOpen &&
+                      (!this.onboardingModal || !this.onboardingModal.isOpen);
 
     if (this.touchControls) {
       this.touchControls.setVisible(isPlaying);

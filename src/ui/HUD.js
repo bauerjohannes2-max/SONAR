@@ -51,7 +51,7 @@ export class HUD {
       ctx.fillStyle = CONFIG.COLORS.TEXT_MAIN;
       const crystalStr = `KRISTALLE: ${totalCrystals - crystalsLeft} / ${totalCrystals}`;
       const decoyStr = player ? `  •  KÖDER (E): ${player.decoysRemaining}/1` : '';
-      const sneakStr = (player && player.isSneaking) ? '  •  [SNEAK]' : '';
+      const sneakStr = (player && player.isSneaking) ? '  •  🤫 LAUTLOS' : '';
       ctx.fillText(`${crystalStr}${decoyStr}${sneakStr}`, this.width / 2 - 20, 18);
     }
 

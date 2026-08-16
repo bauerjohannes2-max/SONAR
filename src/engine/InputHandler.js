@@ -24,6 +24,7 @@ export class InputHandler {
     this.levelSelectTriggered = false;
     this.mouseClick = null;
     this.isShiftHeld = false;
+    this.ignoreClicksUntil = 0;
 
     this.touchControls = null;
 
@@ -45,6 +46,11 @@ export class InputHandler {
     this.escapeTriggered = false;
     this.mouseClick = null;
     this.isShiftHeld = false;
+  }
+
+  ignoreClicksFor(ms = 350) {
+    this.ignoreClicksUntil = Date.now() + ms;
+    this.mouseClick = null;
   }
 
   setTouchControls(touchControls) {
@@ -148,6 +154,9 @@ export class InputHandler {
 
     // Mouse and Touch Click mapping via DisplayManager
     const handlePointerDown = (clientX, clientY) => {
+      if (this.ignoreClicksUntil && Date.now() < this.ignoreClicksUntil) {
+        return;
+      }
       if (this.displayManager) {
         this.mouseClick = this.displayManager.screenToCanvas(clientX, clientY);
       } else {

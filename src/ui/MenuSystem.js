@@ -68,7 +68,12 @@ export class MenuSystem {
       });
     }
 
+    this.tutorialPulseUntil = 0;
     this.loadProgress();
+  }
+
+  triggerTutorialPulse(durationMs = 8000) {
+    this.tutorialPulseUntil = Date.now() + durationMs;
   }
 
   loadProgress() {
@@ -411,12 +416,15 @@ export class MenuSystem {
     const secGap = 15;
     const secStartX = cardX;
 
+    const isTutorialPulsing = this.tutorialPulseUntil && Date.now() < this.tutorialPulseUntil;
+
     const secIndices = [2, 3, 4];
     for (let i = 0; i < secIndices.length; i++) {
       const idx = secIndices[i];
       const opt = this.options[idx];
       const isSelected = this.selectedIndex === idx;
       const x = secStartX + i * (secBtnW + secGap);
+      const isPulsingThis = (idx === 4 && isTutorialPulsing);
 
       ctx.save();
       if (isSelected) {
@@ -430,19 +438,41 @@ export class MenuSystem {
         ctx.textAlign = 'center';
         ctx.font = '700 11.5px "Chakra Petch", "JetBrains Mono", monospace';
         ctx.fillStyle = '#ffffff';
-        ctx.fillText(opt.title, x + secBtnW / 2, secY + secH / 2);
+        ctx.fillText(idx === 4 ? '📖 TUTORIAL' : opt.title, x + secBtnW / 2, secY + secH / 2);
+      } else if (isPulsingThis) {
+        // Prominent Tutorial Attention Indicator
+        const pulse = 0.5 + 0.5 * Math.sin(time * 6);
+        ctx.fillStyle = `rgba(0, 240, 255, ${0.12 + 0.15 * pulse})`;
+        ctx.fillRect(x, secY, secBtnW, secH);
+
+        ctx.strokeStyle = `rgba(0, 240, 255, ${0.6 + 0.4 * pulse})`;
+        ctx.lineWidth = 2;
+        ctx.shadowColor = '#00f0ff';
+        ctx.shadowBlur = 10 * pulse;
+        ctx.strokeRect(x, secY, secBtnW, secH);
+
+        ctx.textAlign = 'center';
+        ctx.font = '700 11.5px "Chakra Petch", "JetBrains Mono", monospace';
+        ctx.fillStyle = '#00f0ff';
+        ctx.fillText('📖 TUTORIAL', x + secBtnW / 2, secY + secH / 2);
+
+        // Attention Hint Badge
+        ctx.shadowBlur = 0;
+        ctx.font = '700 9px "Chakra Petch", "JetBrains Mono", monospace';
+        ctx.fillStyle = `rgba(0, 255, 170, ${0.8 + 0.2 * pulse})`;
+        ctx.fillText('[ HIER JEDERZEIT ABRUFBAR ]', x + secBtnW / 2, secY - 8);
       } else {
         ctx.fillStyle = 'rgba(5, 14, 22, 0.7)';
         ctx.fillRect(x, secY, secBtnW, secH);
 
-        ctx.strokeStyle = 'rgba(0, 240, 255, 0.18)';
+        ctx.strokeStyle = idx === 4 ? 'rgba(0, 240, 255, 0.35)' : 'rgba(0, 240, 255, 0.18)';
         ctx.lineWidth = 1;
         ctx.strokeRect(x, secY, secBtnW, secH);
 
         ctx.textAlign = 'center';
         ctx.font = '600 11px "Chakra Petch", "JetBrains Mono", monospace';
-        ctx.fillStyle = '#7895a5';
-        ctx.fillText(opt.title, x + secBtnW / 2, secY + secH / 2);
+        ctx.fillStyle = idx === 4 ? '#00f0ff' : '#7895a5';
+        ctx.fillText(idx === 4 ? '📖 TUTORIAL' : opt.title, x + secBtnW / 2, secY + secH / 2);
       }
       ctx.restore();
     }

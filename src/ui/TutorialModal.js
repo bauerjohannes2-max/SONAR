@@ -10,6 +10,7 @@ export class TutorialModal {
     this.audio = audioEngine;
     this.currentCardIndex = 0;
     this.animTime = 0;
+    this.isTransitioning = false;
 
     // Create offscreen miniature canvas (280x140) for procedural animations
     this.miniCanvas = document.createElement('canvas');
@@ -446,7 +447,19 @@ export class TutorialModal {
     ];
   }
 
+  reset() {
+    this.currentCardIndex = 0;
+    this.openedAt = Date.now();
+    this.isTransitioning = false;
+  }
+
   handleInput(inputHandler) {
+    if (this.isTransitioning) return null;
+    if (this.openedAt && Date.now() - this.openedAt < 500) {
+      inputHandler.consumeMouseClick();
+      return null;
+    }
+
     const move = inputHandler.getMovement();
     if (move) {
       if (move.dx < 0 || move.dy < 0) {
@@ -482,13 +495,19 @@ export class TutorialModal {
   }
 
   prevCard() {
+    if (this.isTransitioning) return;
+    this.isTransitioning = true;
     this.currentCardIndex = (this.currentCardIndex - 1 + this.cards.length) % this.cards.length;
     if (this.audio) this.audio.playCardFlip();
+    setTimeout(() => { this.isTransitioning = false; }, 280);
   }
 
   nextCard() {
+    if (this.isTransitioning) return;
+    this.isTransitioning = true;
     this.currentCardIndex = (this.currentCardIndex + 1) % this.cards.length;
     if (this.audio) this.audio.playCardFlip();
+    setTimeout(() => { this.isTransitioning = false; }, 280);
   }
 
   render(ctx, time) {

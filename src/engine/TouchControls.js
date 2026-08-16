@@ -226,7 +226,6 @@ export class TouchControls {
         e.preventDefault();
         e.stopPropagation();
         this.sneakToggled = !this.sneakToggled;
-
         if (this.sneakToggled) {
           sneakBtn.classList.add('sneak-on');
           if (sneakBadge) sneakBadge.innerText = 'EIN';
@@ -238,6 +237,7 @@ export class TouchControls {
         if (this.audio) this.audio.playUIBlip();
       };
 
+      sneakBtn.addEventListener('click', toggleSneak);
       sneakBtn.addEventListener('touchstart', toggleSneak, { passive: false });
       sneakBtn.addEventListener('mousedown', toggleSneak);
     }

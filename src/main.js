@@ -30,6 +30,7 @@ import { ProfileModal } from './ui/ProfileModal.js';
 import { LeaderboardModal } from './ui/LeaderboardModal.js';
 import { TouchLayoutEditor } from './ui/TouchLayoutEditor.js';
 import { storageManager } from './services/StorageManager.js';
+import { spriteManager } from './engine/SpriteManager.js';
 
 export class Game {
   constructor() {
@@ -40,6 +41,7 @@ export class Game {
 
     // Subsystems
     this.audioEngine = new AudioEngine();
+    this.spriteManager = spriteManager;
     this.particleEngine = new ParticleEngine(this.canvas);
     this.inputHandler = new InputHandler(this.canvas);
     this.waveSystem = new WaveSystem();
@@ -228,6 +230,9 @@ export class Game {
   start() {
     this.lastTime = performance.now();
     this.checkAutoUpdate();
+    if (this.spriteManager) {
+      this.spriteManager.loadAll().catch((e) => console.warn('Sprite preloading warning:', e));
+    }
     if (this.onboardingModal) {
       setTimeout(() => {
         this.onboardingModal.checkAndOpen();

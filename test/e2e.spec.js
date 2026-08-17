@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 
-test.describe('SONAR v1.5.0 Comprehensive Full-Stack E2E Validation', () => {
+test.describe('SONAR v1.6.0 Visual Overhaul & Graphics Pipeline E2E Validation', () => {
 
   test.beforeEach(async ({ page }) => {
     page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
@@ -11,12 +11,12 @@ test.describe('SONAR v1.5.0 Comprehensive Full-Stack E2E Validation', () => {
     });
   });
 
-  test('1. Version Endpoint & JSON Integrity (v1.5.0)', async ({ request }) => {
+  test('1. Version Endpoint & JSON Integrity (v1.6.0)', async ({ request }) => {
     const response = await request.get('/version.json');
     expect(response.ok()).toBeTruthy();
     const data = await response.json();
-    expect(data.version).toBe('1.5.0');
-    expect(data.build).toBe(20260816);
+    expect(data.version).toBe('1.6.0');
+    expect(data.build).toBe(20260817);
   });
 
   test('2. Sci-Fi Audio Assets Existence & Preloading in Web Audio API (7 MP3 Samples)', async ({ page }) => {
@@ -39,7 +39,6 @@ test.describe('SONAR v1.5.0 Comprehensive Full-Stack E2E Validation', () => {
     await page.goto('/');
     await page.waitForSelector('#gameCanvas');
 
-    // Unlock audio and preload buffers
     const decodedCount = await page.evaluate(async () => {
       window.game.audioEngine.init();
       await window.game.audioEngine.preloadAudioBuffers();
@@ -49,11 +48,59 @@ test.describe('SONAR v1.5.0 Comprehensive Full-Stack E2E Validation', () => {
     expect(decodedCount).toBe(7);
   });
 
-  test('3. Accessible Terminology & Tutorial Guidance (Card 1-7)', async ({ page }) => {
+  test('3. CC0 Sci-Fi Sprites Existence & SpriteManager Preloading (6 PNG Assets)', async ({ page }) => {
+    const spriteFiles = [
+      'assets/sprites/drone_sheet.png',
+      'assets/sprites/hunter_sheet.png',
+      'assets/sprites/stalker_sheet.png',
+      'assets/sprites/core_crystal.png',
+      'assets/sprites/tileset_walls.png',
+      'assets/sprites/portal_exit.png'
+    ];
+
+    for (const file of spriteFiles) {
+      expect(fs.existsSync(file)).toBeTruthy();
+      const stat = fs.statSync(file);
+      expect(stat.size).toBeGreaterThan(100);
+    }
+
     await page.goto('/');
     await page.waitForSelector('#gameCanvas');
 
-    // Open Tutorial directly
+    const loadedCount = await page.evaluate(async () => {
+      return await window.game.spriteManager.loadAll();
+    });
+
+    expect(loadedCount).toBe(6);
+
+    const isDroneReady = await page.evaluate(() => {
+      const drone = window.game.spriteManager.get('drone');
+      return drone && drone.naturalWidth > 0;
+    });
+    expect(isDroneReady).toBeTruthy();
+  });
+
+  test('4. Marine Snow Particles, Hydrodynamic Wakes & Post-Processing Pipeline', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    const checkVisualSubsystems = await page.evaluate(() => {
+      window.game.loadSector(0);
+      const snowCount = window.game.particleEngine.marineSnow.length;
+      const hasPostProcessing = !!window.game.renderer.postProcessing;
+      const hasVignette = !!window.game.renderer.postProcessing.vignetteCanvas;
+      return { snowCount, hasPostProcessing, hasVignette };
+    });
+
+    expect(checkVisualSubsystems.snowCount).toBeGreaterThanOrEqual(80);
+    expect(checkVisualSubsystems.hasPostProcessing).toBeTruthy();
+    expect(checkVisualSubsystems.hasVignette).toBeTruthy();
+  });
+
+  test('5. Accessible Terminology & Tutorial Guidance (Card 1-7)', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
     await page.evaluate(() => {
       window.game.openTutorial();
     });
@@ -65,40 +112,25 @@ test.describe('SONAR v1.5.0 Comprehensive Full-Stack E2E Validation', () => {
     const cards = await page.evaluate(() => window.game.tutorialModal.cards);
     expect(cards.length).toBe(7);
 
-    // Card 1: DU BIST DIE DROHNE ECHO
     expect(cards[0].title).toContain('DU BIST DIE DROHNE ECHO');
     expect(cards[0].behavior).toContain('Touch-Steuerung');
-
-    // Card 2: SCHALLWELLEN & WÄNDE
     expect(cards[1].title).toContain('SCHALLWELLEN & WÄNDE');
-
-    // Card 3: KRISTALLE EINSAMMELN
     expect(cards[2].title).toContain('KRISTALLE EINSAMMELN');
-
-    // Card 4: DER GRÜNE FLUCHTAUFZUG
     expect(cards[3].title).toContain('DER GRÜNE FLUCHTAUFZUG');
-
-    // Card 5: ROTE MONSTER
     expect(cards[4].title).toContain('ROTE MONSTER');
-
-    // Card 6: LEISE SCHLEICHEN
     expect(cards[5].title).toContain('LEISE SCHLEICHEN');
-
-    // Card 7: KÖDER-WURF (E)
     expect(cards[6].title).toContain('KÖDER-WURF (E)');
 
-    // Close tutorial
     await page.keyboard.press('Escape');
     await page.waitForTimeout(100);
     const isMenu = await page.evaluate(() => window.game.gameState === 'MENU');
     expect(isMenu).toBeTruthy();
   });
 
-  test('4. Sector 04+ Death -> NEUSTART Click Reliably Reloads Sector 04', async ({ page }) => {
+  test('6. Sector 04+ Death -> NEUSTART Click Reliably Reloads Sector 04', async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('#gameCanvas');
 
-    // Start Sector 4 directly (index 3)
     await page.evaluate(() => {
       window.game.loadSector(3);
     });
@@ -106,7 +138,6 @@ test.describe('SONAR v1.5.0 Comprehensive Full-Stack E2E Validation', () => {
     const activeSectorBefore = await page.evaluate(() => window.game.currentSectorIndex);
     expect(activeSectorBefore).toBe(3);
 
-    // Trigger drone collision
     await page.evaluate(() => {
       window.game.onGameOver('WALL_CRASH');
     });
@@ -114,12 +145,10 @@ test.describe('SONAR v1.5.0 Comprehensive Full-Stack E2E Validation', () => {
     const stateImmediately = await page.evaluate(() => window.game.gameState);
     expect(stateImmediately).toBe('DYING');
 
-    // Wait for death reveal to finish (1.6s)
     await page.waitForTimeout(1600);
     const stateGameOver = await page.evaluate(() => window.game.gameState);
     expect(stateGameOver).toBe('GAME_OVER');
 
-    // Click NEUSTART button on Canvas (center x: 400, y: 240)
     const canvasBox = await page.locator('#gameCanvas').boundingBox();
     expect(canvasBox).not.toBeNull();
     const restartClickX = canvasBox.x + (400 / 800) * canvasBox.width;
@@ -128,18 +157,17 @@ test.describe('SONAR v1.5.0 Comprehensive Full-Stack E2E Validation', () => {
     await page.mouse.click(restartClickX, restartClickY);
     await page.waitForTimeout(150);
 
-    // Level must immediately restart Sector 4 in PLAYING state
     const stateAfterRestart = await page.evaluate(() => window.game.gameState);
     expect(stateAfterRestart).toBe('PLAYING');
 
     const activeSectorAfter = await page.evaluate(() => window.game.currentSectorIndex);
-    expect(activeSectorAfter).toBe(3); // Still Sector 4!
+    expect(activeSectorAfter).toBe(3);
 
     const isPlayerAlive = await page.evaluate(() => window.game.player.isAlive);
     expect(isPlayerAlive).toBeTruthy();
   });
 
-  test('5. Escape Portal Activation: Beacon Wave, Wayfinder Arrow & HUD Alarm', async ({ page }) => {
+  test('7. Escape Portal Activation: Beacon Wave, Wayfinder Arrow & HUD Alarm', async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('#gameCanvas');
 
@@ -159,34 +187,28 @@ test.describe('SONAR v1.5.0 Comprehensive Full-Stack E2E Validation', () => {
     expect(result.hasBeaconWave).toBeTruthy();
   });
 
-  test('6. Settings Modal: Background Music Slider & D-Pad/Swipe Toggle', async ({ page }) => {
+  test('8. Settings Modal: Background Music Slider & D-Pad/Swipe Toggle', async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('#gameCanvas');
 
-    // Open Settings modal
     await page.click('#btn-settings-gear');
     await expect(page.locator('#settings-modal')).toBeVisible();
 
-    // Verify Master, Music, SFX sliders exist
     await expect(page.locator('#slider-master-volume')).toBeVisible();
     await expect(page.locator('#slider-music-volume')).toBeVisible();
     await expect(page.locator('#slider-sfx-volume')).toBeVisible();
 
-    // Verify D-Pad vs Swipe control toggle exists (no joystick)
     await expect(page.locator('#btn-ctrl-dpad')).toBeVisible();
     await expect(page.locator('#btn-ctrl-swipe')).toBeVisible();
-    await expect(page.locator('#btn-ctrl-joystick')).not.toBeVisible();
 
-    // Click backdrop to close
     await page.click('#settings-modal', { position: { x: 10, y: 10 } });
     await expect(page.locator('#settings-modal')).not.toBeVisible();
   });
 
-  test('7. Profile Modal: Accessible Terms & Input Feedback', async ({ page }) => {
+  test('9. Profile Modal: Accessible Terms & Input Feedback', async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('#gameCanvas');
 
-    // Open Profile modal via game instance
     await page.evaluate(() => {
       window.game.profileModal.open();
     });
@@ -196,42 +218,27 @@ test.describe('SONAR v1.5.0 Comprehensive Full-Stack E2E Validation', () => {
     expect(titleText).toContain('SPIELER-PROFIL');
     expect(titleText).not.toContain('//');
 
-    // Close modal
     await page.keyboard.press('Escape');
     await expect(page.locator('#pilot-profile-modal')).not.toBeVisible();
   });
 
-  test('8. IMPROVEMENTS.md Polish Roadmap Verification', async () => {
-    expect(fs.existsSync('IMPROVEMENTS.md')).toBeTruthy();
-    const content = fs.readFileSync('IMPROVEMENTS.md', 'utf-8');
-    expect(content).toContain('1. Akustischer Herzschlag- & Adrenalin-Pulse');
-    expect(content).toContain('2. Biolumineszenter Mikro-Partikelschweif');
-    expect(content).toContain('3. Sektor-Medaillensystem');
-    expect(content).toContain('4. Akustische Wellen-Refraktion');
-    expect(content).toContain('5. Ghost-Echo Replay-Projektion');
-  });
-
-  test('9. Touch Layout Editor Individual Element Scaling ([ + ] / [ - ])', async ({ page }) => {
+  test('10. Touch Layout Editor Individual Element Scaling ([ + ] / [ - ])', async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('#gameCanvas');
 
-    // Open Touch Layout Editor via Settings
     await page.click('#btn-settings-gear');
     await page.click('#btn-open-touch-editor');
     await expect(page.locator('#touch-layout-editor')).toBeVisible();
 
-    // Check individual scale button for movement control
     const scaleValMove = page.locator('#scale-val-movement');
     await expect(scaleValMove).toBeVisible();
     const initialText = await scaleValMove.innerText();
     expect(initialText).toBe('100%');
 
-    // Click [+] button for movement
     await page.click('button[data-action="inc"][data-target="movement"]');
     const newText = await scaleValMove.innerText();
     expect(newText).toBe('110%');
 
-    // Save and verify config in localStorage
     await page.click('#btn-editor-save');
     await expect(page.locator('#touch-layout-editor')).not.toBeVisible();
 

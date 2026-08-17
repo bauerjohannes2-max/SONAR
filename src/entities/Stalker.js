@@ -40,6 +40,8 @@ export class Stalker {
     this.moveTimer = 0;
     this.stunTimer = 0;
     this.facing = { dx: 0, dy: 1 };
+    this.headingAngle = Math.PI / 2;
+    this.targetAngle = Math.PI / 2;
     this.lastKnownPlayerTile = null;
 
     this.reset();
@@ -57,6 +59,9 @@ export class Stalker {
     this.startY = this.y;
     this.endX = this.x;
     this.endY = this.y;
+
+    this.headingAngle = Math.PI / 2;
+    this.targetAngle = Math.PI / 2;
 
     this.state = STALKER_STATES.HUNTING;
     this.currentPath = [];
@@ -115,6 +120,10 @@ export class Stalker {
       this.x = this.startX + (this.endX - this.startX) * progress;
       this.y = this.startY + (this.endY - this.startY) * progress;
 
+      if (particleEngine && Math.random() < 0.25) {
+        particleEngine.spawnGhostEcho(this.x, this.y, this.headingAngle, '#AA00FF');
+      }
+
       if (progress >= 1.0) {
         this.gridX = this.targetGridX;
         this.gridY = this.targetGridY;
@@ -123,6 +132,14 @@ export class Stalker {
         this.isMoving = false;
       }
     }
+
+    if (this.facing && (this.facing.dx !== 0 || this.facing.dy !== 0)) {
+      this.targetAngle = Math.atan2(this.facing.dy, this.facing.dx);
+    }
+    let diff = this.targetAngle - this.headingAngle;
+    while (diff < -Math.PI) diff += Math.PI * 2;
+    while (diff > Math.PI) diff -= Math.PI * 2;
+    this.headingAngle += diff * Math.min(1.0, dt * 10);
 
     // 4. Stalk toward player's position (Strict BFS Shortest Path at every single step)
     if (!this.isMoving && player.isAlive) {

@@ -46,6 +46,8 @@ export class Hunter {
     this.moveTimer = 0;
     this.stateTimer = 0;
     this.facing = { dx: 0, dy: 1 };
+    this.headingAngle = Math.PI / 2;
+    this.targetAngle = Math.PI / 2;
 
     this.targetSound = null;
     this.hearingMultiplier = 1.0;
@@ -66,6 +68,9 @@ export class Hunter {
     this.startY = this.y;
     this.endX = this.x;
     this.endY = this.y;
+
+    this.headingAngle = Math.PI / 2;
+    this.targetAngle = Math.PI / 2;
 
     this.state = HUNTER_STATES.PATROL;
     this.currentWaypointIndex = 0;
@@ -127,6 +132,10 @@ export class Hunter {
       this.x = this.startX + (this.endX - this.startX) * progress;
       this.y = this.startY + (this.endY - this.startY) * progress;
 
+      if (particleEngine && Math.random() < 0.25) {
+        particleEngine.spawnGhostEcho(this.x, this.y, this.headingAngle, '#FF1E44');
+      }
+
       if (progress >= 1.0) {
         this.gridX = this.targetGridX;
         this.gridY = this.targetGridY;
@@ -139,6 +148,14 @@ export class Hunter {
         }
       }
     }
+
+    if (this.facing && (this.facing.dx !== 0 || this.facing.dy !== 0)) {
+      this.targetAngle = Math.atan2(this.facing.dy, this.facing.dx);
+    }
+    let diff = this.targetAngle - this.headingAngle;
+    while (diff < -Math.PI) diff += Math.PI * 2;
+    while (diff > Math.PI) diff -= Math.PI * 2;
+    this.headingAngle += diff * Math.min(1.0, dt * 10);
 
     // 2. State Machine Decisions
     if (!this.isMoving) {

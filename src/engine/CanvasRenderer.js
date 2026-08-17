@@ -1,9 +1,12 @@
 /**
  * SONAR: The Echo Chamber
- * Canvas 2D Vector-Phosphor Rendering Engine with Stalker, Decoy & Juice Effects
+ * High-Performance Sci-Fi Canvas 2D Renderer
+ * Integrates CC0 Sprite Sheets, Modular Tileset Walls, Particle Wake & Post-Processing.
  */
 
 import { CONFIG } from '../config.js';
+import { spriteManager } from './SpriteManager.js';
+import { PostProcessing } from './PostProcessing.js';
 import { HUNTER_STATES } from '../entities/Hunter.js';
 import { STALKER_STATES } from '../entities/Stalker.js';
 
@@ -14,11 +17,13 @@ export class CanvasRenderer {
     this.width = CONFIG.CANVAS_WIDTH;
     this.height = CONFIG.CANVAS_HEIGHT;
 
+    this.postProcessing = new PostProcessing(this.width, this.height);
     this.animTime = 0;
+    this.camera = null;
   }
 
   reset() {
-    // Reset any persistent render animations if needed
+    this.camera = null;
   }
 
   /**
@@ -29,14 +34,14 @@ export class CanvasRenderer {
     gridMap,
     waveSystem,
     player,
-    hunters,
-    stalkers,
-    resonators,
-    lighthouses,
-    decoys,
-    crystals,
-    gate,
-    particleEngine,
+    hunters = [],
+    stalkers = [],
+    resonators = [],
+    lighthouses = [],
+    decoys = [],
+    crystals = [],
+    gate = null,
+    particleEngine = null,
     time = 0,
     isChased = false
   ) {
@@ -48,8 +53,8 @@ export class CanvasRenderer {
       if (!this.camera) {
         this.camera = { x: player.x, y: player.y };
       } else {
-        this.camera.x += (player.x - this.camera.x) * 0.16;
-        this.camera.y += (player.y - this.camera.y) * 0.16;
+        this.camera.x += (player.x - this.camera.x) * 0.18;
+        this.camera.y += (player.y - this.camera.y) * 0.18;
       }
     } else {
       this.camera = { x: CONFIG.CANVAS_WIDTH / 2, y: CONFIG.CANVAS_HEIGHT / 2 };
@@ -68,18 +73,18 @@ export class CanvasRenderer {
     const shakeY = particleEngine ? particleEngine.shakeOffset.y : 0;
     ctx.translate(camX + shakeX, camY + shakeY);
 
-    // Render ambient phosphor dust in world
+    // Render ambient marine snow & plankton in world
     if (particleEngine) {
       particleEngine.renderAmbientDust(ctx);
     }
 
-    // Render illuminated floor grid & walls
+    // Render modular sci-fi walls & illuminated floor grid
     this.renderWorldGrid(ctx, gridMap, waveSystem);
 
-    // Render Gate (Airlock)
+    // Render Gate (Airlock Hyper-Gate)
     this.renderGate(ctx, gate, waveSystem);
 
-    // Render Crystals
+    // Render Nanotech Core Crystals
     this.renderCrystals(ctx, crystals, waveSystem);
 
     // Render Decoys
@@ -91,34 +96,35 @@ export class CanvasRenderer {
     // Render Lighthouses
     this.renderLighthouses(ctx, lighthouses, waveSystem);
 
-    // Render Active Sound Wavefronts
+    // Render Active Sound Wavefronts with Radial Bloom
     this.renderWaves(ctx, waveSystem);
 
-    // Render Stalkers (Purple Silent Predators)
+    // Render Stalkers (Shadow Predators)
     this.renderStalkers(ctx, stalkers, waveSystem);
 
-    // Render Hunters (Red Blind Predators)
+    // Render Hunters (Red Bio-Mechanical Predators)
     this.renderHunters(ctx, hunters, waveSystem);
 
-    // Render Player (Echo Drone)
+    // Render Player (Echo Drone) & Wayfinder Arrow
     if (player && player.isAlive) {
       this.renderPlayer(ctx, player);
       this.renderPortalWayfinder(ctx, player, gate);
     }
 
-    // Render Dynamic Burst Particles
+    // Render Dynamic Burst Particles, Bubbles & Ghost Trails
     if (particleEngine) {
       particleEngine.render(ctx);
     }
 
     ctx.restore();
 
-    // 4. Render Red Chase Vignette in Screen Space
-    this.renderChaseVignette(ctx, hunters);
+    // 4. Post-Processing Passes (Deep-Sea Vignette, Threat Tension Aberration, Screen Shake)
+    this.postProcessing.update(0.016, player, hunters, stalkers);
+    this.postProcessing.render(ctx, this.animTime);
   }
 
   /**
-   * Renders wall tiles and faint floor grids ONLY where illuminated by phosphor decay (Strict Zero-Light).
+   * Renders modular wall tiles and faint floor grids ONLY where illuminated by phosphor decay.
    */
   renderWorldGrid(ctx, gridMap, waveSystem) {
     const ts = CONFIG.TILE_SIZE;
@@ -127,46 +133,18 @@ export class CanvasRenderer {
     for (let r = 0; r < CONFIG.GRID_ROWS; r++) {
       for (let c = 0; c < CONFIG.GRID_COLS; c++) {
         const vis = visGrid[r][c];
-        if (vis <= 0.05) continue; // 100% pitch black in darkness
+        if (vis <= 0.04) continue; // 100% pitch black in darkness
 
         const x = c * ts;
         const y = r * ts;
         const tile = gridMap.getTile(c, r);
 
         if (tile === CONFIG.TILES.WALL) {
-          ctx.save();
-
-          // Illuminated Wall Block
-          ctx.fillStyle = `rgba(18, 26, 38, ${vis * 0.95})`;
-          ctx.fillRect(x, y, ts, ts);
-
-          // Crisp Neon Cyan Outline
-          ctx.strokeStyle = '#00F0FF';
-          ctx.lineWidth = 1.5;
-          ctx.shadowColor = `rgba(0, 240, 255, ${vis})`;
-          ctx.shadowBlur = 6 * vis;
-          ctx.strokeRect(x + 0.5, y + 0.5, ts - 1, ts - 1);
-
-          // White Inner Highlight
-          ctx.shadowBlur = 0;
-          ctx.strokeStyle = `rgba(255, 255, 255, ${vis * 0.25})`;
-          ctx.strokeRect(x + 1.5, y + 1.5, ts - 3, ts - 3);
-
-          // Subtle Cross Grid Lines
-          ctx.strokeStyle = `rgba(255, 255, 255, ${0.04 * vis})`;
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.moveTo(x + ts / 2, y + 4);
-          ctx.lineTo(x + ts / 2, y + ts - 4);
-          ctx.moveTo(x + 4, y + ts / 2);
-          ctx.lineTo(x + ts - 4, y + ts / 2);
-          ctx.stroke();
-
-          ctx.restore();
+          spriteManager.drawWallTile(ctx, x, y, ts, c, r, vis);
         } else {
-          // Floor Dot indicator
+          // Floor micro-phosphor dot indicator
           ctx.save();
-          ctx.fillStyle = `rgba(0, 240, 255, ${vis * 0.15})`;
+          ctx.fillStyle = `rgba(0, 240, 255, ${vis * 0.18})`;
           ctx.fillRect(x + ts / 2 - 1, y + ts / 2 - 1, 2, 2);
           ctx.restore();
         }
@@ -175,7 +153,7 @@ export class CanvasRenderer {
   }
 
   /**
-   * Renders active sound waves as glowing concentric circles.
+   * Renders active sound waves with glowing radial wavefronts.
    */
   renderWaves(ctx, waveSystem) {
     const waves = waveSystem.getActiveWaves();
@@ -184,10 +162,10 @@ export class CanvasRenderer {
     ctx.save();
     for (let i = 0; i < waves.length; i++) {
       const w = waves[i];
-      if (w.alpha <= 0) continue;
+      if (w.alpha <= 0 || w.radius <= 0) continue;
 
       ctx.beginPath();
-      ctx.arc(w.x, w.y, Math.max(0, w.radius), 0, Math.PI * 2);
+      ctx.arc(w.x, w.y, w.radius, 0, Math.PI * 2);
       ctx.strokeStyle = w.color;
       ctx.globalAlpha = Math.min(1.0, w.alpha);
       ctx.lineWidth = w.type === 'PING' ? 3 : (w.type === 'RESONATOR' ? 3.5 : 2);
@@ -210,13 +188,11 @@ export class CanvasRenderer {
 
       ctx.save();
       ctx.translate(d.x, d.y);
-
-      // Rotating beacon cross
       ctx.rotate(this.animTime * 6);
+
       ctx.fillStyle = CONFIG.COLORS.DECOY;
       ctx.shadowColor = CONFIG.COLORS.DECOY_GLOW;
       ctx.shadowBlur = 12;
-
       ctx.fillRect(-5, -5, 10, 10);
 
       ctx.strokeStyle = '#FFFFFF';
@@ -230,7 +206,7 @@ export class CanvasRenderer {
   }
 
   /**
-   * Renders Shadow Stalkers (Purple Silent Predators)
+   * Renders Stalkers with SpriteManager
    */
   renderStalkers(ctx, stalkers, waveSystem) {
     if (!stalkers || stalkers.length === 0) return;
@@ -242,66 +218,59 @@ export class CanvasRenderer {
 
       if (vis <= 0.02 && !isStunned) continue;
 
-      ctx.save();
-      ctx.translate(s.x, s.y);
+      const angle = s.headingAngle !== undefined
+        ? s.headingAngle
+        : Math.atan2(s.facing.dy, s.facing.dx);
 
-      const angle = Math.atan2(s.facing.dy, s.facing.dx);
-      ctx.rotate(angle);
-
-      ctx.globalAlpha = isStunned ? 1.0 : Math.min(1.0, vis * 1.3);
+      spriteManager.drawStalker(ctx, s.x, s.y, angle, this.animTime, isStunned);
 
       if (isStunned) {
-        // Frozen Crystalline Glow
-        ctx.fillStyle = '#FFFFFF';
-        ctx.strokeStyle = CONFIG.COLORS.STALKER;
-        ctx.shadowColor = CONFIG.COLORS.STALKER_GLOW;
-        ctx.shadowBlur = 16;
-        ctx.lineWidth = 2.5;
-
-        // Ice crystal octagon
-        ctx.beginPath();
-        ctx.arc(0, 0, 10, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-
-        // Stunned indicator text
-        ctx.restore();
         ctx.save();
         ctx.translate(s.x, s.y - 18);
         ctx.fillStyle = '#FFFFFF';
-        ctx.font = '700 11px "Chakra Petch", "JetBrains Mono", monospace';
+        ctx.font = '700 10.5px "Chakra Petch", "JetBrains Mono", monospace';
         ctx.textAlign = 'center';
         ctx.shadowBlur = 0;
         ctx.fillText('STUNNED', 0, 0);
-      } else {
-        // Dark Spectral Silhouette
-        ctx.fillStyle = '#100518';
-        ctx.strokeStyle = CONFIG.COLORS.STALKER;
-        ctx.lineWidth = 2;
-        ctx.shadowColor = CONFIG.COLORS.STALKER_GLOW;
-        ctx.shadowBlur = 10;
-
-        ctx.beginPath();
-        ctx.moveTo(10, 0);
-        ctx.lineTo(-8, -8);
-        ctx.lineTo(-3, 0);
-        ctx.lineTo(-8, 8);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-
-        ctx.fillStyle = '#9D00FF';
-        ctx.beginPath();
-        ctx.arc(2, 0, 2.5, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.restore();
       }
-
-      ctx.restore();
     }
   }
 
   /**
-   * Renders Resonance Crystals
+   * Renders Hunters with SpriteManager
+   */
+  renderHunters(ctx, hunters, waveSystem) {
+    if (!hunters || hunters.length === 0) return;
+
+    for (let i = 0; i < hunters.length; i++) {
+      const h = hunters[i];
+      const vis = waveSystem.getVisibilityAt(h.x, h.y);
+      const isAlerted = h.state === HUNTER_STATES.CHASE || h.alertFlashTimer > 0;
+
+      if (vis <= 0.02 && !isAlerted) continue;
+
+      const angle = h.headingAngle !== undefined
+        ? h.headingAngle
+        : Math.atan2(h.facing.dy, h.facing.dx);
+
+      spriteManager.drawHunter(ctx, h.x, h.y, angle, this.animTime, isAlerted);
+
+      if (h.state === HUNTER_STATES.CHASE) {
+        ctx.save();
+        ctx.translate(h.x, h.y - 18);
+        ctx.fillStyle = '#FF1E44';
+        ctx.font = '700 13px "Chakra Petch", "JetBrains Mono", monospace';
+        ctx.textAlign = 'center';
+        ctx.shadowBlur = 0;
+        ctx.fillText('!', 0, 0);
+        ctx.restore();
+      }
+    }
+  }
+
+  /**
+   * Renders Resonance Crystals with SpriteManager
    */
   renderCrystals(ctx, crystals, waveSystem) {
     for (let i = 0; i < crystals.length; i++) {
@@ -311,82 +280,19 @@ export class CanvasRenderer {
       const vis = waveSystem.getVisibilityAt(c.x, c.y);
       if (vis <= 0.02) continue;
 
-      ctx.save();
-      ctx.translate(c.x, c.y);
-      ctx.rotate(c.rotation);
-      ctx.globalAlpha = Math.min(1.0, vis * 1.2);
-
-      const size = 9 + Math.sin(this.animTime * 4) * 1.5;
-
-      ctx.fillStyle = CONFIG.COLORS.CRYSTAL;
-      ctx.shadowColor = CONFIG.COLORS.CRYSTAL_GLOW;
-      ctx.shadowBlur = 12 * vis;
-
-      ctx.beginPath();
-      ctx.moveTo(0, -size);
-      ctx.lineTo(size * 0.7, 0);
-      ctx.lineTo(0, size);
-      ctx.lineTo(-size * 0.7, 0);
-      ctx.closePath();
-      ctx.fill();
-
-      ctx.fillStyle = '#FFFFFF';
-      ctx.beginPath();
-      ctx.arc(0, 0, size * 0.3, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.restore();
+      spriteManager.drawCrystal(ctx, c.x, c.y, this.animTime);
     }
   }
 
   /**
-   * Renders Airlock Exit Gate
+   * Renders Airlock Exit Gate with SpriteManager
    */
   renderGate(ctx, gate, waveSystem) {
     if (!gate) return;
     const vis = waveSystem.getVisibilityAt(gate.x, gate.y);
     if (vis <= 0.02 && !gate.isOpen) return;
 
-    const ts = CONFIG.TILE_SIZE;
-    const x = gate.x - ts / 2;
-    const y = gate.y - ts / 2;
-
-    ctx.save();
-    const effectiveAlpha = gate.isOpen ? Math.max(0.85, vis) : vis;
-    ctx.globalAlpha = Math.min(1.0, effectiveAlpha);
-
-    if (gate.isOpen) {
-      const glow = 10 + Math.sin(gate.pulseAnim) * 6;
-      ctx.fillStyle = '#062014';
-      ctx.fillRect(x + 2, y + 2, ts - 4, ts - 4);
-
-      ctx.strokeStyle = CONFIG.COLORS.GATE_OPEN;
-      ctx.lineWidth = 2.5;
-      ctx.shadowColor = CONFIG.COLORS.GATE_OPEN;
-      ctx.shadowBlur = glow;
-      ctx.strokeRect(x + 2, y + 2, ts - 4, ts - 4);
-
-      ctx.strokeStyle = '#FFFFFF';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      const bob = Math.sin(gate.pulseAnim * 1.5) * 3;
-      ctx.moveTo(gate.x - 6, gate.y + 4 + bob);
-      ctx.lineTo(gate.x, gate.y - 4 + bob);
-      ctx.lineTo(gate.x + 6, gate.y + 4 + bob);
-      ctx.stroke();
-    } else {
-      ctx.fillStyle = '#101720';
-      ctx.fillRect(x + 2, y + 2, ts - 4, ts - 4);
-
-      ctx.strokeStyle = CONFIG.COLORS.GATE_LOCKED;
-      ctx.lineWidth = 2;
-      ctx.strokeRect(x + 2, y + 2, ts - 4, ts - 4);
-
-      ctx.fillStyle = CONFIG.COLORS.HUNTER;
-      ctx.fillRect(gate.x - 3, gate.y - 3, 6, 6);
-    }
-
-    ctx.restore();
+    spriteManager.drawGate(ctx, gate.x, gate.y, gate.isOpen, this.animTime);
   }
 
   /**
@@ -462,102 +368,27 @@ export class CanvasRenderer {
   }
 
   /**
-   * Renders Hunters (Red Blind Stalkers)
-   */
-  renderHunters(ctx, hunters, waveSystem) {
-    for (let i = 0; i < hunters.length; i++) {
-      const h = hunters[i];
-      const vis = waveSystem.getVisibilityAt(h.x, h.y);
-      const isAlerted = h.state === HUNTER_STATES.CHASE || h.alertFlashTimer > 0;
-
-      if (vis <= 0.02 && !isAlerted) continue;
-
-      ctx.save();
-      ctx.translate(h.x, h.y);
-
-      const angle = Math.atan2(h.facing.dy, h.facing.dx);
-      ctx.rotate(angle);
-
-      const alpha = isAlerted ? 1.0 : Math.min(1.0, vis * 1.2);
-      ctx.globalAlpha = alpha;
-
-      ctx.fillStyle = '#1e050a';
-      ctx.strokeStyle = CONFIG.COLORS.HUNTER;
-      ctx.lineWidth = 2;
-      ctx.shadowColor = CONFIG.COLORS.HUNTER_GLOW;
-      ctx.shadowBlur = isAlerted ? 16 : 8;
-
-      ctx.beginPath();
-      ctx.moveTo(11, 0);
-      ctx.lineTo(-9, -9);
-      ctx.lineTo(-4, 0);
-      ctx.lineTo(-9, 9);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-
-      ctx.fillStyle = '#FFFFFF';
-      ctx.beginPath();
-      ctx.arc(3, 0, 3, 0, Math.PI * 2);
-      ctx.fill();
-
-      if (h.state === HUNTER_STATES.CHASE) {
-        ctx.restore();
-        ctx.save();
-        ctx.translate(h.x, h.y - 18);
-        ctx.fillStyle = CONFIG.COLORS.HUNTER;
-        ctx.font = '700 13px "Chakra Petch", "JetBrains Mono", monospace';
-        ctx.textAlign = 'center';
-        ctx.shadowBlur = 0;
-        ctx.fillText('!', 0, 0);
-      }
-
-      ctx.restore();
-    }
-  }
-
-  /**
-   * Renders Player (Echo Drone)
+   * Renders Player (Echo Drone) with SpriteManager and Stealth Aura
    */
   renderPlayer(ctx, player) {
-    ctx.save();
-    ctx.translate(player.x, player.y);
+    const angle = player.headingAngle !== undefined
+      ? player.headingAngle
+      : Math.atan2(player.facing.dy, player.facing.dx);
 
-    const angle = Math.atan2(player.facing.dy, player.facing.dx);
-    ctx.rotate(angle);
+    spriteManager.drawDrone(ctx, player.x, player.y, angle, this.animTime, player.isSneaking);
 
-    ctx.fillStyle = '#031720';
-    ctx.strokeStyle = CONFIG.COLORS.PLAYER;
-    ctx.lineWidth = 2;
-    ctx.shadowColor = CONFIG.COLORS.PLAYER;
-    ctx.shadowBlur = 10;
-
-    ctx.beginPath();
-    ctx.moveTo(10, 0);
-    ctx.lineTo(-7, -7);
-    ctx.lineTo(-4, 0);
-    ctx.lineTo(-7, 7);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    const corePulse = Math.max(0.5, 2 + Math.sin((this.animTime || 0) * 8) * 0.8);
-    ctx.fillStyle = '#FFFFFF';
-    ctx.beginPath();
-    ctx.arc(0, 0, corePulse, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Stealth Aura when sneaking
+    // Pulsing stealth field when sneaking
     if (player.isSneaking) {
-      ctx.strokeStyle = 'rgba(0, 255, 170, 0.5)';
+      ctx.save();
+      ctx.translate(player.x, player.y);
+      ctx.strokeStyle = 'rgba(0, 255, 136, 0.4)';
       ctx.lineWidth = 1.5;
       ctx.setLineDash([3, 3]);
       ctx.beginPath();
-      ctx.arc(0, 0, 15, 0, Math.PI * 2);
+      ctx.arc(0, 0, 16, 0, Math.PI * 2);
       ctx.stroke();
+      ctx.restore();
     }
-
-    ctx.restore();
   }
 
   /**
@@ -575,7 +406,7 @@ export class CanvasRenderer {
     const pulse = 0.8 + 0.2 * Math.sin(this.animTime * 6);
 
     ctx.save();
-    // Orbiting arrow 34px in front of player towards portal
+    // Orbiting arrow in front of player towards portal
     const orbitDist = 34 + Math.sin(this.animTime * 8) * 3;
     const px = player.x + Math.cos(angle) * orbitDist;
     const py = player.y + Math.sin(angle) * orbitDist;
@@ -598,28 +429,6 @@ export class CanvasRenderer {
     ctx.fill();
     ctx.stroke();
 
-    ctx.restore();
-  }
-
-  /**
-   * Red pulsing border vignette when player is hunted.
-   */
-  renderChaseVignette(ctx, hunters) {
-    let isChasing = false;
-    for (let i = 0; i < hunters.length; i++) {
-      if (hunters[i].state === HUNTER_STATES.CHASE) {
-        isChasing = true;
-        break;
-      }
-    }
-
-    if (!isChasing) return;
-
-    ctx.save();
-    const alpha = 0.15 + Math.sin(this.animTime * 8) * 0.1;
-    ctx.strokeStyle = `rgba(255, 30, 68, ${alpha})`;
-    ctx.lineWidth = 14;
-    ctx.strokeRect(7, 7, this.width - 14, this.height - 14);
     ctx.restore();
   }
 }

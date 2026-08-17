@@ -1,34 +1,36 @@
 /**
  * SONAR: The Echo Chamber
- * Particle & Screen Shake Juice Engine
+ * Advanced Deep-Sea Particle & Hydrodynamic Juice Engine
+ * Manages Marine Snow, Sound-Excited Plankton, Bubble Wakes, and Screen Shake.
  */
 
 export class ParticleEngine {
   constructor() {
     this.particles = [];
-    this.ambientDust = [];
+    this.marineSnow = [];
     this.shakeIntensity = 0;
     this.shakeDuration = 0;
     this.shakeTimer = 0;
     this.shakeOffset = { x: 0, y: 0 };
     this.screenShakeEnabled = true;
 
-    this.initDust();
+    this.initMarineSnow(80);
   }
 
-  initDust(count = 45) {
-    this.ambientDust = [];
+  initMarineSnow(count = 80) {
+    this.marineSnow = [];
     for (let i = 0; i < count; i++) {
-      const baseAlpha = Math.random() * 0.25 + 0.08;
-      this.ambientDust.push({
+      const baseAlpha = Math.random() * 0.12 + 0.04;
+      this.marineSnow.push({
         x: Math.random() * 800,
         y: Math.random() * 576,
-        vx: (Math.random() - 0.5) * 0.25,
-        vy: (Math.random() - 0.5) * 0.25,
+        vx: (Math.random() - 0.5) * 0.18,
+        vy: Math.random() * 0.25 + 0.05, // Gentle downward drift
         alpha: baseAlpha,
         baseAlpha: baseAlpha,
         glow: 0,
-        size: Math.random() * 1.5 + 0.6
+        size: Math.random() * 1.8 + 0.7,
+        hue: Math.random() > 0.3 ? '#00f0ff' : '#00ff88'
       });
     }
   }
@@ -39,7 +41,7 @@ export class ParticleEngine {
     this.shakeDuration = 0;
     this.shakeTimer = 0;
     this.shakeOffset = { x: 0, y: 0 };
-    for (let d of this.ambientDust) {
+    for (let d of this.marineSnow) {
       d.glow = 0;
     }
   }
@@ -73,9 +75,51 @@ export class ParticleEngine {
         color,
         life: maxLife,
         maxLife,
-        size: Math.random() * size + 1
+        size: Math.random() * size + 1,
+        type: 'SPARK'
       });
     }
+  }
+
+  /**
+   * Spawns hydrodynamic wake bubbles behind moving drone.
+   */
+  spawnWakeBubble(x, y, droneAngle, isSneaking = false) {
+    if (Math.random() > (isSneaking ? 0.15 : 0.45)) return;
+
+    // Emit slightly behind drone heading
+    const backAngle = droneAngle + Math.PI + (Math.random() - 0.5) * 0.5;
+    const speed = Math.random() * 0.8 + 0.3;
+
+    this.particles.push({
+      x: x + Math.cos(backAngle) * 8,
+      y: y + Math.sin(backAngle) * 8,
+      vx: Math.cos(backAngle) * speed,
+      vy: Math.sin(backAngle) * speed,
+      color: isSneaking ? '#00ff88' : '#00f0ff',
+      life: isSneaking ? 20 : 35,
+      maxLife: isSneaking ? 20 : 35,
+      size: Math.random() * 1.5 + 0.8,
+      type: 'BUBBLE'
+    });
+  }
+
+  /**
+   * Spawns Ghost-Echo Trail for predators
+   */
+  spawnGhostEcho(x, y, angle, color) {
+    this.particles.push({
+      x,
+      y,
+      vx: 0,
+      vy: 0,
+      angle,
+      color,
+      life: 14,
+      maxLife: 14,
+      size: 10,
+      type: 'GHOST'
+    });
   }
 
   /**
@@ -107,7 +151,7 @@ export class ParticleEngine {
       this.shakeOffset.y = 0;
     }
 
-    // 2. Update dynamic burst particles
+    // 2. Update dynamic burst particles & bubbles
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i];
       p.x += p.vx * timeScale;
@@ -119,9 +163,9 @@ export class ParticleEngine {
       }
     }
 
-    // 3. Update ambient phosphor micro-dust & wave illumination
-    for (let i = 0; i < this.ambientDust.length; i++) {
-      const d = this.ambientDust[i];
+    // 3. Update Marine Snow & Physical Sonar Wave Interaction
+    for (let i = 0; i < this.marineSnow.length; i++) {
+      const d = this.marineSnow[i];
       d.x += d.vx * timeScale;
       d.y += d.vy * timeScale;
 
@@ -130,20 +174,28 @@ export class ParticleEngine {
       if (d.y < 0) d.y = 576;
       if (d.y > 576) d.y = 0;
 
-      // Illuminate particle if active sound wave passes over it
+      // Sonar Wave Illumination & Hydrodynamic Displacement
       if (waveSystem && Array.isArray(waveSystem.waves)) {
         for (let j = 0; j < waveSystem.waves.length; j++) {
           const w = waveSystem.waves[j];
-          const distToWaveCenter = Math.hypot(d.x - w.x, d.y - w.y);
-          if (Math.abs(distToWaveCenter - w.radius) < 22) {
-            d.glow = Math.max(d.glow, (w.alpha || 0.8) * 1.0);
+          const dx = d.x - w.x;
+          const dy = d.y - w.y;
+          const distToWaveCenter = Math.hypot(dx, dy);
+
+          if (Math.abs(distToWaveCenter - w.radius) < 26) {
+            d.glow = Math.max(d.glow, (w.alpha || 0.8) * 0.9);
+            // Push particle slightly outward along wave normal
+            if (distToWaveCenter > 0.1) {
+              d.x += (dx / distToWaveCenter) * 0.4 * timeScale;
+              d.y += (dy / distToWaveCenter) * 0.4 * timeScale;
+            }
           }
         }
       }
 
-      // Smooth decay of excitation glow
+      // Smooth decay of illumination
       if (d.glow > 0) {
-        d.glow = Math.max(0, d.glow - 0.022 * timeScale);
+        d.glow = Math.max(0, d.glow - 0.024 * timeScale);
       }
     }
   }
@@ -156,38 +208,65 @@ export class ParticleEngine {
       const p = this.particles[i];
       const alpha = p.life / p.maxLife;
 
-      ctx.fillStyle = p.color;
-      ctx.globalAlpha = alpha;
-      ctx.shadowColor = p.color;
-      ctx.shadowBlur = 6;
-
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, Math.max(0, p.size * alpha), 0, Math.PI * 2);
-      ctx.fill();
+      if (p.type === 'GHOST') {
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.angle || 0);
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = alpha * 0.35;
+        ctx.beginPath();
+        ctx.arc(0, 0, p.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      } else if (p.type === 'BUBBLE') {
+        ctx.save();
+        ctx.strokeStyle = p.color;
+        ctx.lineWidth = 1;
+        ctx.globalAlpha = alpha * 0.6;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      } else {
+        // Sparks
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = alpha;
+        ctx.shadowColor = p.color;
+        ctx.shadowBlur = 4;
+        ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+      }
     }
     ctx.restore();
   }
 
+  /**
+   * Renders ambient Marine Snow & Plankton
+   */
   renderAmbientDust(ctx) {
+    if (this.marineSnow.length === 0) return;
+
     ctx.save();
-    for (let i = 0; i < this.ambientDust.length; i++) {
-      const d = this.ambientDust[i];
-      const glow = d.glow || 0;
-      const alpha = Math.min(1.0, d.baseAlpha + glow * 0.75);
+    for (let i = 0; i < this.marineSnow.length; i++) {
+      const d = this.marineSnow[i];
+      const isIlluminated = d.glow > 0.05;
+      const alpha = isIlluminated
+        ? Math.min(0.85, d.baseAlpha + d.glow * 0.75)
+        : d.baseAlpha;
 
-      ctx.fillStyle = glow > 0.3 ? '#e0f8ff' : '#00F0FF';
-      ctx.globalAlpha = alpha;
-
-      if (glow > 0.15) {
-        ctx.shadowColor = '#00F0FF';
-        ctx.shadowBlur = 8 * glow;
+      if (isIlluminated) {
+        ctx.fillStyle = d.hue;
+        ctx.globalAlpha = alpha;
+        ctx.shadowColor = d.hue;
+        ctx.shadowBlur = 6 * d.glow;
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, d.size * (1 + d.glow * 0.6), 0, Math.PI * 2);
+        ctx.fill();
       } else {
+        ctx.fillStyle = '#6090a8';
+        ctx.globalAlpha = alpha;
         ctx.shadowBlur = 0;
+        ctx.fillRect(d.x, d.y, d.size, d.size);
       }
-
-      ctx.beginPath();
-      ctx.arc(d.x, d.y, d.size + glow * 1.2, 0, Math.PI * 2);
-      ctx.fill();
     }
     ctx.restore();
   }

@@ -23,6 +23,8 @@ export class Player {
     this.isSneaking = false;
     this.moveTimer = 0;
     this.facing = { dx: 0, dy: -1 };
+    this.headingAngle = -Math.PI / 2;
+    this.targetAngle = -Math.PI / 2;
 
     this.pingCooldownTimer = 0;
     this.decoysRemaining = CONFIG.PLAYER.DECOYS_PER_SECTOR;
@@ -61,6 +63,8 @@ export class Player {
     this.isSneaking = false;
     this.moveTimer = 0;
     this.facing = { dx: 0, dy: -1 };
+    this.headingAngle = -Math.PI / 2;
+    this.targetAngle = -Math.PI / 2;
     this.pingCooldownTimer = 0;
     this.decoysRemaining = CONFIG.PLAYER.DECOYS_PER_SECTOR;
     this.isAlive = true;
@@ -128,6 +132,11 @@ export class Player {
       this.x = this.startX + (this.endX - this.startX) * ease;
       this.y = this.startY + (this.endY - this.startY) * ease;
 
+      // Spawn hydrodynamic bubble wake
+      if (particleEngine) {
+        particleEngine.spawnWakeBubble(this.x, this.y, this.headingAngle, this.isSneaking);
+      }
+
       if (progress >= 1.0) {
         this.gridX = this.targetGridX;
         this.gridY = this.targetGridY;
@@ -158,6 +167,12 @@ export class Player {
       }
     }
 
+    // Smooth heading angle rotation towards targetAngle
+    let diff = this.targetAngle - this.headingAngle;
+    while (diff < -Math.PI) diff += Math.PI * 2;
+    while (diff > Math.PI) diff -= Math.PI * 2;
+    this.headingAngle += diff * Math.min(1.0, dt * 14);
+
     // 5. Accept next movement if not moving
     if (!this.isMoving) {
       this.isSneaking = inputHandler.isSneaking();
@@ -168,6 +183,7 @@ export class Player {
         const nextGy = this.gridY + move.dy;
 
         this.facing = { dx: move.dx, dy: move.dy };
+        this.targetAngle = Math.atan2(move.dy, move.dx);
 
         if (gridMap.isWalkable(nextGx, nextGy)) {
           this.targetGridX = nextGx;

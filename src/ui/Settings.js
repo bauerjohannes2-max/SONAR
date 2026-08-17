@@ -427,8 +427,11 @@ export class Settings {
             if (reg) await reg.update();
           }
 
-          // 2. Fetch version.json with cache bust
-          const res = await fetch(`./version.json?t=${Date.now()}`);
+          // 2. Fetch version.json with strict cache bust
+          const res = await fetch(`./version.json?t=${Date.now()}`, {
+            cache: 'no-store',
+            headers: { 'Cache-Control': 'no-cache' }
+          });
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
           const data = await res.json();
 
@@ -450,19 +453,11 @@ export class Settings {
                   const triggerReload = async (ev) => {
                     if (ev) ev.preventDefault();
                     reloadLink.textContent = '[ WIRD AKTUALISIERT... ]';
-                    try {
-                      if ('serviceWorker' in navigator) {
-                        const regs = await navigator.serviceWorker.getRegistrations();
-                        for (const reg of regs) await reg.unregister();
-                      }
-                      if ('caches' in window) {
-                        const keys = await caches.keys();
-                        for (const k of keys) await caches.delete(k);
-                      }
-                    } catch (e) {}
-                    const url = new URL(window.location.href);
-                    url.searchParams.set('v', Date.now().toString());
-                    window.location.replace(url.toString());
+                    if (typeof window.executeAppUpdate === 'function') {
+                      await window.executeAppUpdate();
+                    } else {
+                      window.location.href = window.location.origin + window.location.pathname + '?t=' + Date.now();
+                    }
                   };
                   reloadLink.addEventListener('click', triggerReload);
                   reloadLink.addEventListener('touchstart', triggerReload, { passive: false });
@@ -648,12 +643,15 @@ export class Settings {
         if (reg) await reg.update();
       }
 
-      const res = await fetch('./version.json?t=' + Date.now());
+      const res = await fetch('./version.json?t=' + Date.now(), {
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache' }
+      });
       if (!res.ok) throw new Error('Status: ' + res.status);
       const data = await res.json();
-      const currentVer = CONFIG.VERSION || '1.2.1';
+      const currentVer = CONFIG.VERSION;
 
-      if (data.version && data.version !== currentVer) {
+      if (data.version && (data.version !== currentVer || (data.build && Number(data.build) > Number(CONFIG.BUILD)))) {
         if (statusEl) {
           statusEl.innerHTML = `
             <div style="margin-top: 4px;">
@@ -670,19 +668,11 @@ export class Settings {
             applyBtn.addEventListener('click', async () => {
               applyBtn.disabled = true;
               applyBtn.textContent = '🚀 WIRD AKTUALISIERT...';
-              try {
-                if ('serviceWorker' in navigator) {
-                  const regs = await navigator.serviceWorker.getRegistrations();
-                  for (const reg of regs) await reg.unregister();
-                }
-                if ('caches' in window) {
-                  const keys = await caches.keys();
-                  for (const k of keys) await caches.delete(k);
-                }
-              } catch (e) {}
-              const url = new URL(window.location.href);
-              url.searchParams.set('v', Date.now().toString());
-              window.location.replace(url.toString());
+              if (typeof window.executeAppUpdate === 'function') {
+                await window.executeAppUpdate();
+              } else {
+                window.location.href = window.location.origin + window.location.pathname + '?t=' + Date.now();
+              }
             });
           }
         }

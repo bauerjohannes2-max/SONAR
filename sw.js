@@ -71,21 +71,27 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// 2. Activate: Purge obsolete previous caches immediately
+// 2. Message Handler: Immediate skip waiting upon request
+self.addEventListener('message', (event) => {
+  if (event.data && (event.data.type === 'SKIP_WAITING' || event.data.action === 'skipWaiting')) {
+    self.skipWaiting();
+  }
+});
+
+// 3. Activate: Purge obsolete previous caches immediately & claim clients
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
+    caches.keys().then((keys) => {
       return Promise.all(
-        cacheNames.map((cache) => {
-          if (cache !== CACHE_NAME) {
-            console.log('[SW] Deleting obsolete cache:', cache);
-            return caches.delete(cache);
+        keys.map((key) => {
+          if (key !== CACHE_NAME) {
+            console.log('[SW] Lösche alten Cache:', key);
+            return caches.delete(key);
           }
         })
       );
-    })
+    }).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
 // 3. Fetch: Cache-First for local assets, Network-First for external APIs & version.json

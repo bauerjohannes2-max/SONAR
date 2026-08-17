@@ -33,6 +33,54 @@ import { storageManager } from './services/StorageManager.js';
 import { firebaseService } from './services/FirebaseService.js';
 import { spriteManager } from './engine/SpriteManager.js';
 
+/**
+ * Reliable Application Update & Hard-Reload Routine.
+ * 1. Purges local caches.
+ * 2. Instructs waiting ServiceWorker to SKIP_WAITING and reloads on controllerchange.
+ * 3. Fallbacks to unregister + hard cache-bust reload.
+ */
+export async function executeAppUpdate() {
+  // 1. Manuelle Cache-Löschung als Sicherheitsnetz
+  if ('caches' in window) {
+    try {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    } catch (e) {
+      console.warn('Cache Purge Warning:', e);
+    }
+  }
+
+  // 2. Service Worker zur Aktivierung anweisen
+  if ('serviceWorker' in navigator) {
+    try {
+      const reg = await navigator.serviceWorker.getRegistration();
+      if (reg) {
+        if (reg.waiting) {
+          let refreshed = false;
+          navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (!refreshed) {
+              refreshed = true;
+              window.location.reload();
+            }
+          });
+          reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+          return;
+        }
+        // Falls kein waiting Worker existiert, SW deregistrieren & neu laden
+        await reg.unregister();
+      }
+    } catch (e) {
+      console.warn('ServiceWorker update warning:', e);
+    }
+  }
+
+  // 3. Fallback Hard-Reload mit Cache-Busting
+  window.location.href = window.location.origin + window.location.pathname + '?t=' + Date.now();
+}
+if (typeof window !== 'undefined') {
+  window.executeAppUpdate = executeAppUpdate;
+}
+
 export class Game {
   constructor() {
     this.canvas = document.getElementById('gameCanvas');
@@ -180,7 +228,10 @@ export class Game {
         if (reg) await reg.update();
       }
 
-      const res = await fetch(`./version.json?t=${Date.now()}`);
+      const res = await fetch(`./version.json?t=${Date.now()}`, {
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache' }
+      });
       if (!res.ok) return;
       const data = await res.json();
 
@@ -222,21 +273,7 @@ export class Game {
         if (e) e.preventDefault();
         updateBtn.disabled = true;
         updateBtn.textContent = '⚡ WIRD AKTUALISIERT...';
-        try {
-          if ('serviceWorker' in navigator) {
-            const regs = await navigator.serviceWorker.getRegistrations();
-            for (const reg of regs) await reg.unregister();
-          }
-          if ('caches' in window) {
-            const keys = await caches.keys();
-            for (const k of keys) await caches.delete(k);
-          }
-        } catch (err) {
-          console.warn('Update clear cache error:', err);
-        }
-        const url = new URL(window.location.href);
-        url.searchParams.set('v', Date.now().toString());
-        window.location.replace(url.toString());
+        await executeAppUpdate();
       };
       updateBtn.addEventListener('click', handleUpdate);
       updateBtn.addEventListener('touchstart', handleUpdate, { passive: false });

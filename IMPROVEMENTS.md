@@ -1,7 +1,7 @@
 # SONAR: Continuous Improvements & Pareto-Gauntlet Roadmap
 
 > **System-Status:** Autonomer Continuous Pareto-Gauntlet-Loop aktiv  
-> **Aktuelle Version:** `v1.10.1` (Build 20260817)  
+> **Aktuelle Version:** `v1.10.2` (Build 20260817)  
 > **Zielsetzung:** Maximierung von Immersion, akustischem Thrill, visueller Brillanz und langfristiger Spieler-Retention durch das 80/20-Prinzip (80% Hebelwirkung bei 20% Umsetzungsaufwand).
 
 ---
@@ -24,6 +24,13 @@ Jeder Meilenstein und jeder Zyklus erfordert ein zwingendes Semantic Versioning 
 ---
 
 ## 🏆 Abgeschlossene Gauntlet-Zyklen (Milestones)
+
+### ✅ Phase 0 [v1.10.2]: Touch-Editor Cancel & Reset Buttons, Session Rollback & 14px Dynamic Gap Scaling
+- **Domäne 4 (Mobile UX & Touch Controls):**
+  - **Vollwertiger `[ ✕ ABBRECHEN ]`-Button:** Verwirft alle im Editor vorgenommenen Änderungen und stellt die Ausgangskonfiguration (`initialConfig`) nahtlos wieder her.
+  - **Vollwertiger `[ ↺ STANDARD ]`-Button:** Setzt sofort alle Positionen und Skalierungen auf Standard (100%) zurück und aktualisiert das Vorschau-Canvas.
+  - **Kollisionsfreie Skalierung (125% & 150%):** Dynamischer Abstand `calc(14px * var(--touch-scale))` für Action-Buttons mit `transform-origin: bottom right` und Viewport-Edge-Clamping.
+- **E2E Test-Gauntlet:** 25/25 Tests erfolgreich bestanden.
 
 ### ✅ Zyklus 9 [v1.10.1]: Collision-Free Touch Scaling (125%–150%), Dynamic Gaps & Viewport Clamping
 - **Domäne 4 (Mobile UX & Touch Controls):**

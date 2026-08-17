@@ -14,6 +14,7 @@ export class TouchLayoutEditor {
     this.overlayEl = null;
 
     this.currentConfig = this.touchControls.getConfig();
+    this.initialConfig = JSON.parse(JSON.stringify(this.currentConfig));
     this.dragTarget = null;
     this.dragOffset = { x: 0, y: 0 };
   }
@@ -21,6 +22,7 @@ export class TouchLayoutEditor {
   open() {
     this.isOpen = true;
     this.currentConfig = this.touchControls.getConfig();
+    this.initialConfig = JSON.parse(JSON.stringify(this.currentConfig));
     this.renderDOM();
     if (this.audio) this.audio.playUIBlip();
   }
@@ -68,6 +70,7 @@ export class TouchLayoutEditor {
             <button class="btn-segment scale-btn ${globalScale === 1.25 ? 'active' : ''}" data-scale="1.25">125%</button>
             <button class="btn-segment scale-btn ${globalScale === 1.5 ? 'active' : ''}" data-scale="1.5">150%</button>
           </div>
+          <button id="btn-editor-cancel" class="layout-editor-btn btn-cancel">✕ ABBRECHEN</button>
           <button id="btn-editor-reset" class="layout-editor-btn btn-reset">↺ STANDARD</button>
           <button id="btn-editor-save" class="layout-editor-btn btn-save">✓ SPEICHERN & BEENDEN</button>
         </div>
@@ -277,9 +280,23 @@ export class TouchLayoutEditor {
 
   bindEditorEvents() {
     const workspace = this.overlayEl.querySelector('#editor-workspace');
+    const cancelBtn = this.overlayEl.querySelector('#btn-editor-cancel');
     const resetBtn = this.overlayEl.querySelector('#btn-editor-reset');
     const saveBtn = this.overlayEl.querySelector('#btn-editor-save');
     const scaleBtns = this.overlayEl.querySelectorAll('.scale-btn');
+
+    // Cancel Button (Discards all current session changes and rolls back to initialConfig)
+    const handleCancel = (e) => {
+      if (e) e.preventDefault();
+      if (this.initialConfig) {
+        this.touchControls.applyConfig(this.initialConfig);
+      }
+      this.close();
+    };
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', handleCancel);
+      cancelBtn.addEventListener('touchstart', handleCancel, { passive: false });
+    }
 
     // Global Scale buttons
     scaleBtns.forEach((btn) => {

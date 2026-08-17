@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 
-test.describe('SONAR v1.10.1 Tactical Gauntlet Loop E2E Validation', () => {
+test.describe('SONAR v1.10.2 Tactical Gauntlet Loop E2E Validation', () => {
 
   test.beforeEach(async ({ page }) => {
     page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
@@ -11,11 +11,11 @@ test.describe('SONAR v1.10.1 Tactical Gauntlet Loop E2E Validation', () => {
     });
   });
 
-  test('1. Version Endpoint & JSON Integrity (v1.10.1)', async ({ request }) => {
+  test('1. Version Endpoint & JSON Integrity (v1.10.2)', async ({ request }) => {
     const response = await request.get('/version.json');
     expect(response.ok()).toBeTruthy();
     const data = await response.json();
-    expect(data.version).toBe('1.10.1');
+    expect(data.version).toBe('1.10.2');
     expect(data.build).toBe(20260817);
   });
 
@@ -457,7 +457,7 @@ test.describe('SONAR v1.10.1 Tactical Gauntlet Loop E2E Validation', () => {
     expect(result.sparkleCount).toBeGreaterThan(0);
   });
 
-  test('18. Touch Controls Tactile Haptics & Editor Instant Reset (v1.9.4)', async ({ page }) => {
+  test('18. Touch Controls Tactile Haptics, Editor Cancel Rollback & Instant Reset (v1.10.2)', async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('#gameCanvas');
 
@@ -472,11 +472,23 @@ test.describe('SONAR v1.10.1 Tactical Gauntlet Loop E2E Validation', () => {
     const scaleVal = page.locator('#scale-val-movement');
     expect(await scaleVal.innerText()).toBe('120%');
 
-    // 3. Click RESET (STANDARD) -> Must immediately restore 100%
-    await page.click('#btn-editor-reset');
-    expect(await scaleVal.innerText()).toBe('100%');
+    // 3. Click ABBRECHEN (CANCEL) -> Must discard changes and close
+    await page.click('#btn-editor-cancel');
+    await expect(page.locator('#touch-layout-editor')).not.toBeVisible();
 
-    // 4. Save and verify stored config
+    // Reopen editor and verify scale is still 100%
+    await page.click('#btn-settings-gear');
+    await page.click('#btn-open-touch-editor');
+    await expect(page.locator('#touch-layout-editor')).toBeVisible();
+    expect(await page.locator('#scale-val-movement').innerText()).toBe('100%');
+
+    // 4. Change scale again, then click RESET (STANDARD) -> Must immediately restore 100%
+    await page.click('button[data-action="inc"][data-target="movement"]');
+    expect(await page.locator('#scale-val-movement').innerText()).toBe('110%');
+    await page.click('#btn-editor-reset');
+    expect(await page.locator('#scale-val-movement').innerText()).toBe('100%');
+
+    // 5. Save and verify stored config
     await page.click('#btn-editor-save');
     await expect(page.locator('#touch-layout-editor')).not.toBeVisible();
 

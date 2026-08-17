@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 
-test.describe('SONAR v1.6.0 Visual Overhaul & Graphics Pipeline E2E Validation', () => {
+test.describe('SONAR v1.7.0 Dynamic Audio & Proximity Subsystems E2E Validation', () => {
 
   test.beforeEach(async ({ page }) => {
     page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
@@ -11,11 +11,11 @@ test.describe('SONAR v1.6.0 Visual Overhaul & Graphics Pipeline E2E Validation',
     });
   });
 
-  test('1. Version Endpoint & JSON Integrity (v1.6.0)', async ({ request }) => {
+  test('1. Version Endpoint & JSON Integrity (v1.7.0)', async ({ request }) => {
     const response = await request.get('/version.json');
     expect(response.ok()).toBeTruthy();
     const data = await response.json();
-    expect(data.version).toBe('1.6.0');
+    expect(data.version).toBe('1.7.0');
     expect(data.build).toBe(20260817);
   });
 
@@ -246,6 +246,31 @@ test.describe('SONAR v1.6.0 Visual Overhaul & Graphics Pipeline E2E Validation',
       return JSON.parse(localStorage.getItem('sonar_touch_config'));
     });
     expect(storedConfig.elementScales.movement).toBe(1.1);
+  });
+
+  test('11. Dynamic Heartbeat & Predator Proximity Audio Layer (v1.7.0)', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    const result = await page.evaluate(() => {
+      window.game.audioEngine.init();
+      // Test distant predator (no heartbeat)
+      window.game.audioEngine.updateHeartbeat(300, false, 0.1);
+      const distantThreat = window.game.audioEngine.currentThreatDistance;
+
+      // Test close predator (< 220px)
+      window.game.audioEngine.updateHeartbeat(100, true, 0.5);
+      const closeThreat = window.game.audioEngine.currentThreatDistance;
+      const isChasing = window.game.audioEngine.isThreatChasing;
+      const interval = window.game.audioEngine.heartbeatInterval;
+
+      return { distantThreat, closeThreat, isChasing, interval };
+    });
+
+    expect(result.distantThreat).toBe(Infinity);
+    expect(result.closeThreat).toBe(100);
+    expect(result.isChasing).toBeTruthy();
+    expect(result.interval).toBeLessThanOrEqual(0.5);
   });
 
 });

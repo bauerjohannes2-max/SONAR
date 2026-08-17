@@ -33,6 +33,12 @@ export class AudioEngine {
 
     this.buffers = new Map();
     this.isLoadingAssets = false;
+
+    // Dynamic Heartbeat & Adrenaline Layer
+    this.heartbeatTimer = 0;
+    this.heartbeatInterval = 1.0;
+    this.currentThreatDistance = Infinity;
+    this.isThreatChasing = false;
   }
 
   /**
@@ -310,8 +316,82 @@ export class AudioEngine {
           navigator.vibrate(120);
         } else if (type === 'step') {
           navigator.vibrate(10);
+        } else if (type === 'heartbeat') {
+          navigator.vibrate([12, 40, 10]);
         }
       } catch (e) {}
+    }
+  }
+
+  /**
+   * Updates Dynamic Heartbeat Sub-Bass layer based on proximity to nearest predator
+   */
+  updateHeartbeat(minDist, isChasing, dt) {
+    if (minDist > 220 || !this.ctx || this.isMuted) {
+      this.currentThreatDistance = Infinity;
+      this.isThreatChasing = false;
+      return;
+    }
+
+    this.currentThreatDistance = minDist;
+    this.isThreatChasing = isChasing;
+
+    // Proximity factor: 0.0 (at 220px) to 1.0 (at <= 40px)
+    const factor = Math.max(0, Math.min(1, (220 - minDist) / 180));
+    
+    // Interval: from 1.15s (52 BPM) down to 0.4s (150 BPM) or 0.32s when in active chase
+    const baseInterval = isChasing ? 0.35 : (1.15 - factor * 0.7);
+    this.heartbeatInterval = baseInterval;
+
+    this.heartbeatTimer += dt;
+    if (this.heartbeatTimer >= this.heartbeatInterval) {
+      this.heartbeatTimer = 0;
+      this.playHeartbeatThud(factor, isChasing);
+    }
+  }
+
+  /**
+   * Deep Sub-Bass Muffled Heartbeat Pulse (Lub-Dub)
+   */
+  playHeartbeatThud(intensity = 0.5, isChasing = false) {
+    if (!this.ensureContext() || this.isMuted) return;
+    const now = this.ctx.currentTime;
+    const vol = Math.min(0.65, 0.22 + intensity * 0.4);
+
+    // 1. Primary "Lub" Pulse (48 Hz -> 22 Hz sub-bass sine)
+    const osc1 = this.ctx.createOscillator();
+    const gain1 = this.ctx.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(48 + intensity * 14, now);
+    osc1.frequency.exponentialRampToValueAtTime(22, now + 0.09);
+
+    gain1.gain.setValueAtTime(vol * 0.85, now);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+
+    osc1.connect(gain1);
+    gain1.connect(this.sfxGain);
+    osc1.start(now);
+    osc1.stop(now + 0.1);
+
+    // 2. Secondary "Dub" Pulse (offset by 110ms)
+    const osc2 = this.ctx.createOscillator();
+    const gain2 = this.ctx.createGain();
+    const t2 = now + 0.11;
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(42 + intensity * 10, t2);
+    osc2.frequency.exponentialRampToValueAtTime(20, t2 + 0.08);
+
+    gain2.gain.setValueAtTime(vol * 0.55, t2);
+    gain2.gain.exponentialRampToValueAtTime(0.001, t2 + 0.08);
+
+    osc2.connect(gain2);
+    gain2.connect(this.sfxGain);
+    osc2.start(t2);
+    osc2.stop(t2 + 0.09);
+
+    // Mobile micro-haptic for immersion
+    if (intensity > 0.35) {
+      this.triggerHaptic('heartbeat');
     }
   }
 

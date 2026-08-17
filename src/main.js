@@ -707,7 +707,26 @@ export class Game {
       }
     }
 
-    // 10. Update Waves & Particles (particles react to active sound waves)
+    // 10. Dynamic Predator Proximity & Adrenaline Heartbeat Sub-Bass
+    let minEnemyDist = Infinity;
+    let anyChasing = false;
+    for (let i = 0; i < this.hunters.length; i++) {
+      const h = this.hunters[i];
+      const dist = Math.hypot(this.player.x - h.x, this.player.y - h.y);
+      if (dist < minEnemyDist) minEnemyDist = dist;
+      if (h.state === 'CHASE' || h.state === 'ALERT') anyChasing = true;
+    }
+    for (let i = 0; i < this.stalkers.length; i++) {
+      const s = this.stalkers[i];
+      const dist = Math.hypot(this.player.x - s.x, this.player.y - s.y);
+      if (dist < minEnemyDist) minEnemyDist = dist;
+      if (s.state === 'CHASE' || s.state === 'ALERT') anyChasing = true;
+    }
+    if (this.audioEngine && typeof this.audioEngine.updateHeartbeat === 'function') {
+      this.audioEngine.updateHeartbeat(minEnemyDist, anyChasing, dt);
+    }
+
+    // 11. Update Waves & Particles (particles react to active sound waves)
     this.waveSystem.update(dt, this.gridMap);
     this.particleEngine.update(dt, this.waveSystem);
   }

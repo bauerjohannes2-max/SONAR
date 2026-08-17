@@ -77,6 +77,24 @@ Grid: 25x18 (32px tiles). Screen: 800x576px.
 - [x] **Game-Over-Screen & Neustart-Bug behoben**: Exakte Klick-Hitboxen (y: 215..265) & sofortiger Neustart via R/Enter/Space/Klick.
 - [x] **Automatischer Update-Check beim Start**: Revalidiert Service Worker & zeigt Banner bei neuer Version (v1.4.0).
 - [x] **Tutorial-Karte 7 Köder-Rework**: Exakt 3 Blöcke Wurfweite, präziser Taktik-Text & Munitionsanzeige (HUD: 1/1).
+## WORKFLOW & VERSIONING RULES (Binding SemVer Standard)
+- **Eiserne Direktive:** Kein Commit und kein Zyklus ohne sinnvolle, dynamische Versionserhöhung nach Semantic Versioning (**SemVer**):
+  - **PATCH-Bump (`1.4.x` → `1.4.y`):** Bei Bugfixes, UI-Polish, CSS-Tweaks, Textanpassungen oder isolierten Touch-Korrekturen.
+  - **MINOR-Bump (`1.x.0` → `1.(x+1).0`):** Bei neuen Features (z. B. neues Audio-System, Gauntlet-Modus, Customizer, Tileset-Shader).
+  - **MAJOR-Bump (`x.0.0` → `(x+1).0.0`):** Bei vollständigem Rework oder Versionssprüngen.
+- **Konsistente 6-Punkte-Synchronisation bei JEDEM Zyklus:**
+  1. `version.json`: `{"version": "X.Y.Z", "build": YYYYMMDD_HHMM}`
+  2. `package.json`: `"version": "X.Y.Z"`
+  3. `src/config.js`: `VERSION: 'X.Y.Z'`, `BUILD: 'YYYYMMDD_HHMM'`
+  4. `sw.js`: Cache-Name aktualisieren (`sonar-cache-vX.Y.Z`) und alte Caches im `activate`-Event aufräumen.
+  5. `index.html` & `manifest.json`: Asset-Query-Strings anpassen (`?v=X.Y.Z`).
+  6. Im In-Game-Menü (unten rechts & Subtitle) und in den Einstellungen die neue Version live anzeigen.
+- **5-Stufen Pareto-Gauntlet Workflow:**
+  - **Stufe A:** 80/20-Prüfung (High Impact, fertige/leichte Lösung, keine Regression).
+  - **Stufe B:** Lean Implementation (`src/engine/`, `src/ui/`, `src/audio/`, `src/world/`, `src/entities/`).
+  - **Stufe C:** Playwright E2E Test-Gauntlet (`node ./node_modules/@playwright/test/cli.js test`).
+  - **Stufe D:** SemVer Version-Upgrade, `IMPROVEMENTS.md` Checkpoint, Git Commit & Push to GitHub.
+  - **Stufe E:** Autonomer Übergang zum nächsten Zyklus.
 
 ## 🚀 Deployment & GitHub Sync Workflow
 - Repository: https://github.com/bauerjohannes2-max/SONAR.git
@@ -84,11 +102,12 @@ Grid: 25x18 (32px tiles). Screen: 800x576px.
 - Live-URL (GitHub Pages): https://bauerjohannes2-max.github.io/SONAR/
 - Credential Helper: Windows Credential Manager (credential.helper = manager)
 - Standard-Workflow für zukünftige Agenten-Updates:
-  1. Änderungen lokal testen & verifizieren.
+  1. Änderungen lokal testen & verifizieren via E2E Test-Suite.
   2. `git add .`
-  3. `git commit -m "<Aussagekräftige Nachricht>"`
+  3. `git commit -m "Gauntlet Cycle [vX.Y.Z]: <Aussagekräftige Nachricht>"`
   4. `git push origin main` (oder `npm run push`)
 - Live-Aktualisierung: GitHub Pages baut das Projekt nach jedem Push innerhalb von 30–60 Sekunden automatisch neu.
+
 
 
 

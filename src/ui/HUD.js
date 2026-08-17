@@ -19,7 +19,7 @@ export class HUD {
   /**
    * Main Gameplay Tactical HUD (Modern Cyber-Glassmorphism)
    */
-  renderGameHUD(levelData, crystalsLeft, totalCrystals, pingCooldownRatio, player, isEndless = false, floor = 1, time = 0) {
+  renderGameHUD(levelData, crystalsLeft, totalCrystals, pingCooldownRatio, player, isEndless = false, floor = 1, time = 0, stalkerDist = Infinity) {
     const ctx = this.ctx;
     ctx.save();
 
@@ -70,36 +70,73 @@ export class HUD {
       ctx.fillText(`${decoyStr}${sneakStr}`, this.width / 2 - 20, 19);
     }
 
-    // 4. Top Right: Animated Sonar-Frequenzbalken & Pulse Ready
+    // 4. Top Right: Animated Sonar-Frequenzbalken & Pulse Ready with Stalker Distortion
     const pingSec = player ? player.getPingRemainingSeconds() : 0;
     const isReady = pingCooldownRatio >= 1.0;
     const barW = 60;
     const barH = 8;
-    const barX = this.width - 150 - barW; // Leaves 150px safe margin for HTML quick-action buttons
-    const barY = 15;
+    let barX = this.width - 150 - barW; // Leaves 150px safe margin for HTML quick-action buttons
+    let barY = 15;
+
+    // Calculate Stalker Electromagnetic Distortion Factor (0.0 to 1.0)
+    const isDistorted = stalkerDist < 220;
+    const distortionFactor = isDistorted ? Math.max(0, Math.min(1, (220 - stalkerDist) / 180)) : 0;
+
+    let jitterX = 0;
+    let jitterY = 0;
+    if (distortionFactor > 0) {
+      jitterX = (Math.random() - 0.5) * 7 * distortionFactor;
+      jitterY = (Math.random() - 0.5) * 3 * distortionFactor;
+    }
 
     ctx.textAlign = 'right';
     ctx.font = '700 11px "Chakra Petch", "JetBrains Mono", monospace';
+
+    // Label Rendering (with glitch chromatic text offset when distorted)
+    let labelText = isReady ? 'PULSE READY' : `PING: ${pingSec}s`;
+    if (distortionFactor > 0.6 && Math.random() < 0.3) {
+      labelText = '⚡ STÖRUNG';
+    }
+
+    if (distortionFactor > 0) {
+      // Chromatic text aberration (Magenta / Cyan split)
+      ctx.fillStyle = `rgba(255, 0, 180, ${0.7 * distortionFactor})`;
+      ctx.fillText(labelText, barX - 8 + jitterX + 2, 19 + jitterY);
+      ctx.fillStyle = `rgba(0, 240, 255, ${0.7 * distortionFactor})`;
+      ctx.fillText(labelText, barX - 8 + jitterX - 2, 19 + jitterY);
+    }
+
     if (isReady) {
-      ctx.fillStyle = `rgba(0, 240, 255, ${pulseFactor})`;
-      ctx.fillText('PULSE READY', barX - 8, 19);
+      ctx.fillStyle = distortionFactor > 0 ? '#ff88ff' : `rgba(0, 240, 255, ${pulseFactor})`;
+      ctx.fillText(labelText, barX - 8 + jitterX, 19 + jitterY);
     } else {
       ctx.fillStyle = '#ff7788';
-      ctx.fillText(`PING: ${pingSec}s`, barX - 8, 19);
+      ctx.fillText(labelText, barX - 8 + jitterX, 19 + jitterY);
+    }
+
+    // VHS Scanline Glitch Chromatic Bars
+    if (distortionFactor > 0) {
+      // Magenta Ghost Bar
+      ctx.fillStyle = `rgba(255, 0, 160, ${0.45 * distortionFactor})`;
+      ctx.fillRect(barX + jitterX - 2, barY + jitterY - 1, barW * Math.min(1.0, pingCooldownRatio), barH);
+
+      // Cyan Ghost Bar
+      ctx.fillStyle = `rgba(0, 240, 255, ${0.45 * distortionFactor})`;
+      ctx.fillRect(barX + jitterX + 2, barY + jitterY + 1, barW * Math.min(1.0, pingCooldownRatio), barH);
     }
 
     // Frequency Meter Background
     ctx.fillStyle = 'rgba(0, 240, 255, 0.12)';
-    ctx.fillRect(barX, barY, barW, barH);
+    ctx.fillRect(barX + jitterX, barY + jitterY, barW, barH);
 
     // Frequency Meter Fill
-    ctx.fillStyle = isReady ? '#00FF88' : '#00F0FF';
-    ctx.fillRect(barX, barY, barW * Math.min(1.0, pingCooldownRatio), barH);
+    ctx.fillStyle = distortionFactor > 0.4 ? '#ff00ff' : (isReady ? '#00FF88' : '#00F0FF');
+    ctx.fillRect(barX + jitterX, barY + jitterY, barW * Math.min(1.0, pingCooldownRatio), barH);
 
     // Frequency Meter Border
-    ctx.strokeStyle = 'rgba(0, 240, 255, 0.4)';
+    ctx.strokeStyle = distortionFactor > 0.3 ? '#ff00bb' : 'rgba(0, 240, 255, 0.4)';
     ctx.lineWidth = 1;
-    ctx.strokeRect(barX, barY, barW, barH);
+    ctx.strokeRect(barX + jitterX, barY + jitterY, barW, barH);
 
     ctx.restore();
   }

@@ -1,7 +1,7 @@
 # SONAR: Continuous Improvements & Pareto-Gauntlet Roadmap
 
 > **System-Status:** Autonomer Continuous Pareto-Gauntlet-Loop aktiv  
-> **Aktuelle Version:** `v1.9.0` (Build 20260817)  
+> **Aktuelle Version:** `v1.9.2` (Build 20260817)  
 > **Zielsetzung:** Maximierung von Immersion, akustischem Thrill, visueller Brillanz und langfristiger Spieler-Retention durch das 80/20-Prinzip (80% Hebelwirkung bei 20% Umsetzungsaufwand).
 
 ---
@@ -24,6 +24,13 @@ Jeder Meilenstein und jeder Zyklus erfordert ein zwingendes Semantic Versioning 
 ---
 
 ## 🏆 Abgeschlossene Gauntlet-Zyklen (Milestones)
+
+### ✅ Zyklus 5 [v1.9.2]: Stalker Electromagnetic Distortion & VHS HUD Glitch
+- **Domäne 1 (Visuelles Feedback) & Domäne 2 (Audio & Soundscape):**
+  - **Elektromagnetische Störung bei Stalker-Nähe:** Befindet sich die Schatten-Drohne (`STALKER`) im Umkreis von 220px, flackert der Sonar-Frequenzbalken im HUD mit VHS-Scanline-Jitter und chromatischem RGB-Split.
+  - **Prozedurales Knistern & Hiss:** Synthetisiert dynamische elektromagnetische Knister- und Entladungsgeräusche (`playStaticCrackle`) mit ansteigender Frequenz bei Annäherung.
+  - **HUD Störungs-Warnung:** Dynamischer Text-Glitch (`⚡ STÖRUNG`) bei extrem naher Schatten-Drohne.
+- **E2E Test-Gauntlet:** 16/16 Tests erfolgreich bestanden.
 
 ### ✅ Zyklus 4 [v1.9.0]: 3-Star Tactical Precision Rating & Sector Medal System
 - **Domäne 5 (Onboarding, Progression & Gamification) & Domäne 3 (Core Gameloop):**

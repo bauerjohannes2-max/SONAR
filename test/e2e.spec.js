@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 
-test.describe('SONAR v1.9.1 Project Slimming & Architecture Optimization E2E Validation', () => {
+test.describe('SONAR v1.9.2 Tactical Gauntlet Loop E2E Validation', () => {
 
   test.beforeEach(async ({ page }) => {
     page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
@@ -11,11 +11,11 @@ test.describe('SONAR v1.9.1 Project Slimming & Architecture Optimization E2E Val
     });
   });
 
-  test('1. Version Endpoint & JSON Integrity (v1.9.1)', async ({ request }) => {
+  test('1. Version Endpoint & JSON Integrity (v1.9.2)', async ({ request }) => {
     const response = await request.get('/version.json');
     expect(response.ok()).toBeTruthy();
     const data = await response.json();
-    expect(data.version).toBe('1.9.1');
+    expect(data.version).toBe('1.9.2');
     expect(data.build).toBe(20260817);
   });
 
@@ -401,6 +401,27 @@ test.describe('SONAR v1.9.1 Project Slimming & Architecture Optimization E2E Val
 
     expect(result.normalStats.stars).toBe(1);
     expect(result.normalStats.rank).toBe('B');
+  });
+
+  test('16. Stalker Electromagnetic Distortion & Audio Crackle (v1.9.2)', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    const result = await page.evaluate(() => {
+      window.game.audioEngine.init();
+      // Test distant stalker (> 220px) -> no distortion
+      window.game.audioEngine.updateStalkerDistortion(300, 0.1);
+      const distantStalker = window.game.audioEngine.stalkerDist;
+
+      // Test close stalker (< 220px) -> distortion active
+      window.game.audioEngine.updateStalkerDistortion(80, 0.1);
+      const closeStalker = window.game.audioEngine.stalkerDist;
+
+      return { distantStalker, closeStalker };
+    });
+
+    expect(result.distantStalker).toBe(Infinity);
+    expect(result.closeStalker).toBe(80);
   });
 
 });

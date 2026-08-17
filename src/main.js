@@ -725,6 +725,7 @@ export class Game {
 
     // 10. Dynamic Predator Proximity & Adrenaline Heartbeat Sub-Bass
     let minEnemyDist = Infinity;
+    let minStalkerDist = Infinity;
     let anyChasing = false;
     for (let i = 0; i < this.hunters.length; i++) {
       const h = this.hunters[i];
@@ -736,10 +737,16 @@ export class Game {
       const s = this.stalkers[i];
       const dist = Math.hypot(this.player.x - s.x, this.player.y - s.y);
       if (dist < minEnemyDist) minEnemyDist = dist;
+      if (s.state !== 'STUNNED' && dist < minStalkerDist) minStalkerDist = dist;
       if (s.state === 'CHASE' || s.state === 'ALERT') anyChasing = true;
     }
+    this.minStalkerDist = minStalkerDist;
+
     if (this.audioEngine && typeof this.audioEngine.updateHeartbeat === 'function') {
       this.audioEngine.updateHeartbeat(minEnemyDist, anyChasing, dt);
+    }
+    if (this.audioEngine && typeof this.audioEngine.updateStalkerDistortion === 'function') {
+      this.audioEngine.updateStalkerDistortion(minStalkerDist, dt);
     }
 
     // 11. Update Waves & Particles (particles react to active sound waves)
@@ -859,7 +866,8 @@ export class Game {
           this.player,
           this.isEndlessActive,
           this.endlessMode.currentFloor,
-          time
+          time,
+          this.minStalkerDist || Infinity
         );
 
         if (this.gameState === CONFIG.STATES.PAUSED) {

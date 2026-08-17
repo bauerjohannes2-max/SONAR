@@ -39,6 +39,10 @@ export class AudioEngine {
     this.heartbeatInterval = 1.0;
     this.currentThreatDistance = Infinity;
     this.isThreatChasing = false;
+
+    // Stalker Electromagnetic Distortion
+    this.stalkerDist = Infinity;
+    this.staticTimer = 0;
   }
 
   /**
@@ -393,6 +397,60 @@ export class AudioEngine {
     if (intensity > 0.35) {
       this.triggerHaptic('heartbeat');
     }
+  }
+
+  /**
+   * Updates Stalker Electromagnetic Distortion audio layer based on proximity.
+   */
+  updateStalkerDistortion(minDist, dt) {
+    if (minDist > 220 || !this.ctx || this.isMuted) {
+      this.stalkerDist = Infinity;
+      return;
+    }
+
+    this.stalkerDist = minDist;
+    const factor = Math.max(0, Math.min(1, (220 - minDist) / 180));
+
+    this.staticTimer = (this.staticTimer || 0) + dt;
+    const interval = 0.25 - factor * 0.16; // 250ms down to 90ms
+    if (this.staticTimer >= interval) {
+      this.staticTimer = 0;
+      if (Math.random() < 0.75 + factor * 0.25) {
+        this.playStaticCrackle(factor);
+      }
+    }
+  }
+
+  /**
+   * Generates procedural electromagnetic static crackle / hiss burst.
+   */
+  playStaticCrackle(intensity = 0.5) {
+    if (!this.ensureContext() || this.isMuted) return;
+    const now = this.ctx.currentTime;
+    const bufferSize = Math.max(256, Math.floor(this.ctx.sampleRate * 0.035));
+    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.45));
+    }
+
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = buffer;
+
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(1800 + Math.random() * 1400, now);
+    filter.Q.setValueAtTime(3.0, now);
+
+    const gain = this.ctx.createGain();
+    const vol = Math.min(0.25, 0.04 + intensity * 0.14);
+    gain.gain.setValueAtTime(vol, now);
+
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.sfxGain);
+
+    noise.start(now);
   }
 
   /**

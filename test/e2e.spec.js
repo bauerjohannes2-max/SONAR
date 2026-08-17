@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 
-test.describe('SONAR v1.9.2 Tactical Gauntlet Loop E2E Validation', () => {
+test.describe('SONAR v1.9.3 Tactical Gauntlet Loop E2E Validation', () => {
 
   test.beforeEach(async ({ page }) => {
     page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
@@ -11,11 +11,11 @@ test.describe('SONAR v1.9.2 Tactical Gauntlet Loop E2E Validation', () => {
     });
   });
 
-  test('1. Version Endpoint & JSON Integrity (v1.9.2)', async ({ request }) => {
+  test('1. Version Endpoint & JSON Integrity (v1.9.3)', async ({ request }) => {
     const response = await request.get('/version.json');
     expect(response.ok()).toBeTruthy();
     const data = await response.json();
-    expect(data.version).toBe('1.9.2');
+    expect(data.version).toBe('1.9.3');
     expect(data.build).toBe(20260817);
   });
 
@@ -422,6 +422,39 @@ test.describe('SONAR v1.9.2 Tactical Gauntlet Loop E2E Validation', () => {
 
     expect(result.distantStalker).toBe(Infinity);
     expect(result.closeStalker).toBe(80);
+  });
+
+  test('17. Crystal Acoustic Wave Resonance & Sparkle (v1.9.3)', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    const result = await page.evaluate(() => {
+      window.game.loadSector(0);
+      const crystal = window.game.crystals[0];
+      crystal.isCollected = false;
+      crystal.resonanceCooldown = 0;
+
+      // Spawn a Sonar Ping right at the crystal position
+      window.game.waveSystem.createSonarPing(crystal.x, crystal.y);
+      const wave = window.game.waveSystem.waves.find(w => w.type === 'PING');
+      wave.radius = 10; // Exactly at crystal radius
+
+      const pe = window.game.particleEngine;
+      pe.particles = [];
+
+      crystal.update(0.016, window.game.waveSystem, window.game.audioEngine, pe);
+
+      const hasTriggeredResonance = crystal.resonanceCooldown > 0;
+      const sparkleParticles = pe.particles.filter(p => p.type === 'SPARK');
+
+      return {
+        hasTriggeredResonance,
+        sparkleCount: sparkleParticles.length
+      };
+    });
+
+    expect(result.hasTriggeredResonance).toBeTruthy();
+    expect(result.sparkleCount).toBeGreaterThan(0);
   });
 
 });

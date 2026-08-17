@@ -125,6 +125,27 @@ export class ParticleEngine {
   }
 
   /**
+   * Spawns acoustic crystal resonance sparkles when waves touch uncollected crystals.
+   */
+  spawnCrystalSparkle(x, y, color = '#00FF88', count = 8) {
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = Math.random() * 1.2 + 0.4;
+      this.particles.push({
+        x: x + (Math.random() - 0.5) * 10,
+        y: y + (Math.random() - 0.5) * 10,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 0.35, // subtle upward drift
+        color: Math.random() > 0.35 ? color : '#FFFFFF',
+        life: 24,
+        maxLife: 24,
+        size: Math.random() * 1.8 + 1.0,
+        type: 'SPARK'
+      });
+    }
+  }
+
+  /**
    * Spawns hydrodynamic wake bubbles behind moving drone.
    */
   spawnWakeBubble(x, y, droneAngle, isSneaking = false) {

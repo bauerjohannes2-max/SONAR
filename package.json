@@ -1,6 +1,6 @@
 {
   "name": "sonar-echo-chamber",
-  "version": "1.9.2",
+  "version": "1.9.3",
   "description": "SONAR: The Echo Chamber - 2D Sound-Based Stealth Arcade Thriller",
   "main": "src/main.js",
   "type": "module",

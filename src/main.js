@@ -647,6 +647,7 @@ export class Game {
     let remainingCrystals = 0;
     for (let i = 0; i < this.crystals.length; i++) {
       const c = this.crystals[i];
+      c.update(dt, this.waveSystem, this.audioEngine, this.particleEngine);
       if (!c.collected) {
         remainingCrystals++;
         if (c.checkPickup(this.player.gridX, this.player.gridY)) {

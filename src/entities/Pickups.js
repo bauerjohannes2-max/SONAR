@@ -20,15 +20,43 @@ export class Crystal {
     this.y = this.gridY * CONFIG.TILE_SIZE + CONFIG.TILE_SIZE / 2;
     this.isCollected = false;
     this.rotation = Math.random() * Math.PI * 2;
+    this.resonanceCooldown = 0;
   }
 
   reset() {
     this.isCollected = false;
+    this.resonanceCooldown = 0;
   }
 
-  update(dt) {
+  update(dt, waveSystem = null, audioEngine = null, particleEngine = null) {
     if (this.isCollected) return;
     this.rotation += dt * 2.5;
+
+    if (this.resonanceCooldown > 0) {
+      this.resonanceCooldown -= dt;
+    }
+
+    // Acoustic Wave Resonance & Chime Echo
+    if (waveSystem && this.resonanceCooldown <= 0) {
+      const activeWaves = waveSystem.getActiveWaves();
+      for (let i = 0; i < activeWaves.length; i++) {
+        const w = activeWaves[i];
+        const dx = this.x - w.x;
+        const dy = this.y - w.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (Math.abs(dist - w.radius) <= w.thickness + 10) {
+          this.resonanceCooldown = 1.0; // Debounce per crystal
+          if (audioEngine && typeof audioEngine.playCrystalResonance === 'function') {
+            audioEngine.playCrystalResonance();
+          }
+          if (particleEngine && typeof particleEngine.spawnCrystalSparkle === 'function') {
+            particleEngine.spawnCrystalSparkle(this.x, this.y);
+          }
+          break;
+        }
+      }
+    }
   }
 
   checkPickup(gx, gy) {

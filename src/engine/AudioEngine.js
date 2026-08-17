@@ -623,6 +623,50 @@ export class AudioEngine {
     });
   }
 
+  /**
+   * Plays soft harmonic chime echo when sound wave brushes an uncollected crystal.
+   */
+  playCrystalResonance(pitchMod = 1.0) {
+    if (!this.ensureContext() || this.isMuted) return;
+    const now = this.ctx.currentTime;
+
+    // Harmonic bell chime: 1046.5Hz (C6) and overtone 1567.98Hz (G6)
+    const baseFreq = 1046.5 * pitchMod;
+    const osc1 = this.ctx.createOscillator();
+    const gain1 = this.ctx.createGain();
+
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(baseFreq, now);
+    osc1.frequency.exponentialRampToValueAtTime(baseFreq * 1.02, now + 0.22);
+
+    gain1.gain.setValueAtTime(0.001, now);
+    gain1.gain.linearRampToValueAtTime(0.18, now + 0.015);
+    gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.32);
+
+    osc1.connect(gain1);
+    gain1.connect(this.sfxGain);
+
+    osc1.start(now);
+    osc1.stop(now + 0.35);
+
+    // Subtle harmonic overtone
+    const osc2 = this.ctx.createOscillator();
+    const gain2 = this.ctx.createGain();
+
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(baseFreq * 1.5, now);
+
+    gain2.gain.setValueAtTime(0.001, now);
+    gain2.gain.linearRampToValueAtTime(0.08, now + 0.015);
+    gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
+
+    osc2.connect(gain2);
+    gain2.connect(this.sfxGain);
+
+    osc2.start(now);
+    osc2.stop(now + 0.22);
+  }
+
   playDecoyThrow() {
     if (!this.ensureContext() || this.isMuted) return;
     const now = this.ctx.currentTime;

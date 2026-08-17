@@ -1,7 +1,7 @@
 # SONAR: Continuous Improvements & Pareto-Gauntlet Roadmap
 
 > **System-Status:** Autonomer Continuous Pareto-Gauntlet-Loop aktiv  
-> **Aktuelle Version:** `v1.9.2` (Build 20260817)  
+> **Aktuelle Version:** `v1.9.3` (Build 20260817)  
 > **Zielsetzung:** Maximierung von Immersion, akustischem Thrill, visueller Brillanz und langfristiger Spieler-Retention durch das 80/20-Prinzip (80% Hebelwirkung bei 20% Umsetzungsaufwand).
 
 ---
@@ -24,6 +24,13 @@ Jeder Meilenstein und jeder Zyklus erfordert ein zwingendes Semantic Versioning 
 ---
 
 ## 🏆 Abgeschlossene Gauntlet-Zyklen (Milestones)
+
+### ✅ Zyklus 6 [v1.9.3]: Crystal Acoustic Wave Resonance & Sparkle Chime Echo
+- **Domäne 2 (Audio & Soundscape) & Domäne 3 (Core Gameloop):**
+  - **Akustisches Kristall-Resonanz-Echo:** Noch nicht geborgene Datenkerne (`Crystal`) beginnen harmonisch zu singen (`playCrystalResonance`), wenn sie von einer Schallwelle (Ping, Step, Beacon) getroffen werden (1046.5 Hz C6 Chime mit Oberton).
+  - **Auditiver Echo-Standort-Scan:** Ermöglicht erfahrenen Piloten die akustische Ortung von Kristallen in noch unerforschten Labyrinthen ohne direkten Sichtkontakt.
+  - **Kristall-Glitzerpartikel:** Spawnt funkelnde smaragdgrüne und weiße Mikropartikel (`spawnCrystalSparkle`) bei Resonanz.
+- **E2E Test-Gauntlet:** 17/17 Tests erfolgreich bestanden.
 
 ### ✅ Zyklus 5 [v1.9.2]: Stalker Electromagnetic Distortion & VHS HUD Glitch
 - **Domäne 1 (Visuelles Feedback) & Domäne 2 (Audio & Soundscape):**

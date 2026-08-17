@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 
-test.describe('SONAR v1.9.3 Tactical Gauntlet Loop E2E Validation', () => {
+test.describe('SONAR v1.9.4 Tactical Gauntlet Loop E2E Validation', () => {
 
   test.beforeEach(async ({ page }) => {
     page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
@@ -11,11 +11,11 @@ test.describe('SONAR v1.9.3 Tactical Gauntlet Loop E2E Validation', () => {
     });
   });
 
-  test('1. Version Endpoint & JSON Integrity (v1.9.3)', async ({ request }) => {
+  test('1. Version Endpoint & JSON Integrity (v1.9.4)', async ({ request }) => {
     const response = await request.get('/version.json');
     expect(response.ok()).toBeTruthy();
     const data = await response.json();
-    expect(data.version).toBe('1.9.3');
+    expect(data.version).toBe('1.9.4');
     expect(data.build).toBe(20260817);
   });
 
@@ -455,6 +455,35 @@ test.describe('SONAR v1.9.3 Tactical Gauntlet Loop E2E Validation', () => {
 
     expect(result.hasTriggeredResonance).toBeTruthy();
     expect(result.sparkleCount).toBeGreaterThan(0);
+  });
+
+  test('18. Touch Controls Tactile Haptics & Editor Instant Reset (v1.9.4)', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    // 1. Open Settings -> Touch Editor
+    await page.click('#btn-settings-gear');
+    await page.click('#btn-open-touch-editor');
+    await expect(page.locator('#touch-layout-editor')).toBeVisible();
+
+    // 2. Change movement scale to 120%
+    await page.click('button[data-action="inc"][data-target="movement"]');
+    await page.click('button[data-action="inc"][data-target="movement"]');
+    const scaleVal = page.locator('#scale-val-movement');
+    expect(await scaleVal.innerText()).toBe('120%');
+
+    // 3. Click RESET (STANDARD) -> Must immediately restore 100%
+    await page.click('#btn-editor-reset');
+    expect(await scaleVal.innerText()).toBe('100%');
+
+    // 4. Save and verify stored config
+    await page.click('#btn-editor-save');
+    await expect(page.locator('#touch-layout-editor')).not.toBeVisible();
+
+    const storedConfig = await page.evaluate(() => {
+      return JSON.parse(localStorage.getItem('sonar_touch_config'));
+    });
+    expect(storedConfig.elementScales.movement).toBe(1.0);
   });
 
 });

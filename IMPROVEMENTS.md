@@ -1,7 +1,7 @@
 # SONAR: Continuous Improvements & Pareto-Gauntlet Roadmap
 
 > **System-Status:** Autonomer Continuous Pareto-Gauntlet-Loop aktiv  
-> **Aktuelle Version:** `v1.9.3` (Build 20260817)  
+> **Aktuelle Version:** `v1.9.4` (Build 20260817)  
 > **Zielsetzung:** Maximierung von Immersion, akustischem Thrill, visueller Brillanz und langfristiger Spieler-Retention durch das 80/20-Prinzip (80% Hebelwirkung bei 20% Umsetzungsaufwand).
 
 ---
@@ -24,6 +24,12 @@ Jeder Meilenstein und jeder Zyklus erfordert ein zwingendes Semantic Versioning 
 ---
 
 ## 🏆 Abgeschlossene Gauntlet-Zyklen (Milestones)
+
+### ✅ Zyklus 7 [v1.9.4]: Tactile Haptic Touch Engine & Immediate Editor Layout Reset
+- **Domäne 4 (Mobile UX & Controls):**
+  - **Taktile Haptik auf allen Touch-Buttons:** Integriert reaktionsschnelles Vibrations-Feedback (`triggerHaptic`) auf D-Pad Richtungsklicks (8ms), Ping (15ms), Köder-Wurf (12ms) und Schleichen-Toggle (8ms).
+  - **Sofort-Reset im Touch-Editor:** Der Reset-Button (`↺ STANDARD`) synchronisiert und restauriert sofort sämtliche Positionskoordinaten und individuellen Skalierungsstufen (100%) live im Arbeitsbereich.
+- **E2E Test-Gauntlet:** 18/18 Tests erfolgreich bestanden.
 
 ### ✅ Zyklus 6 [v1.9.3]: Crystal Acoustic Wave Resonance & Sparkle Chime Echo
 - **Domäne 2 (Audio & Soundscape) & Domäne 3 (Core Gameloop):**

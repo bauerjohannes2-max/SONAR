@@ -253,11 +253,15 @@ export class TouchLayoutEditor {
       btn.addEventListener('touchstart', handleElemScale, { passive: false });
     });
 
-    // Reset Button
+    // Reset Button (Immediate reset of all positions and element scales to defaults)
     const handleReset = (e) => {
       if (e) e.preventDefault();
       this.currentConfig = this.touchControls.getDefaultConfig();
+      this.touchControls.applyConfig(this.currentConfig);
       this.renderDOM();
+      if (this.touchControls && typeof this.touchControls.triggerHaptic === 'function') {
+        this.touchControls.triggerHaptic(15);
+      }
       if (this.audio) this.audio.playUIBlip();
     };
     if (resetBtn) {

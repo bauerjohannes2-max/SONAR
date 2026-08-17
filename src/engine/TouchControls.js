@@ -217,6 +217,7 @@ export class TouchControls {
         this.currentDirection = newDir;
         updateDpadHighlight(newDir);
         this.input.setTouchDirection(newDir.dx, newDir.dy);
+        this.triggerHaptic(8);
         if (this.audio) this.audio.ensureContext();
       }
     };
@@ -365,6 +366,14 @@ export class TouchControls {
     this.input.clearTouchDirection();
   }
 
+  triggerHaptic(ms = 8) {
+    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+      try {
+        navigator.vibrate(ms);
+      } catch (e) {}
+    }
+  }
+
   bindButtons() {
     const bindBtn = (id, onDown, onUp) => {
       const el = document.getElementById(id);
@@ -400,13 +409,12 @@ export class TouchControls {
     bindBtn('touch-ping', () => {
       this.input.pingTriggered = true;
       this.input.actionTriggered = true;
-      if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
-        try { navigator.vibrate(15); } catch (e) {}
-      }
+      this.triggerHaptic(15);
     });
 
     bindBtn('touch-decoy', () => {
       this.input.decoyTriggered = true;
+      this.triggerHaptic(12);
     });
 
     // Sneak Toggle Button
@@ -418,6 +426,7 @@ export class TouchControls {
         e.preventDefault();
         e.stopPropagation();
         this.sneakToggled = !this.sneakToggled;
+        this.triggerHaptic(8);
         if (this.sneakToggled) {
           sneakBtn.classList.add('sneak-on');
           if (sneakBadge) sneakBadge.innerText = 'EIN';

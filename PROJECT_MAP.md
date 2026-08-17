@@ -77,6 +77,9 @@ Grid: 25x18 (32px tiles). Screen: 800x576px.
 - [x] **Game-Over-Screen & Neustart-Bug behoben**: Exakte Klick-Hitboxen (y: 215..265) & sofortiger Neustart via R/Enter/Space/Klick.
 - [x] **Automatischer Update-Check beim Start**: Revalidiert Service Worker & zeigt Banner bei neuer Version (v1.4.0).
 - [x] **Tutorial-Karte 7 Köder-Rework**: Exakt 3 Blöcke Wurfweite, präziser Taktik-Text & Munitionsanzeige (HUD: 1/1).
+- [x] **Milestone [v1.7.0]: Dynamic Heartbeat Audio & Mobile Touch UX**: Prozeduraler Muffled Sub-Bass Pulse (52–160 BPM) bei Feindnähe, Mobile-Haptik und vollständiges Touch-Scrolling für Modals.
+- [x] **Milestone [v1.8.0]: Hydrodynamic Wake Trail & Acoustic Wall Sparks**: Partikelschweif bei Drohnenschub (100% Unterdrückung im Schleichgang) und Funkenreflexion beim Auftreffen von Schallwellen auf Wände.
+
 ## WORKFLOW & VERSIONING RULES (Binding SemVer Standard)
 - **Eiserne Direktive:** Kein Commit und kein Zyklus ohne sinnvolle, dynamische Versionserhöhung nach Semantic Versioning (**SemVer**):
   - **PATCH-Bump (`1.4.x` → `1.4.y`):** Bei Bugfixes, UI-Polish, CSS-Tweaks, Textanpassungen oder isolierten Touch-Korrekturen.

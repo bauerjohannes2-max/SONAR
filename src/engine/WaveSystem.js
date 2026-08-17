@@ -164,8 +164,10 @@ export class WaveSystem {
   /**
    * Update physics of waves and calculate tile visibility with phosphor decay.
    * @param {number} dt Delta time in seconds
+   * @param {object} gridMap Optional GridMap reference for wall collisions
+   * @param {object} particleEngine Optional ParticleEngine reference for acoustic sparks
    */
-  update(dt) {
+  update(dt, gridMap = null, particleEngine = null) {
     const timeScale = dt * 60;
     const halfTile = CONFIG.TILE_SIZE / 2;
 
@@ -195,8 +197,17 @@ export class WaveSystem {
 
           if (dist >= prevRadius - 8 && dist <= wave.radius + wave.thickness) {
             const intensity = wave.alpha * Math.max(0.2, 1 - (dist / wave.maxRadius) * 0.4);
-            if (intensity > this.visibilityGrid[r][c]) {
+            const prevVis = this.visibilityGrid[r][c];
+
+            if (intensity > prevVis) {
               this.visibilityGrid[r][c] = intensity;
+
+              // If hitting a wall that was previously dark, spawn subtle acoustic refraction sparks
+              if (prevVis < 0.08 && intensity > 0.35 && particleEngine && gridMap) {
+                if (gridMap.isWall && gridMap.isWall(c, r) && Math.random() < 0.15) {
+                  particleEngine.spawnWallRefractionSparks(tileCenterX, tileCenterY, wave.color, 2);
+                }
+              }
             }
           }
         }

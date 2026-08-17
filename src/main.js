@@ -727,7 +727,7 @@ export class Game {
     }
 
     // 11. Update Waves & Particles (particles react to active sound waves)
-    this.waveSystem.update(dt, this.gridMap);
+    this.waveSystem.update(dt, this.gridMap, this.particleEngine);
     this.particleEngine.update(dt, this.waveSystem);
   }
 

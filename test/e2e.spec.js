@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 
-test.describe('SONAR v1.7.0 Dynamic Audio & Proximity Subsystems E2E Validation', () => {
+test.describe('SONAR v1.8.0 Hydrodynamic Wake & Particle Physics E2E Validation', () => {
 
   test.beforeEach(async ({ page }) => {
     page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
@@ -11,11 +11,11 @@ test.describe('SONAR v1.7.0 Dynamic Audio & Proximity Subsystems E2E Validation'
     });
   });
 
-  test('1. Version Endpoint & JSON Integrity (v1.7.0)', async ({ request }) => {
+  test('1. Version Endpoint & JSON Integrity (v1.8.0)', async ({ request }) => {
     const response = await request.get('/version.json');
     expect(response.ok()).toBeTruthy();
     const data = await response.json();
-    expect(data.version).toBe('1.7.0');
+    expect(data.version).toBe('1.8.0');
     expect(data.build).toBe(20260817);
   });
 
@@ -271,6 +271,39 @@ test.describe('SONAR v1.7.0 Dynamic Audio & Proximity Subsystems E2E Validation'
     expect(result.closeThreat).toBe(100);
     expect(result.isChasing).toBeTruthy();
     expect(result.interval).toBeLessThanOrEqual(0.5);
+  });
+
+  test('12. Hydrodynamic Wake Trail & Acoustic Wall Reflection Sparks (v1.8.0)', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    const result = await page.evaluate(() => {
+      window.game.loadSector(0);
+      const pe = window.game.particleEngine;
+      pe.particles = [];
+
+      // Test wake particle spawn (normal move vs sneak)
+      pe.spawnWakeParticle(100, 100, 0, false);
+      const countNormal = pe.particles.length;
+
+      pe.spawnWakeParticle(100, 100, 0, true);
+      const countSneak = pe.particles.length; // should remain unchanged (100% stealth suppression)
+
+      // Test wall reflection sparks
+      pe.spawnWallRefractionSparks(200, 200, '#00F0FF', 4);
+      const countAfterWall = pe.particles.length;
+
+      const hasWakeType = pe.particles.some(p => p.type === 'WAKE_TRAIL');
+      const hasSparkType = pe.particles.some(p => p.type === 'SPARK');
+
+      return { countNormal, countSneak, countAfterWall, hasWakeType, hasSparkType };
+    });
+
+    expect(result.countNormal).toBe(1);
+    expect(result.countSneak).toBe(1); // Sneaking suppresses wake completely!
+    expect(result.countAfterWall).toBe(5);
+    expect(result.hasWakeType).toBeTruthy();
+    expect(result.hasSparkType).toBeTruthy();
   });
 
 });

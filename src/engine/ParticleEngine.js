@@ -82,6 +82,49 @@ export class ParticleEngine {
   }
 
   /**
+   * Spawns bioluminescent hydrodynamic wake trail behind moving drone.
+   */
+  spawnWakeParticle(x, y, droneAngle, isSneaking = false) {
+    if (isSneaking) return; // 100% stealth suppression - no visible wake trail
+
+    const backAngle = droneAngle + Math.PI + (Math.random() - 0.5) * 0.6;
+    const speed = Math.random() * 0.6 + 0.25;
+
+    this.particles.push({
+      x: x + Math.cos(backAngle) * 9,
+      y: y + Math.sin(backAngle) * 9,
+      vx: Math.cos(backAngle) * speed + (Math.random() - 0.5) * 0.15,
+      vy: Math.sin(backAngle) * speed + (Math.random() - 0.5) * 0.15,
+      color: Math.random() > 0.3 ? '#00f0ff' : '#00ffaa',
+      life: 28,
+      maxLife: 28,
+      size: Math.random() * 2.2 + 1.2,
+      type: 'WAKE_TRAIL'
+    });
+  }
+
+  /**
+   * Spawns acoustic wall refraction sparks when sound waves hit solid boundaries.
+   */
+  spawnWallRefractionSparks(x, y, color = '#00F0FF', count = 3) {
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = Math.random() * 1.5 + 0.5;
+      this.particles.push({
+        x: x + (Math.random() - 0.5) * 8,
+        y: y + (Math.random() - 0.5) * 8,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        color: Math.random() > 0.4 ? '#FFFFFF' : color,
+        life: 18,
+        maxLife: 18,
+        size: Math.random() * 1.6 + 0.8,
+        type: 'SPARK'
+      });
+    }
+  }
+
+  /**
    * Spawns hydrodynamic wake bubbles behind moving drone.
    */
   spawnWakeBubble(x, y, droneAngle, isSneaking = false) {
@@ -226,6 +269,16 @@ export class ParticleEngine {
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.stroke();
+        ctx.restore();
+      } else if (p.type === 'WAKE_TRAIL') {
+        ctx.save();
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = alpha * 0.75;
+        ctx.shadowColor = p.color;
+        ctx.shadowBlur = 6 * alpha;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * alpha, 0, Math.PI * 2);
+        ctx.fill();
         ctx.restore();
       } else {
         // Sparks

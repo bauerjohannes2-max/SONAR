@@ -132,9 +132,12 @@ export class Player {
       this.x = this.startX + (this.endX - this.startX) * ease;
       this.y = this.startY + (this.endY - this.startY) * ease;
 
-      // Spawn hydrodynamic bubble wake
+      // Spawn hydrodynamic bubble wake & glowing wake trail
       if (particleEngine) {
         particleEngine.spawnWakeBubble(this.x, this.y, this.headingAngle, this.isSneaking);
+        if (typeof particleEngine.spawnWakeParticle === 'function') {
+          particleEngine.spawnWakeParticle(this.x, this.y, this.headingAngle, this.isSneaking);
+        }
       }
 
       if (progress >= 1.0) {

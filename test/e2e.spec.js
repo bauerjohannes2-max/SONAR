@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 
-test.describe('SONAR v1.11.0 Tactical Gauntlet Loop E2E Validation', () => {
+test.describe('SONAR v1.12.1 Tactical Gauntlet Loop E2E Validation', () => {
 
   test.beforeEach(async ({ page }) => {
     page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
@@ -11,11 +11,11 @@ test.describe('SONAR v1.11.0 Tactical Gauntlet Loop E2E Validation', () => {
     });
   });
 
-  test('1. Version Endpoint & JSON Integrity (v1.11.0)', async ({ request }) => {
+  test('1. Version Endpoint & JSON Integrity (v1.12.1)', async ({ request }) => {
     const response = await request.get('/version.json');
     expect(response.ok()).toBeTruthy();
     const data = await response.json();
-    expect(data.version).toBe('1.11.0');
+    expect(data.version).toBe('1.12.1');
     expect(data.build).toBe(20260817);
   });
 
@@ -532,7 +532,7 @@ test.describe('SONAR v1.11.0 Tactical Gauntlet Loop E2E Validation', () => {
 
     expect(menuState.hasEndless).toBeFalsy();
     expect(menuState.hasCampaign).toBeTruthy();
-    expect(menuState.options).toEqual(['SECTOR_SELECT', 'LEADERBOARD', 'PROFILE', 'SETTINGS']);
+    expect(menuState.options).toEqual(['SECTOR_SELECT', 'HANGAR', 'LEADERBOARD', 'PROFILE', 'SETTINGS']);
   });
 
   test('21. Settings Modal Touch Scaling with Live-Preview Synchronization (v1.10.0)', async ({ page }) => {
@@ -769,6 +769,122 @@ test.describe('SONAR v1.11.0 Tactical Gauntlet Loop E2E Validation', () => {
     expect(result.hasSlowMo).toBeTruthy();
     expect(result.hasFlash).toBeTruthy();
     expect(result.deathCause).toBe('WALL_CRASH');
+  });
+
+  test('27. Phase 2 Metaprogression & Hangar Drone Upgrade System (v1.12.0)', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    // 1. Open Hangar Modal
+    const hangarOpened = await page.evaluate(() => {
+      const g = window.game;
+      g.hangarModal.open();
+      const el = document.getElementById('hangar-modal');
+      return el && el.style.display !== 'none';
+    });
+    expect(hangarOpened).toBeTruthy();
+
+    // 2. Test star calculations and upgrade purchases
+    const upgradeResult = await page.evaluate(() => {
+      const sm = window.game.storageManager;
+
+      // Seed mock campaign stars (Sectors 1, 2, 3 with S-ranks = 9 stars)
+      sm.saveCampaignProgress(1, { rank: 'S', stars: 3, time: 12.0 });
+      sm.saveCampaignProgress(2, { rank: 'S', stars: 3, time: 14.0 });
+      sm.saveCampaignProgress(3, { rank: 'S', stars: 3, time: 16.0 });
+
+      const totalStars = sm.calculateTotalStars();
+      const initialAvail = sm.getAvailableStars();
+
+      // Purchase Sonar Booster (cost: 2) & Emergency Shield (cost: 6)
+      const buyBooster = sm.purchaseUpgrade('sonarBooster');
+      const buyShield = sm.purchaseUpgrade('emergencyShield');
+      const remaining = sm.getAvailableStars();
+      const currentUpgrades = sm.getUpgrades();
+
+      return {
+        totalStars,
+        initialAvail,
+        buyBoosterSuccess: buyBooster.success,
+        buyShieldSuccess: buyShield.success,
+        remaining,
+        currentUpgrades
+      };
+    });
+
+    expect(upgradeResult.totalStars).toBe(9);
+    expect(upgradeResult.buyBoosterSuccess).toBeTruthy();
+    expect(upgradeResult.buyShieldSuccess).toBeTruthy();
+    expect(upgradeResult.remaining).toBe(1); // 9 - 2 - 6 = 1
+    expect(upgradeResult.currentUpgrades.sonarBooster).toBe(1);
+    expect(upgradeResult.currentUpgrades.emergencyShield).toBe(1);
+
+    // 3. Test Gameplay Shield wall absorption
+    const shieldAbsorbResult = await page.evaluate(() => {
+      const g = window.game;
+      g.loadSector(0); // Player spawned with Emergency Shield active
+
+      // Place player at gx: 1, gy: 1 next to outer wall at gx: 0
+      g.player.gridX = 1;
+      g.player.gridY = 1;
+      g.player.targetGridX = 1;
+      g.player.targetGridY = 1;
+      g.player.x = 1 * 32 + 16;
+      g.player.y = 1 * 32 + 16;
+      g.player.isMoving = false;
+
+      const initialAlive = g.player.isAlive;
+      const initialShield = g.player.shieldActive;
+
+      // Simulate movement into west wall (gx: 0 is wall)
+      const wallMove = { dx: -1, dy: 0 };
+      const fakeInput = {
+        isSneaking: () => false,
+        getMovement: () => wallMove,
+        consumePing: () => false
+      };
+
+      // Force execute Player update step against wall
+      g.player.update(0.016, g.gridMap, fakeInput, g.waveSystem, g.audioEngine, g.particleEngine);
+
+      const aliveAfterFirstHit = g.player.isAlive;
+      const shieldAfterFirstHit = g.player.shieldActive;
+
+      // Second wall hit with shield depleted -> must kill drone
+      g.player.update(0.016, g.gridMap, fakeInput, g.waveSystem, g.audioEngine, g.particleEngine);
+      const aliveAfterSecondHit = g.player.isAlive;
+      const deathCause = g.player.deathCause;
+
+      return {
+        initialAlive,
+        initialShield,
+        aliveAfterFirstHit,
+        shieldAfterFirstHit,
+        aliveAfterSecondHit,
+        deathCause
+      };
+    });
+
+    expect(shieldAbsorbResult.initialAlive).toBe(true);
+    expect(shieldAbsorbResult.initialShield).toBe(true);
+    expect(shieldAbsorbResult.aliveAfterFirstHit).toBe(true);
+    expect(shieldAbsorbResult.shieldAfterFirstHit).toBe(false);
+    expect(shieldAbsorbResult.aliveAfterSecondHit).toBe(false);
+    expect(shieldAbsorbResult.deathCause).toBe('WALL_CRASH');
+
+    // 4. Test Upgrade Refund / Reset
+    const resetResult = await page.evaluate(() => {
+      const sm = window.game.storageManager;
+      sm.resetUpgrades();
+      return {
+        upgrades: sm.getUpgrades(),
+        availableStars: sm.getAvailableStars()
+      };
+    });
+
+    expect(resetResult.upgrades.sonarBooster).toBe(0);
+    expect(resetResult.upgrades.emergencyShield).toBe(0);
+    expect(resetResult.availableStars).toBe(9);
   });
 
 });

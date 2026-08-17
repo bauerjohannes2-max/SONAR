@@ -14,7 +14,7 @@ export class StoryIntro {
     this.lastCharCount = 0;
 
     this.logLines = [
-      '>> PROTOKOLL: ZERO-LIGHT AKTIVIERT // TETHYS-6 TIEFSEESTATION HAVARIERT',
+      '>> PROTOKOLL: ZERO-LIGHT AKTIVIERT // STATION ABYSS TIEFSEESTATION HAVARIERT',
       '>> EINHEIT: ECHO-7 ONLINE // PRIMÄRZIEL: RESONANZ-DATENKERNE BERGEN',
       '>> WARNUNG: AKUSTISCHE RAUBDROHNEN DETEKTIERT // EMISSIONEN MINIMIEREN'
     ];
@@ -107,7 +107,7 @@ export class StoryIntro {
     ctx.fillStyle = '#00f0ff';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    ctx.fillText('TERMINAL LOG // TETHYS-6 RECOVERY PROTOCOL', boxX + 16, boxY + 18);
+    ctx.fillText('TERMINAL LOG // STATION ABYSS RECOVERY PROTOCOL', boxX + 16, boxY + 18);
 
     ctx.font = '700 12px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = '#00ff88';

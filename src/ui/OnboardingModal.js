@@ -33,7 +33,7 @@ export class OnboardingModal {
           <div class="onboarding-banner-icon">🛸</div>
           <h2 class="onboarding-headline">OPERATION ZERO-LIGHT</h2>
           <p class="onboarding-text">
-            Tiefseestation <strong>TETHYS-6</strong> havariert. Als Aufklärungsdrohne <strong>ECHO-7</strong> musst du Resonanz-Datenkerne bergen.
+            Tiefseestation <strong>STATION ABYSS</strong> havariert. Als Aufklärungsdrohne <strong>ECHO-7</strong> musst du Resonanz-Datenkerne bergen.
             Im ewigen Nichts existiert Sicht nur durch Schall – doch Raubdrohnen hören dich!
             Lerne Steuerung, Sonar-Pings und Taktiken im <strong>2-Minuten-Tutorial</strong>.
           </p>

@@ -12,7 +12,7 @@ export const LEVELS = [
     sectorNumber: 1,
     name: "SEKTOR 01 • REAKTOR-ABSTURZ",
     subtitle: "Blindstart",
-    description: "Reaktor-Absturz (Blindstart): Berge 3 Resonanz-Datenkerne der TETHYS-6. Weiche Raubdrohnen im Dunkeln aus.",
+    description: "Reaktor-Absturz (Blindstart): Berge 3 Resonanz-Datenkerne der STATION ABYSS. Weiche Raubdrohnen im Dunkeln aus.",
     playerStart: { gx: 2, gy: 15 },
     gate: { gx: 22, gy: 2 },
     crystals: [
@@ -584,7 +584,7 @@ export const LEVELS = [
     sectorNumber: 10,
     name: "SECTOR 10 • APEX : NULLPUNKT",
     subtitle: "Letzter Datenkern",
-    description: "Apex : Nullpunkt: Letzter Datenkern. Entschlüsseln Sie das Zero-Light Protokoll der TETHYS-6!",
+    description: "Apex : Nullpunkt: Letzter Datenkern. Entschlüsseln Sie das Zero-Light Protokoll der STATION ABYSS!",
     playerStart: { gx: 12, gy: 16 },
     gate: { gx: 12, gy: 1 },
     crystals: [

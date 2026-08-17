@@ -52,13 +52,13 @@ export class WaveSystem {
   /**
    * Spawns a global Sonar Ping wave (large, persistent decay).
    */
-  createSonarPing(x, y) {
+  createSonarPing(x, y, rangeMultiplier = 1.0) {
     this.waves.push({
       x,
       y,
       radius: 8,
-      maxRadius: CONFIG.PLAYER.PING_WAVE_RADIUS,
-      speed: CONFIG.PLAYER.PING_WAVE_SPEED,
+      maxRadius: CONFIG.PLAYER.PING_WAVE_RADIUS * rangeMultiplier,
+      speed: CONFIG.PLAYER.PING_WAVE_SPEED * (1.0 + (rangeMultiplier - 1.0) * 0.4),
       alpha: 1.0,
       decay: CONFIG.PLAYER.PING_WAVE_DECAY,
       color: CONFIG.COLORS.WAVE_PING,

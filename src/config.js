@@ -1,6 +1,6 @@
 /**
  * SONAR: The Echo Chamber
- * Global Configuration & Constants (10-Sector & Endless Edition)
+ * Global Configuration & Constants (10-Sector Campaign Edition)
  */
 
 export const CONFIG = {
@@ -121,7 +121,7 @@ export const CONFIG = {
   LORE: {
     OPERATION: 'OPERATION ZERO-LIGHT',
     DRONE_MODEL: 'ECHO-7',
-    STATION: 'TETHYS-6',
+    STATION: 'STATION ABYSS',
     PROTOCOL: 'ZERO-LIGHT PROTOCOL',
     OBJECTIVE_ITEM: 'RESONANZ-DATENKERNE',
     ENEMIES: {
@@ -131,7 +131,7 @@ export const CONFIG = {
   },
 
   // Version & Build
-  VERSION: '1.11.0',
+  VERSION: '1.12.1',
   BUILD: '20260817',
 
   // Game States

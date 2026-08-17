@@ -1802,3 +1802,219 @@ kbd {
   box-shadow: 0 0 12px rgba(0, 240, 255, 0.6);
 }
 
+/* ==========================================================================
+   HANGAR & UPGRADES MODAL STYLES
+   ========================================================================== */
+
+.hangar-box {
+  border-color: rgba(0, 240, 255, 0.4);
+  box-shadow: 0 0 35px rgba(0, 240, 255, 0.15);
+}
+
+.hangar-currency-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0, 240, 255, 0.04);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: 4px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+}
+
+.hangar-star-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hangar-star-icon {
+  font-size: 20px;
+  filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.8));
+}
+
+.hangar-star-val {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 800;
+  color: #FFD700;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.hangar-star-label {
+  font-family: var(--font-primary);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #a0c0d0;
+  letter-spacing: 0.5px;
+}
+
+.hangar-meta-info {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: #608090;
+  display: flex;
+  align-items: center;
+}
+
+.hangar-description {
+  font-family: var(--font-primary);
+  font-size: 11.5px;
+  color: #7b96a8;
+  margin-bottom: 14px;
+  line-height: 1.4;
+}
+
+.hangar-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  max-height: 340px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+@media (max-width: 600px) {
+  .hangar-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.hangar-card {
+  background: rgba(3, 11, 18, 0.7);
+  border: 1px solid rgba(0, 240, 255, 0.15);
+  border-radius: 4px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.hangar-card:hover {
+  border-color: rgba(0, 240, 255, 0.4);
+  background: rgba(4, 16, 26, 0.85);
+  box-shadow: 0 0 14px rgba(0, 240, 255, 0.08);
+}
+
+.hangar-card.card-max {
+  border-color: rgba(0, 255, 136, 0.3);
+  background: rgba(2, 18, 12, 0.6);
+}
+
+.hangar-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hangar-card-icon {
+  font-size: 24px;
+  width: 32px;
+  text-align: center;
+}
+
+.hangar-card-info {
+  flex: 1;
+}
+
+.hangar-card-title {
+  font-family: var(--font-primary);
+  font-size: 13px;
+  font-weight: 700;
+  color: #00F0FF;
+  letter-spacing: 0.5px;
+}
+
+.hangar-card-level {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  color: #608090;
+}
+
+.hangar-pips-wrapper {
+  display: flex;
+  gap: 4px;
+}
+
+.hangar-pip {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+}
+
+.hangar-pip.filled {
+  background: #00FF88;
+  border-color: #00FF88;
+  box-shadow: 0 0 6px rgba(0, 255, 136, 0.6);
+}
+
+.hangar-card-desc {
+  font-family: var(--font-primary);
+  font-size: 11px;
+  color: #8fa0b0;
+  line-height: 1.35;
+  flex: 1;
+}
+
+.hangar-card-bonus {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: #557080;
+}
+
+.hangar-card-bonus .bonus-val {
+  color: #00FF88;
+  font-weight: 700;
+}
+
+.hangar-card-action {
+  margin-top: 4px;
+}
+
+.modal-btn-upgrade {
+  width: 100%;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 7px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  background: rgba(255, 215, 0, 0.1);
+  border: 1.5px solid #FFD700;
+  color: #FFD700;
+  transition: all 0.15s ease;
+}
+
+.modal-btn-upgrade.can-buy:hover {
+  background: #FFD700;
+  color: #03070D;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.6);
+}
+
+.modal-btn-upgrade.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  border-color: #556070;
+  color: #708090;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.modal-btn-installed {
+  width: 100%;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 7px 10px;
+  border-radius: 3px;
+  background: rgba(0, 255, 136, 0.1);
+  border: 1px solid #00FF88;
+  color: #00FF88;
+  cursor: default;
+}
+
+

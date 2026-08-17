@@ -28,6 +28,7 @@ import { OnboardingModal } from './ui/OnboardingModal.js';
 import { StoryIntro } from './ui/StoryIntro.js';
 import { ProfileModal } from './ui/ProfileModal.js';
 import { LeaderboardModal } from './ui/LeaderboardModal.js';
+import { HangarModal } from './ui/HangarModal.js';
 import { TouchLayoutEditor } from './ui/TouchLayoutEditor.js';
 import { storageManager } from './services/StorageManager.js';
 import { firebaseService } from './services/FirebaseService.js';
@@ -145,6 +146,7 @@ export class Game {
     );
     this.profileModal = new ProfileModal(this.audioEngine, (pilot) => this.onProfileChanged(pilot));
     this.leaderboardModal = new LeaderboardModal(this.audioEngine);
+    this.hangarModal = new HangarModal(this.audioEngine);
 
     // Game Modes
     this.endlessMode = new EndlessMode();
@@ -340,7 +342,7 @@ export class Game {
     const lvl = LEVELS[this.currentSectorIndex];
 
     this.gridMap = new GridMap(lvl.map);
-    this.player = new Player(lvl.playerStart.gx, lvl.playerStart.gy);
+    this.player = new Player(lvl.playerStart.gx, lvl.playerStart.gy, storageManager.getUpgrades());
     this.gate = new Gate(lvl.gate.gx, lvl.gate.gy);
     this.deathCause = null;
 
@@ -378,7 +380,7 @@ export class Game {
     const lvl = this.endlessMode.generateFloor(floor);
 
     this.gridMap = new GridMap(lvl.map);
-    this.player = new Player(lvl.playerStart.gx, lvl.playerStart.gy);
+    this.player = new Player(lvl.playerStart.gx, lvl.playerStart.gy, storageManager.getUpgrades());
     this.gate = new Gate(lvl.gate.gx, lvl.gate.gy);
     this.deathCause = null;
 
@@ -437,6 +439,8 @@ export class Game {
         const choice = this.menuSystem.handleMenuInput(this.inputHandler);
         if (choice === 'SECTOR_SELECT') {
           this.gameState = CONFIG.STATES.SECTOR_SELECT;
+        } else if (choice === 'HANGAR') {
+          this.hangarModal.open();
         } else if (choice === 'PROFILE') {
           this.profileModal.open();
         } else if (choice === 'LEADERBOARD') {
@@ -998,6 +1002,7 @@ export class Game {
                       !this.settingsModal.isOpen &&
                       !this.profileModal.isOpen &&
                       !this.leaderboardModal.isOpen &&
+                      (!this.hangarModal || !this.hangarModal.isOpen) &&
                       (!this.onboardingModal || !this.onboardingModal.isOpen) &&
                       !(this.touchLayoutEditor && this.touchLayoutEditor.isOpen);
 

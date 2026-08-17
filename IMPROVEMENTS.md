@@ -1,7 +1,7 @@
 # SONAR: Continuous Improvements & Pareto-Gauntlet Roadmap
 
 > **System-Status:** Autonomer Continuous Pareto-Gauntlet-Loop aktiv  
-> **Aktuelle Version:** `v1.11.0` (Build 20260817)  
+> **Aktuelle Version:** `v1.12.0` (Build 20260817)  
 > **Zielsetzung:** Maximierung von Immersion, akustischem Thrill, visueller Brillanz und langfristiger Spieler-Retention durch das 80/20-Prinzip (80% Hebelwirkung bei 20% Umsetzungsaufwand).
 
 ---
@@ -24,6 +24,16 @@ Jeder Meilenstein und jeder Zyklus erfordert ein zwingendes Semantic Versioning 
 ---
 
 ## 🏆 Abgeschlossene Gauntlet-Zyklen (Milestones)
+
+### ✅ Phase 2 [v1.12.0]: Metaprogression & Hangar-System (Sucht- & Grindfaktor)
+- **Hangar-Modal (`HangarModal.js`):** Cyberpunk-Upgrade-Terminal im Hauptmenü (`[ 🚀 HANGAR ]`) mit visueller Sternen-Währung.
+- **4 Permanente Drohnen-Upgrades:**
+  - *📡 Sonar-Verstärker:* +10% / +20% / +30% Ping-Reichweite & Ausbreitungsgeschwindigkeit (Stufen 0/3).
+  - *🎯 Zusatz-Köder:* Startet jeden Sektor mit 2 Täuschkörpern statt 1 (Stufe 0/1).
+  - *🔇 Hydro-Dämpfer:* Dämpft normale Drohnengeräusche um 15% / 30% (Stufen 0/2).
+  - *🛡️ Notfall-Schild:* Absorbiert 1x pro Sektor eine versehentliche Wandkollision mit Schutzschild-Funken und HUD-Statusanzeige.
+- **Kostenloses Respec-System:** Beliebig oft alle Sterne via `[ ↺ ZURÜCKSETZEN ]` zu 100% zurückerstatten.
+- **E2E Test-Gauntlet:** 27/27 Tests erfolgreich bestanden.
 
 ### ✅ Phase 1 [v1.11.0]: The 10 Quick-Wins (Instant Dopamine & Haptic Boost)
 - **1. Kristall-Tonleiter:** Jeder gesammelte Kristall spielt den Chime in der pentatonischen Tonleiter höher ($C \to D \to E \to G \to A \to C5$).

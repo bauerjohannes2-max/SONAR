@@ -344,6 +344,79 @@ class StorageManager {
   }
 
   /**
+   * Hangar Metaprogression & Upgrades
+   */
+  getUpgrades() {
+    try {
+      const raw = localStorage.getItem('sonar_hangar_upgrades');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        return {
+          sonarBooster: parsed.sonarBooster || 0,
+          extraDecoy: parsed.extraDecoy || 0,
+          hydroDampener: parsed.hydroDampener || 0,
+          emergencyShield: parsed.emergencyShield || 0
+        };
+      }
+    } catch (e) {}
+    return { sonarBooster: 0, extraDecoy: 0, hydroDampener: 0, emergencyShield: 0 };
+  }
+
+  getSpentStars() {
+    const upgrades = this.getUpgrades();
+    let spent = 0;
+    for (const [key, cfg] of Object.entries(UPGRADE_CONFIG)) {
+      const lvl = Math.min(cfg.maxLevel, upgrades[key] || 0);
+      for (let i = 0; i < lvl; i++) {
+        spent += cfg.costs[i] || 0;
+      }
+    }
+    return spent;
+  }
+
+  getAvailableStars() {
+    const total = this.calculateTotalStars();
+    const spent = this.getSpentStars();
+    return Math.max(0, total - spent);
+  }
+
+  saveUpgrades(upgrades) {
+    try {
+      localStorage.setItem('sonar_hangar_upgrades', JSON.stringify(upgrades));
+    } catch (e) {}
+  }
+
+  purchaseUpgrade(upgradeId) {
+    const cfg = UPGRADE_CONFIG[upgradeId];
+    if (!cfg) return { success: false, reason: 'INVALID_UPGRADE' };
+
+    const upgrades = this.getUpgrades();
+    const currentLvl = upgrades[upgradeId] || 0;
+    if (currentLvl >= cfg.maxLevel) return { success: false, reason: 'MAX_LEVEL' };
+
+    const cost = cfg.costs[currentLvl];
+    const avail = this.getAvailableStars();
+    if (avail < cost) return { success: false, reason: 'INSUFFICIENT_STARS' };
+
+    upgrades[upgradeId] = currentLvl + 1;
+    this.saveUpgrades(upgrades);
+
+    return {
+      success: true,
+      upgradeId,
+      newLevel: upgrades[upgradeId],
+      cost,
+      remainingStars: this.getAvailableStars()
+    };
+  }
+
+  resetUpgrades() {
+    const defaultUpgrades = { sonarBooster: 0, extraDecoy: 0, hydroDampener: 0, emergencyShield: 0 };
+    this.saveUpgrades(defaultUpgrades);
+    return defaultUpgrades;
+  }
+
+  /**
    * Reset all local saves.
    */
   resetAll() {
@@ -352,11 +425,47 @@ class StorageManager {
       localStorage.removeItem(CONFIG.STORAGE.ENDLESS);
       localStorage.removeItem(CONFIG.STORAGE.PILOT_SESSION);
       localStorage.removeItem('sonar_rivals');
+      localStorage.removeItem('sonar_hangar_upgrades');
       this.currentPilot = { callsign: 'GAST', isGuest: true };
     } catch (e) {
       console.warn('[StorageManager] Reset error:', e);
     }
   }
 }
+
+export const UPGRADE_CONFIG = {
+  sonarBooster: {
+    id: 'sonarBooster',
+    title: 'SONAR-VERSTÄRKER',
+    desc: 'Erhöht Reichweite & Ausbreitungsgeschwindigkeit des Pings (+10% / Stufe).',
+    icon: '📡',
+    maxLevel: 3,
+    costs: [2, 4, 6]
+  },
+  extraDecoy: {
+    id: 'extraDecoy',
+    title: 'ZUSATZ-KÖDER',
+    desc: 'Startet jeden Sektor mit einem zusätzlichen Täuschkörper (+1 Köder).',
+    icon: '🎯',
+    maxLevel: 1,
+    costs: [4]
+  },
+  hydroDampener: {
+    id: 'hydroDampener',
+    title: 'HYDRO-DÄMPFER',
+    desc: 'Dämpft Drohnengeräusche bei normaler Fahrt um 15% / 30%.',
+    icon: '🔇',
+    maxLevel: 2,
+    costs: [3, 5]
+  },
+  emergencyShield: {
+    id: 'emergencyShield',
+    title: 'NOTFALL-SCHILD',
+    desc: 'Absorbiert 1x pro Sektor einen versehentlichen Wandaufprall.',
+    icon: '🛡️',
+    maxLevel: 1,
+    costs: [6]
+  }
+};
 
 export const storageManager = new StorageManager();

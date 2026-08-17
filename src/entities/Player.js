@@ -7,7 +7,7 @@ import { CONFIG } from '../config.js';
 import { Decoy } from './Decoy.js';
 
 export class Player {
-  constructor(gx = 0, gy = 0) {
+  constructor(gx = 0, gy = 0, upgrades = null) {
     this.gridX = gx;
     this.gridY = gy;
     this.targetGridX = gx;
@@ -19,6 +19,7 @@ export class Player {
     this.endX = this.x;
     this.endY = this.y;
 
+    this.upgrades = upgrades || { sonarBooster: 0, extraDecoy: 0, hydroDampener: 0, emergencyShield: 0 };
     this.isMoving = false;
     this.isSneaking = false;
     this.moveTimer = 0;
@@ -27,7 +28,10 @@ export class Player {
     this.targetAngle = -Math.PI / 2;
 
     this.pingCooldownTimer = 0;
-    this.decoysRemaining = CONFIG.PLAYER.DECOYS_PER_SECTOR;
+    this.maxDecoys = CONFIG.PLAYER.DECOYS_PER_SECTOR + (this.upgrades.extraDecoy > 0 ? 1 : 0);
+    this.decoysRemaining = this.maxDecoys;
+    this.hasShield = this.upgrades.emergencyShield > 0;
+    this.shieldActive = this.hasShield;
     this.isAlive = true;
     this.crystalsCollected = 0;
     this.totalCrystals = 3;
@@ -42,11 +46,12 @@ export class Player {
     this.onDecoySpawned = null; // (decoy) => {}
 
     if (gx !== 0 || gy !== 0) {
-      this.reset(gx, gy);
+      this.reset(gx, gy, upgrades);
     }
   }
 
-  reset(gx, gy) {
+  reset(gx, gy, upgrades = null) {
+    if (upgrades) this.upgrades = upgrades;
     this.gridX = gx;
     this.gridY = gy;
     this.targetGridX = gx;
@@ -66,7 +71,10 @@ export class Player {
     this.headingAngle = -Math.PI / 2;
     this.targetAngle = -Math.PI / 2;
     this.pingCooldownTimer = 0;
-    this.decoysRemaining = CONFIG.PLAYER.DECOYS_PER_SECTOR;
+    this.maxDecoys = CONFIG.PLAYER.DECOYS_PER_SECTOR + (this.upgrades.extraDecoy > 0 ? 1 : 0);
+    this.decoysRemaining = this.maxDecoys;
+    this.hasShield = this.upgrades.emergencyShield > 0;
+    this.shieldActive = this.hasShield;
     this.isAlive = true;
     this.deathCause = null;
     this.crystalsCollected = 0;
@@ -102,7 +110,8 @@ export class Player {
         this.pingCooldownTimer = CONFIG.PLAYER.PING_COOLDOWN;
         this.pingsUsed++;
         audioEngine.playSonarPing();
-        waveSystem.createSonarPing(this.x, this.y);
+        const rangeMultiplier = 1.0 + (this.upgrades?.sonarBooster || 0) * 0.1;
+        waveSystem.createSonarPing(this.x, this.y, rangeMultiplier);
 
         if (this.onSoundEmitted) {
           this.onSoundEmitted({
@@ -158,13 +167,14 @@ export class Player {
           waveSystem.createStepWave(this.x, this.y);
 
           if (this.onSoundEmitted) {
+            const dampenerReduction = (this.upgrades?.hydroDampener || 0) * 0.15;
             this.onSoundEmitted({
               x: this.x,
               y: this.y,
               gridX: this.gridX,
               gridY: this.gridY,
               isGlobal: false,
-              radiusTiles: CONFIG.HUNTER.HEARING_RADIUS_TILES,
+              radiusTiles: CONFIG.HUNTER.HEARING_RADIUS_TILES * (1.0 - dampenerReduction),
               intensity: 0.5,
               type: 'STEP'
             });
@@ -204,15 +214,31 @@ export class Player {
             : CONFIG.PLAYER.STEP_DURATION;
           this.isMoving = true;
         } else {
-          // LETHAL WALL COLLISION: Crash into wall & destroy drone!
-          this.deathCause = 'WALL_CRASH';
-          const crashX = this.x + move.dx * (CONFIG.TILE_SIZE * 0.45);
-          const crashY = this.y + move.dy * (CONFIG.TILE_SIZE * 0.45);
-          if (particleEngine) {
-            particleEngine.spawnSparks(crashX, crashY, CONFIG.COLORS.WALL, 24);
-            particleEngine.addShake(8, 400);
+          // Check Kinetic Emergency Shield
+          if (this.shieldActive) {
+            this.shieldActive = false; // Consume shield
+            const crashX = this.x + move.dx * (CONFIG.TILE_SIZE * 0.45);
+            const crashY = this.y + move.dy * (CONFIG.TILE_SIZE * 0.45);
+            if (particleEngine) {
+              particleEngine.spawnSparks(crashX, crashY, '#00F0FF', 32, 4.5, 45, 2.8);
+              particleEngine.spawnSparks(crashX, crashY, '#FFFFFF', 18, 3, 30, 1.5);
+              particleEngine.addShake(6, 250);
+            }
+            if (audioEngine) {
+              audioEngine.triggerHaptic('collision');
+              if (typeof audioEngine.playSonarPing === 'function') audioEngine.playSonarPing();
+            }
+          } else {
+            // LETHAL WALL COLLISION: Crash into wall & destroy drone!
+            this.deathCause = 'WALL_CRASH';
+            const crashX = this.x + move.dx * (CONFIG.TILE_SIZE * 0.45);
+            const crashY = this.y + move.dy * (CONFIG.TILE_SIZE * 0.45);
+            if (particleEngine) {
+              particleEngine.spawnSparks(crashX, crashY, CONFIG.COLORS.WALL, 24);
+              particleEngine.addShake(8, 400);
+            }
+            this.kill(audioEngine, 'WALL_CRASH');
           }
-          this.kill(audioEngine, 'WALL_CRASH');
         }
       }
     }

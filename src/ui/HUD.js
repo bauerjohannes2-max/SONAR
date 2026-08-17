@@ -1,6 +1,6 @@
 /**
  * SONAR: The Echo Chamber
- * HUD & Tactical Overlay Manager (10-Sector, Endless Echo & Mobile/PC Dual Edition)
+ * HUD & Tactical Overlay Manager (10-Sector Campaign & Mobile/PC Dual Edition)
  */
 
 import { CONFIG } from '../config.js';
@@ -65,9 +65,11 @@ export class HUD {
     } else {
       ctx.font = '600 11.5px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.fillStyle = '#9cb8c8';
-      const decoyStr = player ? `KÖDER: ${player.decoysRemaining}/1` : '';
+      const maxDecoys = (player && player.maxDecoys) ? player.maxDecoys : 1;
+      const decoyStr = player ? `KÖDER: ${player.decoysRemaining}/${maxDecoys}` : '';
       const sneakStr = (player && player.isSneaking) ? '  •  🤫 LAUTLOS' : '';
-      ctx.fillText(`${decoyStr}${sneakStr}`, this.width / 2 - 20, 19);
+      const shieldStr = (player && player.hasShield) ? (player.shieldActive ? '  •  🛡️ SCHILD' : '  •  🛡️ ENTLEERT') : '';
+      ctx.fillText(`${decoyStr}${sneakStr}${shieldStr}`, this.width / 2 - 20, 19);
     }
 
     // 4. Top Right: Animated Sonar-Frequenzbalken & Pulse Ready with Stalker Distortion
@@ -371,7 +373,7 @@ export class HUD {
 
     ctx.font = '500 12.5px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = CONFIG.COLORS.TEXT_DIM;
-    ctx.fillText('Teste deine Fähigkeiten im unendlichen Roguelike "ENDLESS ECHO".', this.width / 2, 210);
+    ctx.fillText('Sammle alle Sterne und werde zum ultimativen Piloten!', this.width / 2, 210);
 
     const buttons = [
       { text: '➔ LEVEL-ÜBERSICHT (L)', y: 300, color: CONFIG.COLORS.CRYSTAL },

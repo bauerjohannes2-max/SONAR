@@ -25,7 +25,15 @@ export class MenuSystem {
         tag: '10 SEKTOREN',
         desc: 'Station ABYSS: Berge Datenkerne aus 10 taktischen Sektoren'
       },
-      // 1. Leaderboard Tile
+      // 1. Hangar Tile
+      {
+        id: 'HANGAR',
+        title: 'HANGAR',
+        subtitle: 'Drohnen-Upgrades',
+        icon: '🚀',
+        desc: 'Taktische Drohnen-Upgrades mit Kampagnen-Sternen'
+      },
+      // 2. Leaderboard Tile
       {
         id: 'LEADERBOARD',
         title: 'BESTENLISTE',
@@ -33,18 +41,18 @@ export class MenuSystem {
         icon: '🏆',
         desc: 'Weltweite Top-Piloten & Freunde-Direktvergleich'
       },
-      // 2. Profile Tile
+      // 3. Profile Tile
       {
         id: 'PROFILE',
-        title: 'PILOTEN-PROFIL',
+        title: 'PROFIL',
         subtitle: 'Callsign & Cloud',
         icon: '👤',
         desc: 'Callsign & PIN zur Cloud-Sicherung'
       },
-      // 3. Settings Tile
+      // 4. Settings Tile
       {
         id: 'SETTINGS',
-        title: 'EINSTELLUNGEN',
+        title: 'OPTIONEN',
         subtitle: 'Audio & Touch',
         icon: '⚙️',
         desc: 'Soundtrack, Touch-Skalierung & Steuerung'
@@ -115,15 +123,15 @@ export class MenuSystem {
       }
 
       if (move.dx < 0) {
-        // LEFT: Navigate within sub-tiles (1 -> 3 wrap)
-        if (this.selectedIndex >= 1 && this.selectedIndex <= 3) {
-          this.selectedIndex = this.selectedIndex === 1 ? 3 : this.selectedIndex - 1;
+        // LEFT: Navigate within sub-tiles (1 -> 4 wrap)
+        if (this.selectedIndex >= 1 && this.selectedIndex <= 4) {
+          this.selectedIndex = this.selectedIndex === 1 ? 4 : this.selectedIndex - 1;
           if (this.audio) this.audio.playUIBlip();
         }
       } else if (move.dx > 0) {
-        // RIGHT: Navigate within sub-tiles (3 -> 1 wrap)
-        if (this.selectedIndex >= 1 && this.selectedIndex <= 3) {
-          this.selectedIndex = this.selectedIndex === 3 ? 1 : this.selectedIndex + 1;
+        // RIGHT: Navigate within sub-tiles (4 -> 1 wrap)
+        if (this.selectedIndex >= 1 && this.selectedIndex <= 4) {
+          this.selectedIndex = this.selectedIndex === 4 ? 1 : this.selectedIndex + 1;
           if (this.audio) this.audio.playUIBlip();
         }
       }
@@ -139,7 +147,7 @@ export class MenuSystem {
     if (click) {
       // 0. Pilot Status Badge Click: x 120..680, y 96..142
       if (click.x >= 120 && click.x <= 680 && click.y >= 96 && click.y <= 142) {
-        this.selectedIndex = 2;
+        this.selectedIndex = 3;
         if (this.audio) this.audio.playUIBlip();
         return 'PROFILE';
       }
@@ -153,21 +161,27 @@ export class MenuSystem {
 
       // 2. Sub-Tiles Row (y: 295..405)
       if (click.y >= 295 && click.y <= 405) {
-        // Tile 1: Leaderboard (x: 120..295)
-        if (click.x >= 120 && click.x <= 295) {
+        // Tile 1: Hangar (x: 120..247)
+        if (click.x >= 120 && click.x <= 247) {
           this.selectedIndex = 1;
+          if (this.audio) this.audio.playUIBlip();
+          return 'HANGAR';
+        }
+        // Tile 2: Leaderboard (x: 264..391)
+        if (click.x >= 264 && click.x <= 391) {
+          this.selectedIndex = 2;
           if (this.audio) this.audio.playUIBlip();
           return 'LEADERBOARD';
         }
-        // Tile 2: Profile (x: 312..487)
-        if (click.x >= 312 && click.x <= 487) {
-          this.selectedIndex = 2;
+        // Tile 3: Profile (x: 408..535)
+        if (click.x >= 408 && click.x <= 535) {
+          this.selectedIndex = 3;
           if (this.audio) this.audio.playUIBlip();
           return 'PROFILE';
         }
-        // Tile 3: Settings (x: 505..680)
-        if (click.x >= 505 && click.x <= 680) {
-          this.selectedIndex = 3;
+        // Tile 4: Settings (x: 552..680)
+        if (click.x >= 552 && click.x <= 680) {
+          this.selectedIndex = 4;
           if (this.audio) this.audio.playUIBlip();
           return 'SETTINGS';
         }
@@ -352,16 +366,17 @@ export class MenuSystem {
     ctx.fillText('[ STARTEN ▶ ]', heroX + heroW - 24, heroY + heroH / 2);
     ctx.restore();
 
-    // 7. Sub-Tiles Row: 3 Even Tiles (Leaderboard, Profile, Settings)
+    // 7. Sub-Tiles Row: 4 Even Tiles (Hangar, Leaderboard, Profile, Settings)
     const tileY = 295;
     const tileH = 106;
-    const tileW = 173;
-    const tileGap = 20;
+    const tileW = 127;
+    const tileGap = 17;
 
     const subOptions = [
       { idx: 1, opt: this.options[1] },
       { idx: 2, opt: this.options[2] },
-      { idx: 3, opt: this.options[3] }
+      { idx: 3, opt: this.options[3] },
+      { idx: 4, opt: this.options[4] }
     ];
 
     for (let i = 0; i < subOptions.length; i++) {
@@ -383,11 +398,11 @@ export class MenuSystem {
         ctx.font = '22px sans-serif';
         ctx.fillText(opt.icon, x + tileW / 2, tileY + 32);
 
-        ctx.font = '700 13px "Chakra Petch", "JetBrains Mono", monospace';
+        ctx.font = '700 12.5px "Chakra Petch", "JetBrains Mono", monospace';
         ctx.fillStyle = '#ffffff';
         ctx.fillText(opt.title, x + tileW / 2, tileY + 65);
 
-        ctx.font = '500 10.5px "Chakra Petch", "JetBrains Mono", monospace';
+        ctx.font = '500 9.5px "Chakra Petch", "JetBrains Mono", monospace';
         ctx.fillStyle = '#00f0ff';
         ctx.fillText(opt.subtitle, x + tileW / 2, tileY + 86);
       } else {
@@ -401,11 +416,11 @@ export class MenuSystem {
         ctx.font = '20px sans-serif';
         ctx.fillText(opt.icon, x + tileW / 2, tileY + 32);
 
-        ctx.font = '700 12.5px "Chakra Petch", "JetBrains Mono", monospace';
+        ctx.font = '700 12px "Chakra Petch", "JetBrains Mono", monospace';
         ctx.fillStyle = '#00f0ff';
         ctx.fillText(opt.title, x + tileW / 2, tileY + 65);
 
-        ctx.font = '500 10px "Chakra Petch", "JetBrains Mono", monospace';
+        ctx.font = '500 9.5px "Chakra Petch", "JetBrains Mono", monospace';
         ctx.fillStyle = '#5c788a';
         ctx.fillText(opt.subtitle, x + tileW / 2, tileY + 86);
       }

@@ -148,7 +148,7 @@ export class ProfileModal {
         const cloudLabel = isFbOnline ? 'CLOUD-SYNC AKTIV ★' : 'LOKAL GESICHERT';
         banner.innerHTML = `
           <div class="status-badge logged-in">SPIELER: <strong>${pilot.callsign}</strong> • [ ${cloudLabel} ]</div>
-          <div class="status-detail">Höchster Sektor: 0${pilot.unlockedSector || 1} • Endless Rekord: Etage ${pilot.endlessHighscore || 1}</div>
+          <div class="status-detail">Höchster Sektor: 0${pilot.unlockedSector || 1} • Sterne: ★ ${pilot.totalStars || 0} / 30</div>
         `;
         if (logoutBtn) logoutBtn.style.display = 'inline-block';
       }

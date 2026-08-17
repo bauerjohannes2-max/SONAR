@@ -3,7 +3,7 @@
  * Service Worker with Offline Cache-First Strategy for Instant Load Times
  */
 
-const CACHE_NAME = 'sonar-cache-v1.11.0';
+const CACHE_NAME = 'sonar-cache-v1.12.1';
 
 const ASSETS_TO_CACHE = [
   './',
@@ -31,6 +31,7 @@ const ASSETS_TO_CACHE = [
   './src/entities/Resonator.js',
   './src/entities/Decoy.js',
   './src/entities/Pickups.js',
+  './src/entities/Lighthouse.js',
   './src/ui/HUD.js',
   './src/ui/MenuSystem.js',
   './src/ui/Settings.js',
@@ -40,6 +41,7 @@ const ASSETS_TO_CACHE = [
   './src/ui/StoryIntro.js',
   './src/ui/ProfileModal.js',
   './src/ui/LeaderboardModal.js',
+  './src/ui/HangarModal.js',
   './src/services/FirebaseService.js',
   './src/services/StorageManager.js',
   './src/services/LeaderboardService.js',

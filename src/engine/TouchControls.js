@@ -122,26 +122,134 @@ export class TouchControls {
     const decoyScale = elemScales.decoy !== undefined ? elemScales.decoy : defaultScale;
     const pingScale = elemScales.ping !== undefined ? elemScales.ping : defaultScale;
 
+    // Apply dynamic gap scaling CSS variable to overlay & document
+    if (this.touchOverlay) {
+      this.touchOverlay.style.setProperty('--touch-scale', defaultScale);
+    }
+    document.documentElement.style.setProperty('--touch-scale', defaultScale);
+
     const moveEl = this.dpadContainer;
+    const actionsCluster = document.querySelector('.touch-actions');
     const sneakBtn = document.getElementById('touch-sneak');
     const decoyBtn = document.getElementById('touch-decoy');
     const pingBtn = document.getElementById('touch-ping');
 
-    if (moveEl) {
-      moveEl.style.transform = `scale(${moveScale})`;
-      moveEl.style.transformOrigin = 'bottom left';
+    const positions = this.config.positions;
+    if (positions) {
+      // Individual custom positions from TouchLayoutEditor
+      if (moveEl && positions.movement) {
+        moveEl.style.position = 'absolute';
+        moveEl.style.left = `${positions.movement.x}px`;
+        moveEl.style.top = `${positions.movement.y}px`;
+        moveEl.style.right = 'auto';
+        moveEl.style.bottom = 'auto';
+        moveEl.style.transform = `scale(${moveScale})`;
+        moveEl.style.transformOrigin = 'top left';
+      }
+      if (sneakBtn && positions.sneak) {
+        sneakBtn.style.position = 'absolute';
+        sneakBtn.style.left = `${positions.sneak.x}px`;
+        sneakBtn.style.top = `${positions.sneak.y}px`;
+        sneakBtn.style.transform = `scale(${sneakScale})`;
+        sneakBtn.style.transformOrigin = 'top left';
+      }
+      if (decoyBtn && positions.decoy) {
+        decoyBtn.style.position = 'absolute';
+        decoyBtn.style.left = `${positions.decoy.x}px`;
+        decoyBtn.style.top = `${positions.decoy.y}px`;
+        decoyBtn.style.transform = `scale(${decoyScale})`;
+        decoyBtn.style.transformOrigin = 'top left';
+      }
+      if (pingBtn && positions.ping) {
+        pingBtn.style.position = 'absolute';
+        pingBtn.style.left = `${positions.ping.x}px`;
+        pingBtn.style.top = `${positions.ping.y}px`;
+        pingBtn.style.transform = `scale(${pingScale})`;
+        pingBtn.style.transformOrigin = 'top left';
+      }
+    } else {
+      // Ergonomic cluster layout (zero-overlap guarantee)
+      if (moveEl) {
+        moveEl.style.position = '';
+        moveEl.style.left = '';
+        moveEl.style.top = '';
+        moveEl.style.right = '';
+        moveEl.style.bottom = '';
+        moveEl.style.transform = `scale(${moveScale})`;
+        moveEl.style.transformOrigin = 'bottom left';
+      }
+
+      if (actionsCluster) {
+        actionsCluster.style.position = '';
+        actionsCluster.style.left = '';
+        actionsCluster.style.top = '';
+        actionsCluster.style.right = '';
+        actionsCluster.style.bottom = '';
+        actionsCluster.style.transform = `scale(${defaultScale})`;
+        actionsCluster.style.transformOrigin = 'bottom right';
+      }
+
+      // Reset individual button transforms if matching defaultScale or apply differential
+      if (sneakBtn) {
+        sneakBtn.style.position = '';
+        sneakBtn.style.left = '';
+        sneakBtn.style.top = '';
+        sneakBtn.style.transform = (sneakScale !== defaultScale) ? `scale(${sneakScale / defaultScale})` : '';
+        sneakBtn.style.transformOrigin = 'bottom right';
+      }
+      if (decoyBtn) {
+        decoyBtn.style.position = '';
+        decoyBtn.style.left = '';
+        decoyBtn.style.top = '';
+        decoyBtn.style.transform = (decoyScale !== defaultScale) ? `scale(${decoyScale / defaultScale})` : '';
+        decoyBtn.style.transformOrigin = 'bottom right';
+      }
+      if (pingBtn) {
+        pingBtn.style.position = '';
+        pingBtn.style.left = '';
+        pingBtn.style.top = '';
+        pingBtn.style.transform = (pingScale !== defaultScale) ? `scale(${pingScale / defaultScale})` : '';
+        pingBtn.style.transformOrigin = 'bottom right';
+      }
     }
-    if (sneakBtn) {
-      sneakBtn.style.transform = `scale(${sneakScale})`;
-      sneakBtn.style.transformOrigin = 'bottom center';
+
+    this.clampWithinViewport();
+  }
+
+  clampWithinViewport() {
+    const vpW = window.innerWidth || document.documentElement.clientWidth || 800;
+    const vpH = window.innerHeight || document.documentElement.clientHeight || 600;
+    const margin = 12;
+
+    const moveEl = this.dpadContainer;
+    const actionsEl = document.querySelector('.touch-actions');
+
+    if (moveEl && moveEl.style.display !== 'none') {
+      const rect = moveEl.getBoundingClientRect();
+      if (rect.left < margin && rect.width > 0) {
+        const offset = margin - rect.left;
+        const curLeft = parseFloat(moveEl.style.left) || 16;
+        moveEl.style.left = `${curLeft + offset}px`;
+      }
+      if (rect.bottom > vpH - margin && rect.height > 0) {
+        const offset = rect.bottom - (vpH - margin);
+        const curBottom = parseFloat(moveEl.style.bottom) || 16;
+        moveEl.style.bottom = `${Math.max(margin, curBottom - offset)}px`;
+      }
     }
-    if (decoyBtn) {
-      decoyBtn.style.transform = `scale(${decoyScale})`;
-      decoyBtn.style.transformOrigin = 'bottom center';
-    }
-    if (pingBtn) {
-      pingBtn.style.transform = `scale(${pingScale})`;
-      pingBtn.style.transformOrigin = 'bottom right';
+
+    if (actionsEl && actionsEl.style.display !== 'none') {
+      const rect = actionsEl.getBoundingClientRect();
+      if (rect.right > vpW - margin && rect.width > 0) {
+        const offset = rect.right - (vpW - margin);
+        const curRight = parseFloat(actionsEl.style.right) || 16;
+        actionsEl.style.right = `${Math.max(margin, curRight - offset)}px`;
+      }
+      if (rect.bottom > vpH - margin && rect.height > 0) {
+        const offset = rect.bottom - (vpH - margin);
+        const curBottom = parseFloat(actionsEl.style.bottom) || 16;
+        actionsEl.style.bottom = `${Math.max(margin, curBottom - offset)}px`;
+      }
     }
   }
 

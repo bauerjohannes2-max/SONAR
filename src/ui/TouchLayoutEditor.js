@@ -1,6 +1,7 @@
 /**
  * SONAR: The Echo Chamber
  * Interactive Touch Layout Customizer & Drag-and-Drop Visual Editor
+ * Features Dynamic Gap Separation, Real-Time Collision Avoidance & Screen Edge Clamping
  */
 
 import { CONFIG } from '../config.js';
@@ -39,7 +40,6 @@ export class TouchLayoutEditor {
     const overlay = document.createElement('div');
     overlay.id = 'touch-layout-editor';
 
-    const isJoystick = this.currentConfig.controlType === 'JOYSTICK';
     const globalScale = this.currentConfig.scale || 1.0;
     if (!this.currentConfig.elementScales) {
       this.currentConfig.elementScales = { movement: globalScale, sneak: globalScale, decoy: globalScale, ping: globalScale };
@@ -57,7 +57,7 @@ export class TouchLayoutEditor {
             <span>🛠️</span> TOUCH-LAYOUT ANPASSEN
           </div>
           <div class="layout-editor-title-hint">
-            Verschieben per Drag & Drop • Größe einzeln über [ - ] / [ + ] (70%–160%) anpassen • Speichern
+            Verschieben per Drag & Drop • Größe einzeln über [ - ] / [ + ] (70%–160%) anpassen • Automatische Kollisionsvermeidung
           </div>
         </div>
 
@@ -75,7 +75,7 @@ export class TouchLayoutEditor {
 
       <div class="layout-editor-canvas-bounds" id="editor-workspace">
         <!-- Draggable Movement Control -->
-        <div class="layout-editable-item" id="editor-elem-move" data-item="movement" style="transform: scale(${moveScale});">
+        <div class="layout-editable-item" id="editor-elem-move" data-item="movement" style="transform: scale(${moveScale}); transform-origin: bottom left;">
           <div class="layout-element-label">
             <span>STEUERKREUZ</span>
             <div class="elem-scale-controls">
@@ -84,7 +84,7 @@ export class TouchLayoutEditor {
               <button class="btn-elem-scale" data-action="inc" data-target="movement">+</button>
             </div>
           </div>
-          <div class="touch-dpad" style="pointer-events: none;">
+          <div class="touch-dpad" style="pointer-events: none; position: static;">
             <div class="dpad-btn dpad-up">▲</div>
             <div class="dpad-btn dpad-down">▼</div>
             <div class="dpad-btn dpad-left">◀</div>
@@ -94,7 +94,7 @@ export class TouchLayoutEditor {
         </div>
 
         <!-- Draggable Sneak Button -->
-        <div class="layout-editable-item" id="editor-elem-sneak" data-item="sneak" style="transform: scale(${sneakScale});">
+        <div class="layout-editable-item" id="editor-elem-sneak" data-item="sneak" style="transform: scale(${sneakScale}); transform-origin: bottom right;">
           <div class="layout-element-label">
             <span>SCHLEICHEN</span>
             <div class="elem-scale-controls">
@@ -111,7 +111,7 @@ export class TouchLayoutEditor {
         </div>
 
         <!-- Draggable Decoy Button -->
-        <div class="layout-editable-item" id="editor-elem-decoy" data-item="decoy" style="transform: scale(${decoyScale});">
+        <div class="layout-editable-item" id="editor-elem-decoy" data-item="decoy" style="transform: scale(${decoyScale}); transform-origin: bottom right;">
           <div class="layout-element-label">
             <span>KÖDER</span>
             <div class="elem-scale-controls">
@@ -127,7 +127,7 @@ export class TouchLayoutEditor {
         </div>
 
         <!-- Draggable Ping Button -->
-        <div class="layout-editable-item" id="editor-elem-ping" data-item="ping" style="transform: scale(${pingScale});">
+        <div class="layout-editable-item" id="editor-elem-ping" data-item="ping" style="transform: scale(${pingScale}); transform-origin: bottom right;">
           <div class="layout-element-label">
             <span>PING</span>
             <div class="elem-scale-controls">
@@ -166,23 +166,113 @@ export class TouchLayoutEditor {
         el.style.left = `${pos.x}px`;
         el.style.top = `${pos.y}px`;
       } else {
-        // Fallback default positions inside workspace
-        const scale = this.currentConfig.scale || 1.0;
+        // Safe default positions inside workspace with generous gap separation
+        const scale = (this.currentConfig.elementScales && this.currentConfig.elementScales[key]) || this.currentConfig.scale || 1.0;
         if (key === 'movement') {
           el.style.left = `24px`;
-          el.style.top = `${Math.max(20, wRect.height - 150 * scale - 20)}px`;
+          el.style.top = `${Math.max(20, wRect.height - 160 * scale - 24)}px`;
         } else if (key === 'sneak') {
-          el.style.left = `${Math.max(20, wRect.width - 290 * scale)}px`;
-          el.style.top = `${Math.max(20, wRect.height - 140 * scale)}px`;
+          el.style.left = `${Math.max(20, wRect.width - 320 * scale - 24)}px`;
+          el.style.top = `${Math.max(20, wRect.height - 160 * scale - 24)}px`;
         } else if (key === 'decoy') {
-          el.style.left = `${Math.max(20, wRect.width - 150 * scale)}px`;
-          el.style.top = `${Math.max(20, wRect.height - 140 * scale)}px`;
+          el.style.left = `${Math.max(20, wRect.width - 150 * scale - 24)}px`;
+          el.style.top = `${Math.max(20, wRect.height - 160 * scale - 24)}px`;
         } else if (key === 'ping') {
-          el.style.left = `${Math.max(20, wRect.width - 240 * scale)}px`;
-          el.style.top = `${Math.max(20, wRect.height - 75 * scale)}px`;
+          el.style.left = `${Math.max(20, wRect.width - 240 * scale - 24)}px`;
+          el.style.top = `${Math.max(20, wRect.height - 80 * scale - 24)}px`;
         }
       }
     });
+
+    this.resolveAllCollisionsAndClamp();
+  }
+
+  resolveAllCollisionsAndClamp() {
+    const workspace = this.overlayEl ? this.overlayEl.querySelector('#editor-workspace') : null;
+    if (!workspace) return;
+    const wRect = workspace.getBoundingClientRect();
+    const margin = 12;
+    const topMargin = 20;
+    const items = ['movement', 'sneak', 'decoy', 'ping'];
+    const elements = items.map((key) => ({
+      key,
+      el: this.overlayEl.querySelector(`[data-item="${key}"]`)
+    })).filter((item) => item.el !== null);
+
+    // 1. Screen-Edge Clamping
+    elements.forEach(({ el }) => {
+      const rect = el.getBoundingClientRect();
+      let curX = parseFloat(el.style.left) || 0;
+      let curY = parseFloat(el.style.top) || 0;
+
+      const w = rect.width || 120;
+      const h = rect.height || 60;
+
+      curX = Math.max(margin, Math.min(wRect.width - w - margin, curX));
+      curY = Math.max(topMargin, Math.min(wRect.height - h - margin, curY));
+
+      el.style.left = `${curX}px`;
+      el.style.top = `${curY}px`;
+    });
+
+    // 2. Collision avoidance passes
+    const minDistance = 12;
+    for (let pass = 0; pass < 4; pass++) {
+      let collided = false;
+      for (let i = 0; i < elements.length; i++) {
+        for (let j = i + 1; j < elements.length; j++) {
+          const elA = elements[i].el;
+          const elB = elements[j].el;
+          const rectA = elA.getBoundingClientRect();
+          const rectB = elB.getBoundingClientRect();
+
+          const overlapX = (rectA.right + minDistance > rectB.left) && (rectA.left < rectB.right + minDistance);
+          const overlapY = (rectA.bottom + minDistance > rectB.top) && (rectA.top < rectB.bottom + minDistance);
+
+          if (overlapX && overlapY) {
+            collided = true;
+            const penX1 = (rectA.right + minDistance) - rectB.left;
+            const penX2 = (rectB.right + minDistance) - rectA.left;
+            const penY1 = (rectA.bottom + minDistance) - rectB.top;
+            const penY2 = (rectB.bottom + minDistance) - rectA.top;
+
+            const minPenX = Math.min(penX1, penX2);
+            const minPenY = Math.min(penY1, penY2);
+
+            let curAX = parseFloat(elA.style.left) || 0;
+            let curAY = parseFloat(elA.style.top) || 0;
+            let curBX = parseFloat(elB.style.left) || 0;
+            let curBY = parseFloat(elB.style.top) || 0;
+
+            if (minPenX < minPenY) {
+              const shift = (minPenX / 2) + 2;
+              if (rectA.left < rectB.left) {
+                curAX = Math.max(margin, curAX - shift);
+                curBX = Math.min(wRect.width - (rectB.width || 120) - margin, curBX + shift);
+              } else {
+                curAX = Math.min(wRect.width - (rectA.width || 120) - margin, curAX + shift);
+                curBX = Math.max(margin, curBX - shift);
+              }
+            } else {
+              const shift = (minPenY / 2) + 2;
+              if (rectA.top < rectB.top) {
+                curAY = Math.max(topMargin, curAY - shift);
+                curBY = Math.min(wRect.height - (rectB.height || 60) - margin, curBY + shift);
+              } else {
+                curAY = Math.min(wRect.height - (rectA.height || 60) - margin, curAY + shift);
+                curBY = Math.max(topMargin, curBY - shift);
+              }
+            }
+
+            elA.style.left = `${curAX}px`;
+            elA.style.top = `${curAY}px`;
+            elB.style.left = `${curBX}px`;
+            elB.style.top = `${curBY}px`;
+          }
+        }
+      }
+      if (!collided) break;
+    }
   }
 
   bindEditorEvents() {
@@ -212,6 +302,7 @@ export class TouchLayoutEditor {
           el.style.transform = `scale(${sc})`;
         });
 
+        this.resolveAllCollisionsAndClamp();
         if (this.audio) this.audio.playUIBlip();
       };
       btn.addEventListener('click', handleScale);
@@ -247,13 +338,14 @@ export class TouchLayoutEditor {
         if (valBadge) {
           valBadge.textContent = `${Math.round(cur * 100)}%`;
         }
+        this.resolveAllCollisionsAndClamp();
         if (this.audio) this.audio.playUIBlip();
       };
       btn.addEventListener('click', handleElemScale);
       btn.addEventListener('touchstart', handleElemScale, { passive: false });
     });
 
-    // Reset Button (Immediate reset of all positions and element scales to defaults)
+    // Reset Button
     const handleReset = (e) => {
       if (e) e.preventDefault();
       this.currentConfig = this.touchControls.getDefaultConfig();
@@ -272,7 +364,6 @@ export class TouchLayoutEditor {
     // Save Button
     const handleSave = (e) => {
       if (e) e.preventDefault();
-      // Record final coordinates of each element
       if (!this.currentConfig.positions) this.currentConfig.positions = {};
       const items = ['movement', 'sneak', 'decoy', 'ping'];
       items.forEach((key) => {
@@ -328,12 +419,11 @@ export class TouchLayoutEditor {
       let newX = clientX - wRect.left - this.dragOffset.x;
       let newY = clientY - wRect.top - this.dragOffset.y;
 
-      // Clamp within workspace boundaries
       const targetW = (this.dragTarget.offsetWidth || 120) * scale;
       const targetH = (this.dragTarget.offsetHeight || 120) * scale;
 
-      newX = Math.max(10, Math.min(wRect.width - targetW - 10, newX));
-      newY = Math.max(10, Math.min(wRect.height - targetH - 10, newY));
+      newX = Math.max(12, Math.min(wRect.width - targetW - 12, newX));
+      newY = Math.max(20, Math.min(wRect.height - targetH - 12, newY));
 
       this.dragTarget.style.left = `${newX}px`;
       this.dragTarget.style.top = `${newY}px`;
@@ -343,6 +433,7 @@ export class TouchLayoutEditor {
       if (this.dragTarget) {
         this.dragTarget.classList.remove('dragging');
         this.dragTarget = null;
+        this.resolveAllCollisionsAndClamp();
       }
     };
 

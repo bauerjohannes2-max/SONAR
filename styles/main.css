@@ -1106,6 +1106,10 @@ kbd {
   pointer-events: none;
 }
 
+:root {
+  --touch-scale: 1;
+}
+
 .touch-actions {
   position: absolute;
   right: max(16px, env(safe-area-inset-right, 16px));
@@ -1113,15 +1117,21 @@ kbd {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 10px;
-  pointer-events: auto !important;
+  gap: calc(12px * var(--touch-scale, 1));
+  pointer-events: none;
   touch-action: none;
+  transform-origin: bottom right;
+  transition: gap 0.15s cubic-bezier(0.4, 0, 0.2, 1), transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .touch-actions-row {
   display: flex;
-  gap: 10px;
-  pointer-events: auto !important;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: calc(10px * var(--touch-scale, 1));
+  pointer-events: none;
+  transform-origin: bottom right;
+  transition: gap 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .touch-btn {

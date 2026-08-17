@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 
-test.describe('SONAR v1.10.0 Tactical Gauntlet Loop E2E Validation', () => {
+test.describe('SONAR v1.10.1 Tactical Gauntlet Loop E2E Validation', () => {
 
   test.beforeEach(async ({ page }) => {
     page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
@@ -11,11 +11,11 @@ test.describe('SONAR v1.10.0 Tactical Gauntlet Loop E2E Validation', () => {
     });
   });
 
-  test('1. Version Endpoint & JSON Integrity (v1.10.0)', async ({ request }) => {
+  test('1. Version Endpoint & JSON Integrity (v1.10.1)', async ({ request }) => {
     const response = await request.get('/version.json');
     expect(response.ok()).toBeTruthy();
     const data = await response.json();
-    expect(data.version).toBe('1.10.0');
+    expect(data.version).toBe('1.10.1');
     expect(data.build).toBe(20260817);
   });
 
@@ -631,6 +631,82 @@ test.describe('SONAR v1.10.0 Tactical Gauntlet Loop E2E Validation', () => {
     expect(tut.card5.title).toContain('ROTE MONSTER');
     expect(tut.card5.whatIsIt).toContain('Station ABYSS');
     expect(tut.card5.howToReact).toContain('blind');
+  });
+
+  test('25. Collision-Free Touch Controls at 100%, 125%, 150% Scale in Mobile Landscape Viewports (v1.10.1)', async ({ page }) => {
+    const viewports = [
+      { width: 844, height: 390, name: 'iPhone Landscape' },
+      { width: 768, height: 500, name: 'Compact Tablet Landscape' }
+    ];
+
+    for (const vp of viewports) {
+      await page.setViewportSize({ width: vp.width, height: vp.height });
+      await page.goto('/');
+      await page.waitForSelector('#gameCanvas');
+
+      // Start game & force touch controls visible
+      await page.evaluate(() => {
+        window.game.isTouchDevice = true;
+        window.game.loadSector(0);
+        window.game.touchControls.isTouchDevice = true;
+        window.game.touchControls.setVisible(true);
+      });
+
+      const scales = [1.0, 1.25, 1.5];
+      for (const sc of scales) {
+        const overlapResult = await page.evaluate((scale) => {
+          window.game.touchControls.setScale(scale);
+
+          const dpad = document.getElementById('touch-dpad-container');
+          const sneak = document.getElementById('touch-sneak');
+          const decoy = document.getElementById('touch-decoy');
+          const ping = document.getElementById('touch-ping');
+
+          const elements = [
+            { name: 'DPAD', rect: dpad.getBoundingClientRect() },
+            { name: 'SNEAK', rect: sneak.getBoundingClientRect() },
+            { name: 'DECOY', rect: decoy.getBoundingClientRect() },
+            { name: 'PING', rect: ping.getBoundingClientRect() }
+          ];
+
+          const collisions = [];
+          for (let i = 0; i < elements.length; i++) {
+            for (let j = i + 1; j < elements.length; j++) {
+              const a = elements[i].rect;
+              const b = elements[j].rect;
+
+              // Check if rectangles overlap with positive intersection area
+              const xOverlap = Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left));
+              const yOverlap = Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+              const intersectionArea = xOverlap * yOverlap;
+
+              if (intersectionArea > 0) {
+                collisions.push({
+                  elemA: elements[i].name,
+                  elemB: elements[j].name,
+                  intersectionArea,
+                  xOverlap,
+                  yOverlap
+                });
+              }
+            }
+          }
+
+          // Check if any element goes out of viewport
+          const outOfBounds = [];
+          elements.forEach(item => {
+            if (item.rect.left < 0 || item.rect.right > window.innerWidth + 5 || item.rect.bottom > window.innerHeight + 5) {
+              outOfBounds.push({ name: item.name, rect: item.rect });
+            }
+          });
+
+          return { collisions, outOfBounds, elements };
+        }, sc);
+
+        expect(overlapResult.collisions).toEqual([]);
+        expect(overlapResult.outOfBounds).toEqual([]);
+      }
+    }
   });
 
 });

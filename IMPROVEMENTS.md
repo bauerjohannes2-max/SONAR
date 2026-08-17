@@ -1,7 +1,7 @@
 # SONAR: Continuous Improvements & Pareto-Gauntlet Roadmap
 
 > **System-Status:** Autonomer Continuous Pareto-Gauntlet-Loop aktiv  
-> **Aktuelle Version:** `v1.10.0` (Build 20260817)  
+> **Aktuelle Version:** `v1.10.1` (Build 20260817)  
 > **Zielsetzung:** Maximierung von Immersion, akustischem Thrill, visueller Brillanz und langfristiger Spieler-Retention durch das 80/20-Prinzip (80% Hebelwirkung bei 20% Umsetzungsaufwand).
 
 ---
@@ -24,6 +24,14 @@ Jeder Meilenstein und jeder Zyklus erfordert ein zwingendes Semantic Versioning 
 ---
 
 ## 🏆 Abgeschlossene Gauntlet-Zyklen (Milestones)
+
+### ✅ Zyklus 9 [v1.10.1]: Collision-Free Touch Scaling (125%–150%), Dynamic Gaps & Viewport Clamping
+- **Domäne 4 (Mobile UX & Touch Controls):**
+  - **Dynamisches Gap-Scaling:** Abstände in `.touch-actions` und `.touch-actions-row` skalieren nun dynamisch via `calc(12px * var(--touch-scale, 1))`.
+  - **Cluster-Transform & Transform-Origin:** `.touch-actions` wächst mit `transform-origin: bottom right` nach innen, D-Pad mit `bottom left` nach rechts – 0% Überlappung bei allen Skalierungen (100%, 125%, 150%).
+  - **Echtzeit-Kollisionsvermeidung:** Im Drag & Drop Touch-Layout-Editor stoßen sich Bedienelemente bei Berührung ($< 12\text{px}$) automatisch sanft voneinander ab.
+  - **Viewport-Edge-Clamping:** Bedienelemente halten bei jeder Skalierung stets mind. $12\text{px}$ Sicherheitsabstand zu Bildschirmrändern.
+- **E2E Test-Gauntlet:** 25/25 Tests erfolgreich bestanden.
 
 ### ✅ Zyklus 8 [v1.10.0]: Holistic UI/UX & Gameplay Overhaul (Major Release)
 - **Domäne 1 (UI/UX & Menü-Fokus):**

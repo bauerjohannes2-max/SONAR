@@ -1,7 +1,7 @@
 # SONAR: Continuous Improvements & Pareto-Gauntlet Roadmap
 
 > **System-Status:** Autonomer Continuous Pareto-Gauntlet-Loop aktiv  
-> **Aktuelle Version:** `v1.8.1` (Build 20260817)  
+> **Aktuelle Version:** `v1.9.0` (Build 20260817)  
 > **Zielsetzung:** Maximierung von Immersion, akustischem Thrill, visueller Brillanz und langfristiger Spieler-Retention durch das 80/20-Prinzip (80% Hebelwirkung bei 20% Umsetzungsaufwand).
 
 ---
@@ -10,7 +10,7 @@
 
 Jeder Meilenstein und jeder Zyklus erfordert ein zwingendes Semantic Versioning (**SemVer**):
 - **PATCH-Bump (`1.x.y` → `1.x.(y+1)`):** Bugfixes, UI-Polish, CSS-Tweaks, isolierte Touch-Korrekturen.
-- **MINOR-Bump (`1.x.0` → `1.(x+1).0`):** Neue Features (z. B. dynamisches Herzschlag-Audiosystem, Hydrodynamic Trail, 3-Sterne-Medaillensystem).
+- **MINOR-Bump (`1.x.0` → `1.(x+1).0`):** Neue Features (z. B. 3-Sterne-Medaillensystem, dynamisches Herzschlag-Audiosystem, Hydrodynamic Trail).
 - **MAJOR-Bump (`x.0.0` → `(x+1).0.0`):** Umfassendes Architektur-Rework oder bahnbrechende Versionssprünge.
 
 **Verbindliche 6-Punkte-Synchronisation pro Zyklus:**
@@ -25,58 +25,61 @@ Jeder Meilenstein und jeder Zyklus erfordert ein zwingendes Semantic Versioning 
 
 ## 🏆 Abgeschlossene Gauntlet-Zyklen (Milestones)
 
+### ✅ Zyklus 4 [v1.9.0]: 3-Star Tactical Precision Rating & Sector Medal System
+- **Domäne 5 (Onboarding, Progression & Gamification) & Domäne 3 (Core Gameloop):**
+  - **3-Sterne-Bewertungssystem:**
+    - ★ **Stern 1 (Bergung):** Sektor erfolgreich abgeschlossen.
+    - ★★ **Stern 2 (Stealth-Disziplin):** Maximal 2 Sonar-Pings eingesetzt (`pingsUsed <= 2`).
+    - ★★★ **Stern 3 (Apex-Pilot):** Sektor in Bestzeit unter 28s und maximal 3 Pings absolviert (`rank === 'S'`).
+  - **Goldene Sterne im Sektor-Auswahlmenü:** Kacheln zeigen goldene Sterne `★ ★ ★` und Rangabzeichen an.
+  - **Medaillen-Header:** Anzeige des Gesamtfortschritts `★ X / 30 STERNE GESAMMELT` im Sektor-Menü.
+  - **Victory-Card Polish:** HUD `renderSectorCleared` präsentiert gold glühende Sterne über den Missionsstatistiken.
+- **E2E Test-Gauntlet:** 15/15 Tests erfolgreich bestanden.
+
 ### ✅ Zyklus 3 [v1.8.1]: Strict Multi-User Profile Isolation & Update Engine Loop Fix
-- **Domäne 5 (Onboarding & User Profiles) & Domäne 4 (UX):**
-  - **Strikte Spieler-Trennung:** Jeder Pilot besitzt einen isolierten Datensatz (`sonar_pilot_${CALLSIGN}`). Kein Level-Bleeding mehr zwischen verschiedenen Konten (z. B. Pilot A auf Level 5 vs. Pilot B auf Level 3).
-  - **Gast-Modus Entkopplung:** Beim Abmelden wird ein neutraler Gast-Stand (`sonar_guest_progress`) geladen, ohne vorherige Spielstände zu kontaminieren.
-  - **Update-Banner Fix:** Deep ServiceWorker Unregistration & Cache-Purging beim Klick auf `[ JETZT AKTUALISIEREN ]` verhindert Update-Endlosschleifen.
-  - **Auto-Banner Cleanup:** Das Banner schließt sich automatisch, sobald die aktuelle Version aktiv ist.
-- **E2E Test-Gauntlet:** 14/14 Tests erfolgreich bestanden.
+- **Domäne 5 (User Profiles) & Domäne 4 (UX):**
+  - Strikte Spieler-Trennung (`sonar_pilot_${CALLSIGN}`) verhindert Level-Bleeding zwischen Profilen.
+  - Neutraler Gast-Modus beim Abmelden (`sonar_guest_progress`).
+  - Deep ServiceWorker Deregistrierung & harter Cache-Busting-Reload bei Updates.
+- **E2E Test-Gauntlet:** 14/14 Tests bestanden.
 
 ### ✅ Zyklus 2 [v1.8.0]: Hydrodynamic Wake Trail & Acoustic Wall Reflection Sparks
-- **Domäne 1 (Visuelles Feedback & Game-Juice):**
-  - Neuer Partikeltyp `WAKE_TRAIL` mit additivem Blending (`lighter`), weichem Phosphor-Gleiten und Turbulenz-Drift.
-  - 100%ige optische Unterdrückung im Schleichgang (`SNEAK`) für sofort spürbares Stealth-Feedback.
-- **Domäne 3 (Core Gameloop & Wellenphysik):**
-  - Implementierung von `WaveSystem.update(dt, gridMap, particleEngine)` mit Kantenreflexion: Beim Auftreffen von Schallwellen auf unbeleuchtete Wände (`TILES.WALL`) entstehen feine, weiße & cyanfarbene Funken (*Acoustic Reflection Sparks*).
+- **Domäne 1 (Visuelles Feedback) & Domäne 3 (Wellenphysik):**
+  - Partikeltyp `WAKE_TRAIL` mit 100% Stealth-Unterdrückung im Schleichgang (`SNEAK`).
+  - Akustische Reflexionsfunken beim Auftreffen von Schallwellen auf Wände.
 - **E2E Test-Gauntlet:** 12/12 Tests bestanden.
 
 ### ✅ Zyklus 1 [v1.7.0]: Dynamic Heartbeat Audio, Mobile Touch UX & Escape Portal Beacon
-- **Domäne 2 (Audio & Soundscape) & Domäne 1 (Game-Juice):**
-  - Implementierung von `AudioEngine.updateHeartbeat(minDist, isChasing, dt)` mit adaptivem Muffled Sub-Bass Pulse (Lub-Dub, 48 Hz → 22 Hz).
-  - Dynamische BPM-Modulation von 52 BPM (Distanz < 220px) bis zu 160 BPM bei aktiver Jäger-Verfolgung (`CHASE`).
-  - Taktile Mobile-Haptik-Synchronisation (`triggerHaptic('heartbeat')`).
-- **Domäne 4 (Mobile UX & Controls):**
-  - Vollständiges Touch-Scrolling für Modals & Einstellungsdialog (`touch-action: pan-y`, `-webkit-overflow-scrolling: touch`, `overscroll-behavior: contain`).
-- **Domäne 3 (Core Gameloop):**
-  - Escape Portal Beacon-Wellen & HUD-Wayfinder-Navigation bei vollständiger Kristallbergung.
+- **Domäne 2 (Audio) & Domäne 4 (Mobile UX):**
+  - Prozeduraler Herzschlag-Sub-Bass (52–160 BPM) mit Mobile-Haptik bei Feindnähe.
+  - Touch-Scrolling für Modals & Escape Portal Beacon-Wellen.
 - **E2E Test-Gauntlet:** 11/11 Tests bestanden.
 
 ---
 
 ## 🎯 Top 5 Priorisierte Pareto-Maßnahmen (Nächste Zyklen)
 
-### 1. Sektor-Medaillensystem & 3-Sterne Stealth-Bewertung (Tactical Precision Rating)
-- **Domäne:** 5 (Onboarding & Progression)
-- **80/20 Hebel:** 3-Sterne-Wertung pro Sektor (★ Bergung, ★★ Max 1 Sonar-Ping, ★★★ Par-Zeit ohne Entdeckung). Zeigt goldene Medaillen-Sterne im Sektor-Auswahlmenü an und maximiert den Wiederspielwert.
-- **Module:** `src/world/levels.js`, `src/services/StorageManager.js`, `src/ui/MenuSystem.js`, `src/main.js`.
-
-### 2. Sonar-Frequenz-Störung & Glitch-Effekt bei Stalker-Nähe (Electromagnetic Distortion)
+### 1. Sonar-Frequenz-Störung & Glitch-Effekt bei Stalker-Nähe (Electromagnetic Distortion)
 - **Domäne:** 1 (Visuelles Feedback) & 2 (Audio & Soundscape)
-- **80/20 Hebel:** Befindet sich die Schatten-Raubdrohne (`STALKER`) lautlos in der Nähe, flackert der Sonar-Frequenzbalken im HUD mit subtilem VHS-Glitch und erzeugt leises elektromagnetisches Knistern, bevor der Stalker zuschlägt.
+- **80/20 Hebel:** Befindet sich die Schatten-Raubdrohne (`STALKER`) lautlos in der Nähe, flackert der Sonar-Frequenzbalken im HUD mit subtilem VHS-Glitch und erzeugt leises elektromagnetisches Knistern.
 - **Module:** `src/ui/HUD.js`, `src/engine/AudioEngine.js`, `src/entities/Stalker.js`.
 
-### 3. Kristall-Resonanz-Echo & Ambient Sparkle (Audio & Visual Resonance)
+### 2. Kristall-Resonanz-Echo & Ambient Sparkle (Audio & Visual Resonance)
 - **Domäne:** 2 (Audio & Soundscape) & 3 (Core Gameloop)
 - **80/20 Hebel:** Noch ungesammelte Kristalle erzeugen bei Wellenberührung ein sanftes, melodisches Chime-Echo, wodurch erfahrene Spieler Kacheln im Labyrinth auditiv lokalisieren können.
 - **Module:** `src/entities/Pickups.js`, `src/engine/AudioEngine.js`, `src/engine/CanvasRenderer.js`.
 
-### 4. Freier Touch-Element-Reset & Haptischer Klick auf Buttons (Tactile Polish)
+### 3. Taktiler Klick auf Touch-Buttons & Sofort-Reset im Touch-Editor (Tactile Polish)
 - **Domäne:** 4 (Mobile UX & Controls)
 - **80/20 Hebel:** Taktile Haptik bei allen Touch-Buttons (D-Pad, Ping, Sneak, Decoy) via `navigator.vibrate(8)` und Sofort-Reset im Touch-Editor.
 - **Module:** `src/engine/TouchControls.js`, `src/ui/TouchLayoutEditor.js`.
 
-### 5. Ghost-Echo Replay-Projektion für Rekord-Läufe (Holographic Shadow Drone)
+### 4. Ghost-Echo Replay-Projektion für Rekord-Läufe (Holographic Shadow Drone)
 - **Domäne:** 5 (Progression & Marketing) & 3 (Core Gameloop)
 - **80/20 Hebel:** Zeichnet die beste persönliche Zeit für jeden Sektor auf und visualisiert sie als transparente Geister-Drohne (Ghost ECHO-7) für Speedrunner.
 - **Module:** `src/services/StorageManager.js`, `src/entities/Player.js`, `src/engine/CanvasRenderer.js`.
+
+### 5. Schockwellen-Verzerrungs-Shader auf Canvas (Radial Displacement Ring)
+- **Domäne:** 1 (Visuelles Feedback & Game-Juice)
+- **80/20 Hebel:** Wellenfronten verzerren die umgebenden Kacheln minimal radial für spürbare akustische Wucht.
+- **Module:** `src/engine/WaveSystem.js`, `src/engine/CanvasRenderer.js`.

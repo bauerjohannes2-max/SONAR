@@ -245,8 +245,13 @@ export class Player {
     else if (this.timeElapsed <= 60) rank = 'B';
     else rank = 'C';
 
+    let stars = 1; // 1 Star: Sector Cleared
+    if (this.pingsUsed <= 2) stars++; // 2 Stars: Stealth Discipline (max 2 pings)
+    if (rank === 'S' || (this.timeElapsed <= 28 && this.pingsUsed <= 3)) stars = 3; // 3 Stars: Apex Pilot
+
     return {
       rank,
+      stars,
       time: this.timeElapsed,
       pingsUsed: this.pingsUsed,
       stepsTaken: this.stepsTaken,

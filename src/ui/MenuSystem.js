@@ -517,20 +517,30 @@ export class MenuSystem {
 
     // Header
     ctx.font = '700 24px "Chakra Petch", "JetBrains Mono", monospace';
-    ctx.fillStyle = '#00f0ff';
-    ctx.fillText('SEKTOR-AUSWAHL • 10 SEKTOREN', CONFIG.CANVAS_WIDTH / 2, 52);
+    // Calculate total earned stars
+    let totalStars = 0;
+    for (let i = 1; i <= totalSectors; i++) {
+      const st = this.sectorStats[i];
+      if (st) {
+        totalStars += st.stars || (st.rank === 'S' ? 3 : (st.rank === 'A' ? 2 : 1));
+      }
+    }
 
-    ctx.font = '500 12px "Chakra Petch", "JetBrains Mono", monospace';
-    ctx.fillStyle = '#607b8b';
-    ctx.fillText(`FREIGESCHALTET: SEKTOR 01 BIS 0${Math.min(10, this.unlockedSector)}`, CONFIG.CANVAS_WIDTH / 2, 84);
+    ctx.font = '700 24px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.fillStyle = '#00f0ff';
+    ctx.fillText('SEKTOR-AUSWAHL • 10 SEKTOREN', CONFIG.CANVAS_WIDTH / 2, 48);
+
+    ctx.font = '600 12px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.fillStyle = '#FFD700';
+    ctx.fillText(`★ ${totalStars} / 30 STERNE GESAMMELT • FREIGESCHALTET: 0${Math.min(10, this.unlockedSector)}`, CONFIG.CANVAS_WIDTH / 2, 78);
 
     // 2x5 Grid of Sector Cards
     const startX = 70;
-    const startY = 120;
+    const startY = 110;
     const cardW = 120;
-    const cardH = 120;
+    const cardH = 130;
     const gapX = 18;
-    const gapY = 24;
+    const gapY = 20;
 
     for (let i = 0; i < totalSectors; i++) {
       const col = i % 5;
@@ -561,32 +571,39 @@ export class MenuSystem {
       ctx.textAlign = 'center';
 
       if (isUnlocked) {
-        ctx.font = '700 15px "Chakra Petch", "JetBrains Mono", monospace';
+        ctx.font = '700 14.5px "Chakra Petch", "JetBrains Mono", monospace';
         ctx.fillStyle = isSelected ? '#FFFFFF' : '#00f0ff';
-        ctx.fillText(`SEKTOR ${numStr}`, x + cardW / 2, y + 24);
+        ctx.fillText(`SEKTOR ${numStr}`, x + cardW / 2, y + 22);
 
         if (lvl && lvl.subtitle) {
           ctx.font = '600 9.5px "Chakra Petch", "JetBrains Mono", monospace';
           ctx.fillStyle = isSelected ? '#a0f0ff' : '#00c8d8';
-          ctx.fillText(lvl.subtitle, x + cardW / 2, y + 42);
+          ctx.fillText(lvl.subtitle, x + cardW / 2, y + 38);
         }
 
         if (stats) {
-          ctx.font = '700 12.5px "Chakra Petch", "JetBrains Mono", monospace';
+          const starsEarned = stats.stars || (stats.rank === 'S' ? 3 : (stats.rank === 'A' ? 2 : 1));
+          const starStr = starsEarned >= 3 ? '★ ★ ★' : (starsEarned === 2 ? '★ ★ ☆' : '★ ☆ ☆');
+
+          ctx.font = '700 13px "JetBrains Mono", monospace';
+          ctx.fillStyle = '#FFD700';
+          ctx.fillText(starStr, x + cardW / 2, y + 60);
+
+          ctx.font = '700 12px "Chakra Petch", "JetBrains Mono", monospace';
           ctx.fillStyle = stats.rank === 'S' ? '#FFE600' : '#00ff88';
-          ctx.fillText(`RANG ${stats.rank}`, x + cardW / 2, y + 68);
+          ctx.fillText(`RANG ${stats.rank}`, x + cardW / 2, y + 82);
 
           ctx.font = '500 10.5px "Chakra Petch", "JetBrains Mono", monospace';
           ctx.fillStyle = '#607b8b';
-          ctx.fillText(`${stats.time.toFixed(1)}s`, x + cardW / 2, y + 92);
+          ctx.fillText(`${stats.time.toFixed(1)}s`, x + cardW / 2, y + 104);
         } else {
           ctx.font = '600 11px "Chakra Petch", "JetBrains Mono", monospace';
           ctx.fillStyle = '#00ff88';
-          ctx.fillText('BEREIT', x + cardW / 2, y + 72);
+          ctx.fillText('BEREIT', x + cardW / 2, y + 66);
 
           ctx.font = '500 9.5px "Chakra Petch", "JetBrains Mono", monospace';
           ctx.fillStyle = '#607b8b';
-          ctx.fillText('3 DATENKERNE', x + cardW / 2, y + 92);
+          ctx.fillText('3 DATENKERNE', x + cardW / 2, y + 90);
         }
       } else {
         ctx.font = '700 15px "Chakra Petch", "JetBrains Mono", monospace';

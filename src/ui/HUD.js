@@ -217,11 +217,22 @@ export class HUD {
       : `SEKTOR 0${currentSectorIndex + 1} GESICHERT!`;
     ctx.fillText(title, this.width / 2, 75);
 
-    // Rank Badge
+    // Rank Badge & 3-Star Rating
     const rank = stats.rank || 'A';
-    ctx.font = '700 44px "Chakra Petch", "JetBrains Mono", monospace';
+    const stars = stats.stars || (rank === 'S' ? 3 : (stats.pingsUsed <= 2 ? 2 : 1));
+
+    ctx.font = '700 38px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = rank === 'S' ? '#FFE600' : (rank === 'A' ? CONFIG.COLORS.CRYSTAL : CONFIG.COLORS.PLAYER);
-    ctx.fillText(`RANG ${rank}`, this.width / 2, 140);
+    ctx.fillText(`RANG ${rank}`, this.width / 2, 125);
+
+    // Render Star Icons (Gold for earned, Dark for unearned)
+    const starText = (stars >= 3 ? '★ ★ ★' : (stars === 2 ? '★ ★ ☆' : '★ ☆ ☆'));
+    ctx.font = '700 20px "JetBrains Mono", monospace';
+    ctx.fillStyle = '#FFD700';
+    ctx.shadowColor = 'rgba(255, 215, 0, 0.6)';
+    ctx.shadowBlur = 10;
+    ctx.fillText(starText, this.width / 2, 155);
+    ctx.shadowBlur = 0;
 
     // Performance Stats Box
     const boxW = 400;

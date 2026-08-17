@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 
-test.describe('SONAR v1.8.1 Profile Isolation & Update Engine E2E Validation', () => {
+test.describe('SONAR v1.9.0 3-Star Tactical Precision Rating E2E Validation', () => {
 
   test.beforeEach(async ({ page }) => {
     page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
@@ -11,11 +11,11 @@ test.describe('SONAR v1.8.1 Profile Isolation & Update Engine E2E Validation', (
     });
   });
 
-  test('1. Version Endpoint & JSON Integrity (v1.8.1)', async ({ request }) => {
+  test('1. Version Endpoint & JSON Integrity (v1.9.0)', async ({ request }) => {
     const response = await request.get('/version.json');
     expect(response.ok()).toBeTruthy();
     const data = await response.json();
-    expect(data.version).toBe('1.8.1');
+    expect(data.version).toBe('1.9.0');
     expect(data.build).toBe(20260817);
   });
 
@@ -355,7 +355,7 @@ test.describe('SONAR v1.8.1 Profile Isolation & Update Engine E2E Validation', (
     expect(result.bRestoredSector).toBe(3); // Pilot B keeps Level 3!
   });
 
-  test('14. Auto-Update Banner Disappearance when running Current Version (v1.8.1)', async ({ page }) => {
+  test('14. Auto-Update Banner Disappearance when running Current Version (v1.9.0)', async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('#gameCanvas');
 
@@ -365,6 +365,42 @@ test.describe('SONAR v1.8.1 Profile Isolation & Update Engine E2E Validation', (
     });
 
     expect(bannerExists).toBeFalsy();
+  });
+
+  test('15. 3-Star Tactical Precision Rating & S-Rank Calculation (v1.9.0)', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    const result = await page.evaluate(() => {
+      window.game.loadSector(0);
+      const player = window.game.player;
+
+      // Case 1: Apex Run (time <= 25s, pings <= 2) -> 3 Stars & S-Rank
+      player.timeElapsed = 18.5;
+      player.pingsUsed = 1;
+      const apexStats = player.calculateRank();
+
+      // Case 2: Good Run (time 35s, pings <= 2) -> 2 Stars & A-Rank
+      player.timeElapsed = 35.0;
+      player.pingsUsed = 2;
+      const goodStats = player.calculateRank();
+
+      // Case 3: Slow & Heavy Pings (time 55s, pings 8) -> 1 Star & B-Rank
+      player.timeElapsed = 55.0;
+      player.pingsUsed = 8;
+      const normalStats = player.calculateRank();
+
+      return { apexStats, goodStats, normalStats };
+    });
+
+    expect(result.apexStats.stars).toBe(3);
+    expect(result.apexStats.rank).toBe('S');
+
+    expect(result.goodStats.stars).toBe(2);
+    expect(result.goodStats.rank).toBe('A');
+
+    expect(result.normalStats.stars).toBe(1);
+    expect(result.normalStats.rank).toBe('B');
   });
 
 });

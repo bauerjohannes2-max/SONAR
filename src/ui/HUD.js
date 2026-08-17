@@ -195,13 +195,38 @@ export class HUD {
     ctx.textBaseline = 'middle';
     ctx.shadowBlur = 0;
 
-    ctx.font = '700 28px "Chakra Petch", "JetBrains Mono", monospace';
+    // 10. Todesursachen-Stempel (Distressed Military Warning Stamp)
+    ctx.save();
+    ctx.translate(this.width / 2, 58);
+    ctx.rotate(-0.04);
+
+    const stampText = deathCause === 'WALL_CRASH'
+      ? '☠ STATUS: WAND-CRASH'
+      : '☠ STATUS: DURCH JÄGER DESTABILISIERT';
+
+    ctx.font = '800 12.5px "Share Tech Mono", "JetBrains Mono", monospace';
+    const textWidth = ctx.measureText(stampText).width;
+
+    ctx.fillStyle = 'rgba(255, 30, 68, 0.18)';
+    ctx.fillRect(-textWidth / 2 - 14, -14, textWidth + 28, 28);
+
+    ctx.strokeStyle = '#FF1E44';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(-textWidth / 2 - 14, -14, textWidth + 28, 28);
+
+    ctx.shadowColor = '#FF1E44';
+    ctx.shadowBlur = 10;
+    ctx.fillStyle = '#FF5577';
+    ctx.fillText(stampText, 0, 1);
+    ctx.restore();
+
+    ctx.font = '700 26px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = CONFIG.COLORS.HUNTER;
 
     const title = deathCause === 'WALL_CRASH'
       ? 'DROHNEN-KOLLISION • AN WAND ZERSCHELLT'
       : 'SIGNAL VERLOREN • ELIMINIERT';
-    ctx.fillText(title, this.width / 2, 110);
+    ctx.fillText(title, this.width / 2, 114);
 
     ctx.font = '500 13px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = '#ff8899';
@@ -210,7 +235,7 @@ export class HUD {
       : (isEndless
         ? `Drohne auf Etage ${floor} zerstört • Feindkontakt`
         : `Drohne in Sektor 0${sectorIndex + 1} zerstört • Feindkontakt`);
-    ctx.fillText(subText, this.width / 2, 160);
+    ctx.fillText(subText, this.width / 2, 162);
 
     const buttons = [
       { text: '↺ SEKTOR-NEUSTART (R / SPACE)', y: 240, color: CONFIG.COLORS.HUNTER },

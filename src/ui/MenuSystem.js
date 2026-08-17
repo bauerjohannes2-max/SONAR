@@ -513,13 +513,22 @@ export class MenuSystem {
           ctx.fillStyle = '#607b8b';
           ctx.fillText(`${stats.time.toFixed(1)}s`, x + cardW / 2, y + 106);
         } else {
-          ctx.font = '600 11px "Chakra Petch", "JetBrains Mono", monospace';
-          ctx.fillStyle = '#00ff88';
-          ctx.fillText('BEREIT', x + cardW / 2, y + 66);
+          // Newly Unlocked Sector (Level-Unlock visual sparkle)
+          const lockPulse = 0.8 + 0.2 * Math.sin(Date.now() * 0.006);
+          ctx.save();
+          ctx.font = '16px "JetBrains Mono", monospace';
+          ctx.shadowColor = '#FFD700';
+          ctx.shadowBlur = 12 * lockPulse;
+          ctx.fillText('🔓', x + cardW / 2, y + 54);
+          ctx.restore();
+
+          ctx.font = '700 11.5px "Chakra Petch", "JetBrains Mono", monospace';
+          ctx.fillStyle = '#FFD700';
+          ctx.fillText('FREIGESCHALTET', x + cardW / 2, y + 76);
 
           ctx.font = '500 9.5px "Chakra Petch", "JetBrains Mono", monospace';
           ctx.fillStyle = '#607b8b';
-          ctx.fillText('3 DATENKERNE', x + cardW / 2, y + 90);
+          ctx.fillText('3 DATENKERNE', x + cardW / 2, y + 96);
         }
       } else {
         ctx.font = '700 15px "Chakra Petch", "JetBrains Mono", monospace';
@@ -534,7 +543,7 @@ export class MenuSystem {
 
         ctx.font = '700 11.5px "Chakra Petch", "JetBrains Mono", monospace';
         ctx.fillStyle = '#883344';
-        ctx.fillText('GESPERRT', x + cardW / 2, y + 78);
+        ctx.fillText('🔒 GESPERRT', x + cardW / 2, y + 78);
       }
       ctx.restore();
     }

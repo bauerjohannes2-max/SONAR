@@ -1,7 +1,7 @@
 # SONAR: Continuous Improvements & Pareto-Gauntlet Roadmap
 
 > **System-Status:** Autonomer Continuous Pareto-Gauntlet-Loop aktiv  
-> **Aktuelle Version:** `v1.10.2` (Build 20260817)  
+> **Aktuelle Version:** `v1.11.0` (Build 20260817)  
 > **Zielsetzung:** Maximierung von Immersion, akustischem Thrill, visueller Brillanz und langfristiger Spieler-Retention durch das 80/20-Prinzip (80% Hebelwirkung bei 20% Umsetzungsaufwand).
 
 ---
@@ -24,6 +24,19 @@ Jeder Meilenstein und jeder Zyklus erfordert ein zwingendes Semantic Versioning 
 ---
 
 ## 🏆 Abgeschlossene Gauntlet-Zyklen (Milestones)
+
+### ✅ Phase 1 [v1.11.0]: The 10 Quick-Wins (Instant Dopamine & Haptic Boost)
+- **1. Kristall-Tonleiter:** Jeder gesammelte Kristall spielt den Chime in der pentatonischen Tonleiter höher ($C \to D \to E \to G \to A \to C5$).
+- **2. Haptisches Feedback:** Feine Mobile-Vibration (`navigator.vibrate`) bei Pings, Kristallen, Gefahr und Kollisionen.
+- **3. Danger-Vignette:** Pulsierender roter Rand & Radial-Glow bei Feindnähe (< 4 Blöcke / < 128px).
+- **4. Thruster-Bläschen:** Feine hydrodynamische Wasserbläschen (`BUBBLE`) beim Bewegen der Drohne.
+- **5. Instant-Quick-Restart:** Sofortiger Neustart bei Druck auf Taste <kbd>R</kbd> oder mobilem Doppel-Tap bei `DYING` / `GAME_OVER`.
+- **6. Victory Slow-Motion:** 0.6s Zeitlupe + greller weiß-grüner Licht-Flash beim Betreten des Fluchtportals.
+- **7. Ghost-Spur:** Zarter, nach 1.5s sanft verblassender Biolumineszenz-Pfad (`DRONE_GHOST`) hinter der Drohne.
+- **8. Muffled-Audio:** Low-Pass-Biquad-Filter (420Hz) auf Musik/Sounds während des Schleich-Modus.
+- **9. Level-Unlock Animation:** Aufspringendes Schloss `🔓` mit funkelndem Gold-Glow bei neu freigeschalteten Sektoren.
+- **10. Todesursachen-Stempel:** Hochkontrastiger Militär-Warnstempel (`☠ STATUS: WAND-CRASH` vs. `☠ STATUS: DURCH JÄGER DESTABILISIERT`).
+- **E2E Test-Gauntlet:** 26/26 Tests erfolgreich bestanden.
 
 ### ✅ Phase 0 [v1.10.2]: Touch-Editor Cancel & Reset Buttons, Session Rollback & 14px Dynamic Gap Scaling
 - **Domäne 4 (Mobile UX & Touch Controls):**

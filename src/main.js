@@ -157,6 +157,8 @@ export class Game {
     this.totalSectors = LEVELS.length; // 10
     this.deathCause = null;
     this.deathTimer = 0;
+    this.victorySlowMoTimer = 0;
+    this.victoryFlashAlpha = 0;
 
     // Entities & World
     this.gridMap = null;
@@ -410,7 +412,17 @@ export class Game {
   }
 
   update(dt) {
-    this.gameTime += dt;
+    let effectiveDt = dt;
+    if (this.victorySlowMoTimer > 0) {
+      this.victorySlowMoTimer -= dt;
+      effectiveDt = dt * 0.35; // 0.6s Victory Slow-Motion
+    }
+    if (this.victoryFlashAlpha > 0) {
+      this.victoryFlashAlpha = Math.max(0, this.victoryFlashAlpha - dt * 2.0);
+    }
+
+    this.gameTime += effectiveDt;
+    dt = effectiveDt;
 
     if (this.inputHandler && typeof this.inputHandler.consumeSettings === 'function' && this.inputHandler.consumeSettings()) {
       const isGameplay = this.gameState === CONFIG.STATES.PLAYING || this.gameState === CONFIG.STATES.PAUSED || this.gameState === CONFIG.STATES.ENDLESS;
@@ -582,6 +594,10 @@ export class Game {
       }
 
       case CONFIG.STATES.DYING: {
+        if (this.inputHandler.consumeRestart()) {
+          this.restartLevel();
+          break;
+        }
         this.deathTimer -= dt;
         this.waveSystem.update(dt, this.gridMap);
         this.particleEngine.update(dt);
@@ -701,11 +717,16 @@ export class Game {
       if (!c.collected) {
         remainingCrystals++;
         if (c.checkPickup(this.player.gridX, this.player.gridY)) {
-          this.audioEngine.playCrystalPickup();
+          this.audioEngine.playCrystalPickup(this.player.crystalsCollected);
           this.particleEngine.spawnSparks(c.x, c.y, CONFIG.COLORS.CRYSTAL, 16);
           this.particleEngine.addShake(3, 150);
         }
       }
+    }
+
+    // Update Muffled Audio for Sneaking
+    if (this.audioEngine && typeof this.audioEngine.setSneakMode === 'function') {
+      this.audioEngine.setSneakMode(this.player ? this.player.isSneaking : false);
     }
 
     // 5. Update Gate
@@ -808,6 +829,15 @@ export class Game {
   onSectorCleared() {
     this.audioEngine.playSectorClear();
     this.sectorClearStats = this.player.calculateRank();
+
+    const portalX = this.gate ? this.gate.x : (this.player ? this.player.x : CONFIG.CANVAS_WIDTH / 2);
+    const portalY = this.gate ? this.gate.y : (this.player ? this.player.y : CONFIG.CANVAS_HEIGHT / 2);
+    this.particleEngine.spawnSparks(portalX, portalY, '#FFFFFF', 50, 5, 45, 3);
+    this.particleEngine.spawnSparks(portalX, portalY, '#00FF88', 40, 4, 35, 2);
+    this.particleEngine.addShake(8, 350);
+
+    this.victorySlowMoTimer = 0.6;
+    this.victoryFlashAlpha = 1.0;
 
     if (!this.isEndlessActive) {
       this.menuSystem.saveProgress(this.currentSectorIndex + 1, this.sectorClearStats);
@@ -951,6 +981,14 @@ export class Game {
       case CONFIG.STATES.VICTORY:
         this.hud.renderVictory(time);
         break;
+    }
+
+    // 6. Victory Slow-Mo Light-Flash Pass
+    if (this.victoryFlashAlpha > 0.01) {
+      ctx.save();
+      ctx.fillStyle = `rgba(255, 255, 255, ${this.victoryFlashAlpha * 0.75})`;
+      ctx.fillRect(0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
+      ctx.restore();
     }
   }
 

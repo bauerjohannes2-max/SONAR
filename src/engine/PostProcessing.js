@@ -81,19 +81,30 @@ export class PostProcessing {
       ctx.drawImage(this.vignetteCanvas, 0, 0);
     }
 
-    // 2. Predator Proximity Tension Pass (Pulsing Red Threat Aberration)
+    // 2. Predator Proximity Tension Pass (Pulsing Red Threat Aberration & Radial Danger Vignette)
     if (this.tension > 0.05) {
-      const pulse = 0.5 + 0.5 * Math.sin(time * 10);
-      const intensity = this.tension * pulse;
+      const pulse = 0.5 + 0.5 * Math.sin(time * 9);
+      const intensity = this.tension * (0.6 + 0.4 * pulse);
 
-      ctx.strokeStyle = `rgba(255, 30, 68, ${intensity * 0.4})`;
-      ctx.lineWidth = 4 * this.tension;
+      // Radial Danger Vignette
+      const cx = this.width / 2;
+      const cy = this.height / 2;
+      const r = Math.sqrt(cx * cx + cy * cy);
+      const dangerGrad = ctx.createRadialGradient(cx, cy, r * 0.4, cx, cy, r);
+      dangerGrad.addColorStop(0, 'rgba(255, 0, 40, 0)');
+      dangerGrad.addColorStop(0.7, `rgba(255, 20, 50, ${intensity * 0.18})`);
+      dangerGrad.addColorStop(1, `rgba(255, 10, 40, ${intensity * 0.42})`);
+      ctx.fillStyle = dangerGrad;
+      ctx.fillRect(0, 0, this.width, this.height);
+
+      ctx.strokeStyle = `rgba(255, 30, 68, ${intensity * 0.65})`;
+      ctx.lineWidth = Math.max(2, 5 * this.tension);
       ctx.strokeRect(0, 0, this.width, this.height);
 
       // Threat corner indicators
-      const cornerLen = 24;
-      ctx.strokeStyle = `rgba(255, 40, 75, ${intensity * 0.7})`;
-      ctx.lineWidth = 2;
+      const cornerLen = 28;
+      ctx.strokeStyle = `rgba(255, 40, 75, ${intensity * 0.9})`;
+      ctx.lineWidth = 2.5;
 
       // Top-Left
       ctx.beginPath();

@@ -169,6 +169,25 @@ export class ParticleEngine {
   }
 
   /**
+   * Spawns bioluminescent drone ghost trail that gently dissipates over 1.5s.
+   */
+  spawnDroneGhostTrail(x, y, angle, isSneaking = false) {
+    this.particles.push({
+      x,
+      y,
+      vx: 0,
+      vy: 0,
+      angle,
+      color: isSneaking ? '#00FF88' : '#00F0FF',
+      life: 90, // 1.5 seconds at 60fps
+      maxLife: 90,
+      size: 10,
+      isSneaking,
+      type: 'DRONE_GHOST'
+    });
+  }
+
+  /**
    * Spawns Ghost-Echo Trail for predators
    */
   spawnGhostEcho(x, y, angle, color) {
@@ -280,6 +299,22 @@ export class ParticleEngine {
         ctx.globalAlpha = alpha * 0.35;
         ctx.beginPath();
         ctx.arc(0, 0, p.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      } else if (p.type === 'DRONE_GHOST') {
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.angle || 0);
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = alpha * 0.28;
+        ctx.shadowColor = p.color;
+        ctx.shadowBlur = 8 * alpha;
+        ctx.beginPath();
+        ctx.moveTo(p.size, 0);
+        ctx.lineTo(-p.size * 0.7, -p.size * 0.6);
+        ctx.lineTo(-p.size * 0.3, 0);
+        ctx.lineTo(-p.size * 0.7, p.size * 0.6);
+        ctx.closePath();
         ctx.fill();
         ctx.restore();
       } else if (p.type === 'BUBBLE') {

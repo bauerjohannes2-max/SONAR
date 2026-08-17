@@ -62,10 +62,17 @@ export class AudioEngine {
 
       this.ctx = new AudioCtxClass();
 
-      // Master Gain -> Destination
+      // Master Gain -> Destination (through Sneak Low-Pass Filter)
       this.masterGain = this.ctx.createGain();
       this.masterGain.gain.setValueAtTime(this.isMuted ? 0 : this.masterVolume, this.ctx.currentTime);
-      this.masterGain.connect(this.ctx.destination);
+
+      this.sneakFilter = this.ctx.createBiquadFilter();
+      this.sneakFilter.type = 'lowpass';
+      this.sneakFilter.frequency.setValueAtTime(20000, this.ctx.currentTime);
+      this.sneakFilter.Q.setValueAtTime(1.0, this.ctx.currentTime);
+
+      this.masterGain.connect(this.sneakFilter);
+      this.sneakFilter.connect(this.ctx.destination);
 
       // SFX Gain -> Master Gain
       this.sfxGain = this.ctx.createGain();
@@ -97,6 +104,15 @@ export class AudioEngine {
   }
 
   /**
+   * Sets Muffled Audio state for sneaky underwater stealth.
+   */
+  setSneakMode(isSneaking) {
+    if (!this.ensureContext() || !this.sneakFilter) return;
+    const targetFreq = isSneaking ? 420 : 20000;
+    this.sneakFilter.frequency.setTargetAtTime(targetFreq, this.ctx.currentTime, 0.15);
+  }
+
+  /**
    * Preload all MP3/OGG sound files directly into memory for 0ms latency.
    */
   async preloadAudioBuffers() {
@@ -124,7 +140,7 @@ export class AudioEngine {
   /**
    * Plays a preloaded audio sample via AudioBufferSourceNode with 0ms latency.
    */
-  playSample(key, customGain = null, loop = false) {
+  playSample(key, customGain = null, loop = false, playbackRate = 1.0) {
     if (!this.ensureContext() || this.isMuted) return null;
     const buffer = this.buffers.get(key);
     if (!buffer) return null;
@@ -133,6 +149,9 @@ export class AudioEngine {
       const source = this.ctx.createBufferSource();
       source.buffer = buffer;
       source.loop = loop;
+      if (playbackRate && playbackRate !== 1.0) {
+        source.playbackRate.setValueAtTime(playbackRate, this.ctx.currentTime);
+      }
       source.connect(customGain || this.sfxGain);
       source.start(0);
       return source;
@@ -593,23 +612,28 @@ export class AudioEngine {
     osc.stop(now + 0.13);
   }
 
-  playCrystalPickup() {
+  playCrystalPickup(crystalIndex = 0) {
     this.triggerHaptic('pickup');
     if (!this.ensureContext() || this.isMuted) return;
 
-    if (this.playSample('crystal_pickup')) return;
+    // Melodic Pentatonic scale pitch multipliers: C, D, E, G, A, C5, D5
+    const pentatonicRatios = [1.0, 1.122, 1.26, 1.498, 1.682, 2.0, 2.245];
+    const pitch = pentatonicRatios[crystalIndex % pentatonicRatios.length] || 1.0;
+
+    if (this.playSample('crystal_pickup', null, false, pitch)) return;
 
     const now = this.ctx.currentTime;
     const notes = [523.25, 659.25, 783.99];
 
     notes.forEach((freq, i) => {
-      const start = now + i * 0.06;
+      const tunedFreq = freq * pitch;
+      const start = now + i * 0.055;
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
 
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, start);
-      osc.frequency.exponentialRampToValueAtTime(freq * 1.05, start + 0.18);
+      osc.frequency.setValueAtTime(tunedFreq, start);
+      osc.frequency.exponentialRampToValueAtTime(tunedFreq * 1.05, start + 0.18);
 
       gain.gain.setValueAtTime(0.001, start);
       gain.gain.linearRampToValueAtTime(0.35, start + 0.015);

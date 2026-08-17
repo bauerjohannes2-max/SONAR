@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 
-test.describe('SONAR v1.10.2 Tactical Gauntlet Loop E2E Validation', () => {
+test.describe('SONAR v1.11.0 Tactical Gauntlet Loop E2E Validation', () => {
 
   test.beforeEach(async ({ page }) => {
     page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
@@ -11,11 +11,11 @@ test.describe('SONAR v1.10.2 Tactical Gauntlet Loop E2E Validation', () => {
     });
   });
 
-  test('1. Version Endpoint & JSON Integrity (v1.10.2)', async ({ request }) => {
+  test('1. Version Endpoint & JSON Integrity (v1.11.0)', async ({ request }) => {
     const response = await request.get('/version.json');
     expect(response.ok()).toBeTruthy();
     const data = await response.json();
-    expect(data.version).toBe('1.10.2');
+    expect(data.version).toBe('1.11.0');
     expect(data.build).toBe(20260817);
   });
 
@@ -719,6 +719,56 @@ test.describe('SONAR v1.10.2 Tactical Gauntlet Loop E2E Validation', () => {
         expect(overlapResult.outOfBounds).toEqual([]);
       }
     }
+  });
+
+  test('26. Phase 1 The 10 Quick-Wins Feature Validation (v1.11.0)', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    const result = await page.evaluate(() => {
+      const g = window.game;
+
+      // 1. Crystal Scale Pitch Progression & Sneak Low-Pass Filter
+      const audio = g.audioEngine;
+      audio.init();
+      audio.setSneakMode(true);
+      const hasSneakFilter = !!audio.sneakFilter;
+      audio.setSneakMode(false);
+
+      // 2. Start Sector 0 to test Particle Trails & Danger Vignette
+      g.loadSector(0);
+      const postProc = g.renderer.postProcessing;
+      const hasDangerVignette = typeof postProc.render === 'function';
+
+      // 3. Ghost Trail & Thruster Bubbles
+      g.particleEngine.spawnDroneGhostTrail(100, 100, 0, false);
+      const hasGhostParticle = g.particleEngine.particles.some(p => p.type === 'DRONE_GHOST');
+
+      // 4. Sector Clear slow-mo & flash
+      g.onSectorCleared();
+      const hasSlowMo = g.victorySlowMoTimer > 0;
+      const hasFlash = g.victoryFlashAlpha > 0;
+
+      // 5. Game Over death stamp & instant restart
+      g.onGameOver('WALL_CRASH');
+      const deathCause = g.deathCause;
+
+      return {
+        hasSneakFilter,
+        hasDangerVignette,
+        hasGhostParticle,
+        hasSlowMo,
+        hasFlash,
+        deathCause
+      };
+    });
+
+    expect(result.hasSneakFilter).toBeTruthy();
+    expect(result.hasDangerVignette).toBeTruthy();
+    expect(result.hasGhostParticle).toBeTruthy();
+    expect(result.hasSlowMo).toBeTruthy();
+    expect(result.hasFlash).toBeTruthy();
+    expect(result.deathCause).toBe('WALL_CRASH');
   });
 
 });

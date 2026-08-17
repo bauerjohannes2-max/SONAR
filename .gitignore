@@ -1,5 +1,11 @@
 node_modules/
 test-results/
 playwright-report/
+blob-report/
+.cache/
+*.log
+scratch/
+screenshot_*.png
+github_pages_live_verified.png
 .DS_Store
 Thumbs.db

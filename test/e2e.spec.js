@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 
-test.describe('SONAR v1.9.0 3-Star Tactical Precision Rating E2E Validation', () => {
+test.describe('SONAR v1.9.1 Project Slimming & Architecture Optimization E2E Validation', () => {
 
   test.beforeEach(async ({ page }) => {
     page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
@@ -11,11 +11,11 @@ test.describe('SONAR v1.9.0 3-Star Tactical Precision Rating E2E Validation', ()
     });
   });
 
-  test('1. Version Endpoint & JSON Integrity (v1.9.0)', async ({ request }) => {
+  test('1. Version Endpoint & JSON Integrity (v1.9.1)', async ({ request }) => {
     const response = await request.get('/version.json');
     expect(response.ok()).toBeTruthy();
     const data = await response.json();
-    expect(data.version).toBe('1.9.0');
+    expect(data.version).toBe('1.9.1');
     expect(data.build).toBe(20260817);
   });
 

@@ -48,7 +48,8 @@ const ASSETS_TO_CACHE = [
   './assets/audio/death_explosion.mp3',
   './assets/audio/enemy_alert.mp3',
   './assets/audio/portal_open.mp3',
-  './assets/audio/ambient_drone.mp3'
+  './assets/audio/ambient_drone.mp3',
+  './assets/audio/bg_music.mp3'
 ];
 
 // 1. Install: Pre-cache static assets

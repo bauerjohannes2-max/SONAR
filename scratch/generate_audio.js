@@ -212,15 +212,71 @@ function generateAmbientDrone() {
     const t = i / SAMPLE_RATE;
     // Base 55Hz & 110Hz drone
     const osc1 = Math.sin(2 * Math.PI * 55 * t);
-    const osc2 = Math.sin(2 * Math.PI * 82.5 * t) * 0.4;
-    const osc3 = Math.sin(2 * Math.PI * 110 * t) * 0.25;
+    const osc2 = Math.sin(2 * Math.PI * 82.5 * t) * 0.3;
+    const osc3 = Math.sin(2 * Math.PI * 110 * t) * 0.15;
 
     // Slow ambient wave modulation (looping perfectly at 6s)
     const swell = 0.8 + 0.2 * Math.sin(2 * Math.PI * (t / 6.0));
 
-    const s = (osc1 * 0.5 + osc2 + osc3) * swell * 0.35;
+    const s = (osc1 * 0.4 + osc2 + osc3) * swell * 0.22;
     left[i] = s;
     right[i] = s;
+  }
+  return createWavBuffer(left, right);
+}
+
+// 7. Atmospheric Sci-Fi Background Music (12.0s seamless loop): Warm pads, sub bass & celestial arpeggio
+function generateBackgroundMusic() {
+  const duration = 12.0;
+  const totalSamples = Math.floor(SAMPLE_RATE * duration);
+  const left = new Float32Array(totalSamples);
+  const right = new Float32Array(totalSamples);
+
+  // Chord progression: Dm9 (0-3s) -> Bbmaj7 (3-6s) -> Fmaj7 (6-9s) -> C/E (9-12s)
+  const chords = [
+    { start: 0, end: 3, freqs: [146.83, 220.00, 261.63, 329.63] }, // D3, A3, C4, E4
+    { start: 3, end: 6, freqs: [116.54, 174.61, 220.00, 261.63] }, // Bb2, F3, A3, C4
+    { start: 6, end: 9, freqs: [130.81, 174.61, 261.63, 329.63] }, // C3, F3, C4, E4
+    { start: 9, end: 12, freqs: [164.81, 196.00, 246.94, 293.66] }  // E3, G3, B3, D4
+  ];
+
+  for (let i = 0; i < totalSamples; i++) {
+    const t = i / SAMPLE_RATE;
+    let sL = 0;
+    let sR = 0;
+
+    // Find active chord
+    for (const c of chords) {
+      if (t >= c.start && t < c.end) {
+        const chordT = t - c.start;
+        const chordDur = c.end - c.start;
+        // Smooth chord crossfade envelope
+        const env = Math.sin(Math.PI * (chordT / chordDur));
+
+        for (let fi = 0; fi < c.freqs.length; fi++) {
+          const f = c.freqs[fi];
+          // Warm detuned dual oscillators
+          const oscA = Math.sin(2 * Math.PI * f * t);
+          const oscB = Math.sin(2 * Math.PI * (f * 1.004) * t);
+          const pad = (oscA * 0.6 + oscB * 0.4) * env * 0.08;
+
+          if (fi % 2 === 0) sL += pad;
+          else sR += pad;
+        }
+
+        // Sub bass layer
+        const bassFreq = c.freqs[0] / 2;
+        const bass = Math.sin(2 * Math.PI * bassFreq * t) * env * 0.12;
+        sL += bass;
+        sR += bass;
+      }
+    }
+
+    // High shimmer twinkle layer
+    const shimmer = Math.sin(2 * Math.PI * 880 * t) * Math.sin(2 * Math.PI * 0.25 * t) * 0.015;
+
+    left[i] = sL + shimmer;
+    right[i] = sR + shimmer;
   }
   return createWavBuffer(left, right);
 }
@@ -248,3 +304,7 @@ console.log('Saved assets/audio/portal_open.mp3');
 
 fs.writeFileSync(path.join(audioDir, 'ambient_drone.mp3'), generateAmbientDrone());
 console.log('Saved assets/audio/ambient_drone.mp3');
+
+fs.writeFileSync(path.join(audioDir, 'bg_music.mp3'), generateBackgroundMusic());
+console.log('Saved assets/audio/bg_music.mp3');
+

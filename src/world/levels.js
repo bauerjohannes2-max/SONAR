@@ -10,9 +10,9 @@ export const LEVELS = [
   // ==========================================
   {
     sectorNumber: 1,
-    name: "SECTOR 01 // REAKTOR-ABSTURZ",
+    name: "SEKTOR 01 • REAKTOR-ABSTURZ",
     subtitle: "Blindstart",
-    description: "Reaktor-Absturz // Blindstart. Bergen Sie 3 Resonanz-Datenkerne der TETHYS-6. Vermeiden Sie Raubdrohnen im Dunkeln.",
+    description: "Reaktor-Absturz (Blindstart): Berge 3 Resonanz-Datenkerne der TETHYS-6. Weiche Raubdrohnen im Dunkeln aus.",
     playerStart: { gx: 2, gy: 15 },
     gate: { gx: 22, gy: 2 },
     crystals: [
@@ -63,9 +63,9 @@ export const LEVELS = [
   // ==========================================
   {
     sectorNumber: 2,
-    name: "SECTOR 02 // DIE FLUTKAMMER",
+    name: "SEKTOR 02 • DIE FLUTKAMMER",
     subtitle: "Erstkontakt",
-    description: "Die Flutkammer // Erstkontakt. Akustische Raubdrohnen patrouillieren die Resonanzknoten.",
+    description: "Die Flutkammer (Erstkontakt): Akustische Raubdrohnen patrouillieren die Resonanzknoten.",
     playerStart: { gx: 2, gy: 15 },
     gate: { gx: 22, gy: 15 },
     crystals: [
@@ -130,9 +130,9 @@ export const LEVELS = [
   // ==========================================
   {
     sectorNumber: 3,
-    name: "SECTOR 03 // HYDROPHON-SCHACHT",
+    name: "SEKTOR 03 • HYDROPHON-SCHACHT",
     subtitle: "Lautlose Passage",
-    description: "Hydrophon-Schacht // Lautlose Passage. Schleich-Modus [SHIFT] zwingend erforderlich.",
+    description: "Hydrophon-Schacht: Lautlose Passage. Schleich-Modus [SHIFT] zwingend erforderlich.",
     playerStart: { gx: 2, gy: 15 },
     gate: { gx: 12, gy: 2 },
     crystals: [
@@ -211,9 +211,9 @@ export const LEVELS = [
   // ==========================================
   {
     sectorNumber: 4,
-    name: "SECTOR 04 // SCHATTEN-KORRIDOR",
+    name: "SEKTOR 04 • SCHATTEN-KORRIDOR",
     subtitle: "Stalker-Infiltration",
-    description: "Schatten-Korridor // Stalker-Infiltration. Stalker mit Sonar-Pings [SPACE] blenden und erstarren lassen.",
+    description: "Schatten-Korridor: Stalker-Infiltration. Stalker mit Sonar-Pings [SPACE] blenden und erstarren lassen.",
     playerStart: { gx: 2, gy: 2 },
     gate: { gx: 22, gy: 15 },
     crystals: [
@@ -266,9 +266,9 @@ export const LEVELS = [
   // ==========================================
   {
     sectorNumber: 5,
-    name: "SECTOR 05 // DIE MINENFELDER",
+    name: "SEKTOR 05 • DIE MINENFELDER",
     subtitle: "Hochfrequenz-Sperre",
-    description: "Die Minenfelder // Hochfrequenz-Sperre. Halte [SHIFT] zum Schleichen gedrückt. Resonatoren meiden!",
+    description: "Die Minenfelder: Hochfrequenz-Sperre. Halte [SHIFT] zum Schleichen gedrückt. Resonatoren meiden!",
     playerStart: { gx: 2, gy: 15 },
     gate: { gx: 22, gy: 2 },
     crystals: [
@@ -336,9 +336,9 @@ export const LEVELS = [
   // ==========================================
   {
     sectorNumber: 6,
-    name: "SECTOR 06 // THE CORE",
+    name: "SEKTOR 06 • THE CORE",
     subtitle: "Hyper-Resonanz",
-    description: "Kernreaktor-Sektor // Hyper-Resonanz. 3 Ringe, 1 Kern. Nutze Köder [E] um Jäger wegzulocken.",
+    description: "Kernreaktor-Sektor: Hyper-Resonanz. 3 Ringe, 1 Kern. Nutze Köder [E] um Jäger wegzulocken.",
     playerStart: { gx: 12, gy: 16 },
     gate: { gx: 12, gy: 1 },
     crystals: [
@@ -415,9 +415,9 @@ export const LEVELS = [
   // ==========================================
   {
     sectorNumber: 7,
-    name: "SECTOR 07 // DOPPEL-RESONANZ",
+    name: "SEKTOR 07 • DOPPEL-RESONANZ",
     subtitle: "Gefahrenzone",
-    description: "Doppel-Resonanz // Gefahrenzone. Zwei Flügel, schmale Brücke. Resonatoren meiden!",
+    description: "Doppel-Resonanz: Gefahrenzone. Zwei Flügel, schmale Brücke. Resonatoren meiden!",
     playerStart: { gx: 2, gy: 2 },
     gate: { gx: 22, gy: 15 },
     crystals: [
@@ -485,9 +485,9 @@ export const LEVELS = [
   // ==========================================
   {
     sectorNumber: 8,
-    name: "SECTOR 08 // DIE BLINDE JAGD",
+    name: "SEKTOR 08 • DIE BLINDE JAGD",
     subtitle: "Apex-Verfolgung",
-    description: "Die blinde Jagd // Apex-Verfolgung. 4 Hunter im Sektor. Schnelle Reflexe & Köder-Einsatz.",
+    description: "Die blinde Jagd: Apex-Verfolgung. 4 Hunter im Sektor. Schnelle Reflexe & Köder-Einsatz.",
     playerStart: { gx: 12, gy: 9 },
     gate: { gx: 12, gy: 1 },
     crystals: [
@@ -532,9 +532,9 @@ export const LEVELS = [
   // ==========================================
   {
     sectorNumber: 9,
-    name: "SECTOR 09 // SCHATTEN-LABYRINTH",
+    name: "SEKTOR 09 • SCHATTEN-LABYRINTH",
     subtitle: "Dunkle Tiefe",
-    description: "Schatten-Labyrinth // Dunkle Tiefe. 2 Stalker & 2 Hunter. Pings betäuben Stalker!",
+    description: "Schatten-Labyrinth: Dunkle Tiefe. 2 Stalker & 2 Hunter. Pings betäuben Stalker!",
     playerStart: { gx: 2, gy: 15 },
     gate: { gx: 22, gy: 2 },
     crystals: [
@@ -582,9 +582,9 @@ export const LEVELS = [
   // ==========================================
   {
     sectorNumber: 10,
-    name: "SECTOR 10 // APEX : NULLPUNKT",
+    name: "SECTOR 10 • APEX : NULLPUNKT",
     subtitle: "Letzter Datenkern",
-    description: "Apex : Nullpunkt // Letzter Datenkern. Entschlüsseln Sie das Zero-Light Protokoll der TETHYS-6!",
+    description: "Apex : Nullpunkt: Letzter Datenkern. Entschlüsseln Sie das Zero-Light Protokoll der TETHYS-6!",
     playerStart: { gx: 12, gy: 16 },
     gate: { gx: 12, gy: 1 },
     crystals: [

@@ -20,38 +20,38 @@ export class MenuSystem {
       {
         id: 'SECTOR_SELECT',
         title: 'KAMPAGNE',
-        subtitle: 'Operation Zero-Light // Sektoren 01 – 10',
+        subtitle: 'Operation Zero-Light • Sektoren 01 – 10',
         tag: '10 SEKTOREN',
-        desc: 'TETHYS-6: Berge Resonanz-Datenkerne aus 10 taktischen Sektoren unter dem Zero-Light Protocol'
+        desc: 'TETHYS-6: Berge Resonanz-Datenkerne aus 10 taktischen Sektoren'
       },
       {
         id: 'ENDLESS',
         title: 'ENDLESS ECHO',
         subtitle: 'Prozeduraler Überlebensmodus',
         tag: 'ROGUELIKE',
-        desc: 'Endless Echo: Prozedural generiertes Überlebens-Labyrinth im ewigen Nichts'
+        desc: 'Endless Echo: Prozedural generiertes Überlebens-Labyrinth'
       },
       // Secondary Tier (3 Compact Action Buttons)
       {
         id: 'PROFILE',
-        title: 'PILOTEN-PROFIL',
+        title: 'SPIELER-PROFIL',
         subtitle: '',
         tag: '',
-        desc: 'Pilot: Rufzeichen & 4-stellige Sicherheits-PIN zur Cloud-Sicherung'
+        desc: 'Spieler: Name & PIN zur Cloud-Sicherung'
       },
       {
         id: 'LEADERBOARD',
-        title: 'LEADERBOARD',
+        title: 'BESTENLISTE',
         subtitle: '',
         tag: '',
-        desc: 'Leaderboard: Weltweites Ranking der Top-10-Drohnenpiloten'
+        desc: 'Bestenliste: Weltweite Top-Ranglisten der besten Läufe'
       },
       {
         id: 'TUTORIAL',
         title: 'TUTORIAL',
         subtitle: '',
         tag: '',
-        desc: 'Tutorial: Taktische Manöver, Drohnensteuerung & Feindanalyse'
+        desc: 'Missions-Briefing & Steuerungshandbuch'
       }
     ];
 
@@ -300,9 +300,9 @@ export class MenuSystem {
     // Subtitle & Version
     ctx.font = '600 10.5px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = '#607b8b';
-    ctx.fillText(`// ZERO-LIGHT SURVIVAL • v${CONFIG.VERSION}`, CONFIG.CANVAS_WIDTH / 2, 70);
+    ctx.fillText(`ZERO-LIGHT SURVIVAL • v${CONFIG.VERSION}`, CONFIG.CANVAS_WIDTH / 2, 70);
 
-    // Pilot Status Banner Box (Clear Cloud-Save & Guest Notice)
+    // Player Status Banner Box (Clear Cloud-Save & Guest Notice)
     const badgeW = 520;
     const badgeH = 44;
     const badgeX = CONFIG.CANVAS_WIDTH / 2 - badgeW / 2;
@@ -318,18 +318,18 @@ export class MenuSystem {
       // Line 1: Guest Notice
       ctx.font = '600 10.5px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.fillStyle = '#f0c040';
-      ctx.fillText('PILOT: GAST (NUR LOKAL) • FORTSCHRITT WIRD NUR IM BROWSER GESPEICHERT', CONFIG.CANVAS_WIDTH / 2, badgeY + 14);
+      ctx.fillText('SPIELER: GAST (NUR LOKAL) • FORTSCHRITT IM BROWSER GESPEICHERT', CONFIG.CANVAS_WIDTH / 2, badgeY + 14);
 
       // Line 2: Pulsing Cloud-Save Button Badge
       const pulse = 0.75 + 0.25 * Math.sin(time * 5);
       ctx.font = '700 11px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.fillStyle = `rgba(0, 240, 255, ${pulse})`;
-      ctx.fillText('[ ☁ CLOUD-SAVE AKTIVIEREN ]', CONFIG.CANVAS_WIDTH / 2, badgeY + 31);
+      ctx.fillText('[ ☁ CLOUD-SPEICHERUNG AKTIVIEREN ]', CONFIG.CANVAS_WIDTH / 2, badgeY + 31);
     } else {
       // Logged In Status
       ctx.font = '700 12px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.fillStyle = '#00ff88';
-      ctx.fillText(`PILOT: ${pilot.callsign.toUpperCase()} • CLOUD-SYNC AKTIV ★`, CONFIG.CANVAS_WIDTH / 2, badgeY + 14);
+      ctx.fillText(`SPIELER: ${pilot.callsign.toUpperCase()} • CLOUD-SYNC AKTIV ★`, CONFIG.CANVAS_WIDTH / 2, badgeY + 14);
 
       const maxCleared = this.maxClearedSector !== undefined ? this.maxClearedSector : (this.unlockedSector > 1 ? this.unlockedSector - 1 : 0);
       let detailText = maxCleared === 0
@@ -490,27 +490,7 @@ export class MenuSystem {
       ctx.restore();
     }
 
-    // 7. Context-Aware Description Box (Well within 504px card width)
-    const descBoxY = 360;
-    const descBoxH = 34;
-    const descBoxW = cardW;
-    const descBoxX = cardX;
-
-    ctx.fillStyle = 'rgba(0, 240, 255, 0.03)';
-    ctx.fillRect(descBoxX, descBoxY, descBoxW, descBoxH);
-    ctx.strokeStyle = 'rgba(0, 240, 255, 0.12)';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(descBoxX, descBoxY, descBoxW, descBoxH);
-
-    const currentOpt = this.options[this.selectedIndex];
-    if (currentOpt) {
-      ctx.textAlign = 'center';
-      ctx.font = '500 11px "Chakra Petch", "JetBrains Mono", monospace';
-      ctx.fillStyle = '#a0e0ff';
-      ctx.fillText(`// ${currentOpt.desc}`, CONFIG.CANVAS_WIDTH / 2, descBoxY + descBoxH / 2);
-    }
-
-    // 8. Clean Minimal Footer Navigation Hints & Version
+    // 7. Clean Minimal Footer Navigation Hints & Version
     ctx.textAlign = 'center';
     ctx.font = '500 11px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = '#556e7d';
@@ -538,7 +518,7 @@ export class MenuSystem {
     // Header
     ctx.font = '700 24px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = '#00f0ff';
-    ctx.fillText('SEKTOR-AUSWAHL // 10 SEKTOREN', CONFIG.CANVAS_WIDTH / 2, 52);
+    ctx.fillText('SEKTOR-AUSWAHL • 10 SEKTOREN', CONFIG.CANVAS_WIDTH / 2, 52);
 
     ctx.font = '500 12px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = '#607b8b';
@@ -588,7 +568,7 @@ export class MenuSystem {
         if (lvl && lvl.subtitle) {
           ctx.font = '600 9.5px "Chakra Petch", "JetBrains Mono", monospace';
           ctx.fillStyle = isSelected ? '#a0f0ff' : '#00c8d8';
-          ctx.fillText(`// ${lvl.subtitle}`, x + cardW / 2, y + 42);
+          ctx.fillText(lvl.subtitle, x + cardW / 2, y + 42);
         }
 
         if (stats) {
@@ -616,7 +596,7 @@ export class MenuSystem {
         if (lvl && lvl.subtitle) {
           ctx.font = '500 9px "Chakra Petch", "JetBrains Mono", monospace';
           ctx.fillStyle = '#3a4750';
-          ctx.fillText(`// ${lvl.subtitle}`, x + cardW / 2, y + 48);
+          ctx.fillText(lvl.subtitle, x + cardW / 2, y + 48);
         }
 
         ctx.font = '700 11.5px "Chakra Petch", "JetBrains Mono", monospace';

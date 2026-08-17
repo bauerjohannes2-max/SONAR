@@ -26,7 +26,7 @@ export class TutorialModal {
         title: '01. DU BIST DIE DROHNE ECHO',
         category: 'DEINE SPIELFIGUR',
         role: 'Der leuchtende Pfeil auf dem Bildschirm',
-        behavior: 'Du steuerst die kleine Unterwasser-Drohne ECHO (den leuchtenden Pfeil). Bewege dich mit WASD, Pfeiltasten oder dem Touch-Joystick!',
+        behavior: 'Du steuerst die kleine Unterwasser-Drohne ECHO (den leuchtenden Pfeil). Bewege dich mit WASD, Pfeiltasten oder der Touch-Steuerung!',
         counter: 'In der Station TETHYS-6 ist der Strom ausgefallen: Du bist blind und musst dich durch Schallwellen orientieren.',
         renderVisual: (ctx, t) => {
           ctx.fillStyle = '#030305';
@@ -61,7 +61,7 @@ export class TutorialModal {
 
           // Text / badges
           const badges = [
-            { label: 'WASD / JOYSTICK', desc: 'Fliegen' },
+            { label: 'WASD / TOUCH', desc: 'Fliegen' },
             { label: 'SPACE / [PING]', desc: 'Sonar senden' },
             { label: 'SHIFT / SCHLEICHEN', desc: 'Lautlos' },
             { label: 'E / [KÖDER]', desc: 'Ablenken' }
@@ -327,7 +327,7 @@ export class TutorialModal {
           ctx.font = '700 13px "Chakra Petch", "JetBrains Mono", monospace';
           ctx.fillStyle = '#00FF88';
           ctx.textAlign = 'center';
-          ctx.fillText('🤫 0 SCHALLWELLEN // LAUTLOS', 140, 30);
+          ctx.fillText('🤫 0 SCHALLWELLEN • LAUTLOS', 140, 30);
 
           ctx.font = '600 11px "Chakra Petch", "JetBrains Mono", monospace';
           ctx.fillStyle = '#9cb8c8';
@@ -501,7 +501,7 @@ export class TutorialModal {
     ctx.font = '700 14px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = CONFIG.COLORS.PLAYER;
     ctx.shadowBlur = 0;
-    ctx.fillText(`TUTORIAL // KARTE ${this.currentCardIndex + 1} / ${this.cards.length}`, boxX + 20, boxY + 25);
+    ctx.fillText(`TUTORIAL • ANLEITUNG (${this.currentCardIndex + 1} / ${this.cards.length})`, boxX + 20, boxY + 25);
 
     // Close [X] Button in Top-Right
     ctx.textAlign = 'right';

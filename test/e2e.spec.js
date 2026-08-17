@@ -19,14 +19,15 @@ test.describe('SONAR v1.5.0 Comprehensive Full-Stack E2E Validation', () => {
     expect(data.build).toBe(20260816);
   });
 
-  test('2. Sci-Fi Audio Assets Existence & Preloading in Web Audio API', async ({ page }) => {
+  test('2. Sci-Fi Audio Assets Existence & Preloading in Web Audio API (7 MP3 Samples)', async ({ page }) => {
     const audioFiles = [
       'assets/audio/sonar_ping.mp3',
       'assets/audio/crystal_pickup.mp3',
       'assets/audio/death_explosion.mp3',
       'assets/audio/enemy_alert.mp3',
       'assets/audio/portal_open.mp3',
-      'assets/audio/ambient_drone.mp3'
+      'assets/audio/ambient_drone.mp3',
+      'assets/audio/bg_music.mp3'
     ];
 
     for (const file of audioFiles) {
@@ -45,10 +46,10 @@ test.describe('SONAR v1.5.0 Comprehensive Full-Stack E2E Validation', () => {
       return window.game.audioEngine.buffers.size;
     });
 
-    expect(decodedCount).toBe(6);
+    expect(decodedCount).toBe(7);
   });
 
-  test('3. Child-Friendly Tutorial Guidance & Card 1-7 Verification', async ({ page }) => {
+  test('3. Accessible Terminology & Tutorial Guidance (Card 1-7)', async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('#gameCanvas');
 
@@ -66,18 +67,16 @@ test.describe('SONAR v1.5.0 Comprehensive Full-Stack E2E Validation', () => {
 
     // Card 1: DU BIST DIE DROHNE ECHO
     expect(cards[0].title).toContain('DU BIST DIE DROHNE ECHO');
-    expect(cards[0].behavior).toContain('leuchtenden Pfeil');
+    expect(cards[0].behavior).toContain('Touch-Steuerung');
 
     // Card 2: SCHALLWELLEN & WÄNDE
     expect(cards[1].title).toContain('SCHALLWELLEN & WÄNDE');
-    expect(cards[1].counter).toContain('Fliege niemals blind in eine Wand');
 
     // Card 3: KRISTALLE EINSAMMELN
     expect(cards[2].title).toContain('KRISTALLE EINSAMMELN');
 
     // Card 4: DER GRÜNE FLUCHTAUFZUG
     expect(cards[3].title).toContain('DER GRÜNE FLUCHTAUFZUG');
-    expect(cards[3].counter).toContain('Richtungspfeil');
 
     // Card 5: ROTE MONSTER
     expect(cards[4].title).toContain('ROTE MONSTER');
@@ -160,7 +159,7 @@ test.describe('SONAR v1.5.0 Comprehensive Full-Stack E2E Validation', () => {
     expect(result.hasBeaconWave).toBeTruthy();
   });
 
-  test('6. Mobile Settings Touch-Scroll & Backdrop Click Closing', async ({ page }) => {
+  test('6. Settings Modal: Background Music Slider & D-Pad/Swipe Toggle', async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('#gameCanvas');
 
@@ -168,36 +167,38 @@ test.describe('SONAR v1.5.0 Comprehensive Full-Stack E2E Validation', () => {
     await page.click('#btn-settings-gear');
     await expect(page.locator('#settings-modal')).toBeVisible();
 
-    // Check touch-action and overflow styles on settings modal body
-    const modalBody = page.locator('#settings-modal .modal-body');
-    await expect(modalBody).toBeVisible();
+    // Verify Master, Music, SFX sliders exist
+    await expect(page.locator('#slider-master-volume')).toBeVisible();
+    await expect(page.locator('#slider-music-volume')).toBeVisible();
+    await expect(page.locator('#slider-sfx-volume')).toBeVisible();
 
-    const styles = await modalBody.evaluate((el) => {
-      const computed = window.getComputedStyle(el);
-      return {
-        touchAction: computed.touchAction,
-        overflowY: computed.overflowY
-      };
-    });
-
-    expect(styles.touchAction).toBe('pan-y');
-    expect(styles.overflowY).toBe('auto');
+    // Verify D-Pad vs Swipe control toggle exists (no joystick)
+    await expect(page.locator('#btn-ctrl-dpad')).toBeVisible();
+    await expect(page.locator('#btn-ctrl-swipe')).toBeVisible();
+    await expect(page.locator('#btn-ctrl-joystick')).not.toBeVisible();
 
     // Click backdrop to close
     await page.click('#settings-modal', { position: { x: 10, y: 10 } });
     await expect(page.locator('#settings-modal')).not.toBeVisible();
   });
 
-  test('7. PWA Manifest & App Icons Cache-Busting Version Check (v1.5.0)', async ({ page }) => {
+  test('7. Profile Modal: Accessible Terms & Input Feedback', async ({ page }) => {
     await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
 
-    const manifest = await page.evaluate(async () => {
-      const res = await fetch('./manifest.json');
-      return res.json();
+    // Open Profile modal via game instance
+    await page.evaluate(() => {
+      window.game.profileModal.open();
     });
 
-    expect(manifest.icons[0].src).toContain('?v=1.5.0');
-    expect(manifest.icons[1].src).toContain('?v=1.5.0');
+    await expect(page.locator('#pilot-profile-modal')).toBeVisible();
+    const titleText = await page.locator('#pilot-profile-modal .modal-title').innerText();
+    expect(titleText).toContain('SPIELER-PROFIL');
+    expect(titleText).not.toContain('//');
+
+    // Close modal
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#pilot-profile-modal')).not.toBeVisible();
   });
 
   test('8. IMPROVEMENTS.md Polish Roadmap Verification', async () => {

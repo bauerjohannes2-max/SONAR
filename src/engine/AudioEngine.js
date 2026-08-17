@@ -4,7 +4,8 @@ const AUDIO_ASSETS = {
   death_explosion: './assets/audio/death_explosion.mp3',
   enemy_alert: './assets/audio/enemy_alert.mp3',
   portal_open: './assets/audio/portal_open.mp3',
-  ambient_drone: './assets/audio/ambient_drone.mp3'
+  ambient_drone: './assets/audio/ambient_drone.mp3',
+  bg_music: './assets/audio/bg_music.mp3'
 };
 
 export class AudioEngine {
@@ -13,18 +14,22 @@ export class AudioEngine {
     this.masterGain = null;
     this.sfxGain = null;
     this.ambientGain = null;
+    this.musicGain = null;
 
     this.droneOsc = null;
     this.droneNoise = null;
     this.droneFilter = null;
     this.droneSampleSource = null;
+    this.musicSampleSource = null;
     this.isDronePlaying = false;
+    this.isMusicPlaying = false;
 
     this.isInitialized = false;
     this.isMuted = false;
-    this.masterVolume = 0.8;
-    this.sfxVolume = 0.8;
-    this.ambientVolume = 0.35;
+    this.masterVolume = 0.5;   // Balanced comfortable default
+    this.sfxVolume = 0.35;     // Gentle sound effects
+    this.ambientVolume = 0.25; // Subtle ambient atmosphere
+    this.musicVolume = 0.35;   // Sci-Fi background music
 
     this.buffers = new Map();
     this.isLoadingAssets = false;
@@ -62,12 +67,19 @@ export class AudioEngine {
       this.ambientGain.gain.setValueAtTime(this.ambientVolume, this.ctx.currentTime);
       this.ambientGain.connect(this.masterGain);
 
+      // Background Music Gain -> Master Gain
+      this.musicGain = this.ctx.createGain();
+      this.musicGain.gain.setValueAtTime(this.musicVolume, this.ctx.currentTime);
+      this.musicGain.connect(this.masterGain);
+
       if (this.ctx.state === 'suspended') {
         this.ctx.resume();
       }
 
       this.isInitialized = true;
-      this.preloadAudioBuffers();
+      this.preloadAudioBuffers().then(() => {
+        this.startBackgroundMusic();
+      });
       this.startAmbientDrone();
     } catch (e) {
       console.warn('Web Audio API not supported or blocked:', e);
@@ -142,7 +154,10 @@ export class AudioEngine {
   }
 
   setMusicVolume(val) {
-    this.setAmbientVolume(val);
+    this.musicVolume = Math.max(0, Math.min(1, val));
+    if (this.ctx && this.musicGain) {
+      this.musicGain.gain.setValueAtTime(this.musicVolume, this.ctx.currentTime);
+    }
   }
 
   toggleMute() {
@@ -167,10 +182,33 @@ export class AudioEngine {
   }
 
   /**
+   * Starts atmospheric Sci-Fi background music loop.
+   */
+  startBackgroundMusic() {
+    if (!this.ensureContext() || this.isMusicPlaying) return;
+    const sampleSrc = this.playSample('bg_music', this.musicGain, true);
+    if (sampleSrc) {
+      this.musicSampleSource = sampleSrc;
+      this.isMusicPlaying = true;
+    }
+  }
+
+  stopBackgroundMusic() {
+    if (this.musicSampleSource) {
+      try { this.musicSampleSource.stop(); } catch (e) {}
+      this.musicSampleSource = null;
+    }
+    this.isMusicPlaying = false;
+  }
+
+  /**
    * Generative / Sample-Based Dark Ambient Drone Generator
    */
   startAmbientDrone() {
     if (!this.ensureContext() || this.isDronePlaying) return;
+
+    // Start background music as well
+    this.startBackgroundMusic();
 
     // Try sample-based ambient drone first
     const sampleSrc = this.playSample('ambient_drone', this.ambientGain, true);

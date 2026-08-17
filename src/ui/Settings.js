@@ -23,8 +23,9 @@ export class Settings {
     this.touchControls = touchControls;
     this.onOpenTouchEditor = onOpenTouchEditor;
 
-    this.masterVolume = 0.8;
-    this.sfxVolume = 0.8;
+    this.masterVolume = 0.5;
+    this.musicVolume = 0.35;
+    this.sfxVolume = 0.35;
     this.crtEffects = false;
     this.screenShake = true;
 
@@ -43,6 +44,7 @@ export class Settings {
       if (data) {
         const parsed = JSON.parse(data);
         if (parsed.masterVolume !== undefined) this.masterVolume = parsed.masterVolume;
+        if (parsed.musicVolume !== undefined) this.musicVolume = parsed.musicVolume;
         if (parsed.sfxVolume !== undefined) this.sfxVolume = parsed.sfxVolume;
         if (parsed.crtEffects !== undefined) this.crtEffects = parsed.crtEffects;
         if (parsed.screenShake !== undefined) this.screenShake = parsed.screenShake;
@@ -56,6 +58,7 @@ export class Settings {
     try {
       const payload = {
         masterVolume: this.masterVolume,
+        musicVolume: this.musicVolume,
         sfxVolume: this.sfxVolume,
         crtEffects: this.crtEffects,
         screenShake: this.screenShake
@@ -69,32 +72,35 @@ export class Settings {
   applySettings() {
     if (this.audio) {
       this.audio.setMasterVolume(this.masterVolume);
+      this.audio.setMusicVolume(this.musicVolume);
       this.audio.setSfxVolume(this.sfxVolume);
     }
     if (this.particles) {
       this.particles.screenShakeEnabled = this.screenShake;
     }
-
-    // Toggle DOM CRT elements
-    const scanlines = document.querySelector('.scanlines');
-    const crtOverlay = document.querySelector('.crt-overlay');
-    const vignette = document.querySelector('.vignette');
-
-    if (scanlines) scanlines.style.display = this.crtEffects ? 'block' : 'none';
-    if (crtOverlay) crtOverlay.style.display = this.crtEffects ? 'block' : 'none';
-    if (vignette) vignette.style.display = this.crtEffects ? 'block' : 'none';
+    const scanlineOverlay = document.querySelector('.scanlines');
+    if (scanlineOverlay) {
+      scanlineOverlay.style.display = this.crtEffects ? 'block' : 'none';
+    }
   }
 
   initDOM() {
-    const old = document.getElementById('settings-modal');
-    if (old) old.remove();
+    let container = document.getElementById('settings-modal');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'settings-modal';
+      container.className = 'terminal-modal-backdrop';
+      container.style.display = 'none';
+      document.body.appendChild(container);
+    }
+    this.modalEl = container;
+    this.renderDOM();
+  }
 
-    const container = document.createElement('div');
-    container.id = 'settings-modal';
-    container.className = 'terminal-modal-backdrop';
-    container.style.display = 'none';
-
-    const touchConfig = this.touchControls ? this.touchControls.getConfig() : { controlType: 'JOYSTICK', scale: 1.0 };
+  renderDOM() {
+    if (!this.modalEl) return;
+    const container = this.modalEl;
+    const touchConfig = this.touchControls ? this.touchControls.getConfig() : { controlType: 'DPAD', scale: 1.0 };
 
     container.innerHTML = `
       <div class="terminal-modal-box settings-modal-box">
@@ -116,16 +122,25 @@ export class Settings {
           <!-- Master Volume Slider -->
           <div class="settings-row">
             <div class="settings-header-row">
-              <label for="slider-master-volume" class="settings-label">MASTER-LAUTSTÄRKE</label>
+              <label for="slider-master-volume" class="settings-label">GESAMT-LAUTSTÄRKE (MASTER)</label>
               <span id="val-master-volume" class="settings-value-badge">${Math.round(this.masterVolume * 100)}%</span>
             </div>
             <input type="range" id="slider-master-volume" min="0" max="100" value="${Math.round(this.masterVolume * 100)}" class="terminal-range-slider" />
           </div>
 
+          <!-- Music Volume Slider -->
+          <div class="settings-row">
+            <div class="settings-header-row">
+              <label for="slider-music-volume" class="settings-label">MUSIK-LAUTSTÄRKE (HINTERGRUND)</label>
+              <span id="val-music-volume" class="settings-value-badge">${Math.round(this.musicVolume * 100)}%</span>
+            </div>
+            <input type="range" id="slider-music-volume" min="0" max="100" value="${Math.round(this.musicVolume * 100)}" class="terminal-range-slider" />
+          </div>
+
           <!-- SFX Volume Slider -->
           <div class="settings-row">
             <div class="settings-header-row">
-              <label for="slider-sfx-volume" class="settings-label">SFX-LAUTSTÄRKE (EFFEKTE & SONAR)</label>
+              <label for="slider-sfx-volume" class="settings-label">EFFEKTE & SFX (SONAR, PING, KRISTALLE)</label>
               <span id="val-sfx-volume" class="settings-value-badge">${Math.round(this.sfxVolume * 100)}%</span>
             </div>
             <input type="range" id="slider-sfx-volume" min="0" max="100" value="${Math.round(this.sfxVolume * 100)}" class="terminal-range-slider" />
@@ -159,15 +174,15 @@ export class Settings {
             <div class="settings-section-line"></div>
           </div>
 
-          <!-- Control Type Toggle: Joystick vs. D-Pad -->
+          <!-- Control Type Toggle: D-Pad vs. Swipe -->
           <div class="settings-row">
-            <div class="settings-label">MOBILE STEUERUNGSTYP</div>
+            <div class="settings-label">MOBILE STEUERUNG</div>
             <div class="btn-segment-group">
-              <button id="btn-ctrl-joystick" class="btn-segment ${touchConfig.controlType === 'JOYSTICK' ? 'active' : ''}">
-                🕹️ JOYSTICK
+              <button id="btn-ctrl-dpad" class="btn-segment ${touchConfig.controlType === 'DPAD' || !touchConfig.controlType ? 'active' : ''}">
+                🔲 STEUERKREUZ (D-PAD)
               </button>
-              <button id="btn-ctrl-dpad" class="btn-segment ${touchConfig.controlType === 'DPAD' ? 'active' : ''}">
-                🔲 D-PAD
+              <button id="btn-ctrl-swipe" class="btn-segment ${touchConfig.controlType === 'SWIPE' ? 'active' : ''}">
+                👆 WISCH-GESTEN (SWIPE)
               </button>
             </div>
           </div>
@@ -188,7 +203,7 @@ export class Settings {
 
           <!-- Visual Layout Editor Action Button -->
           <button id="btn-open-touch-editor" class="btn-full-action">
-            🛠️ TOUCH-LAYOUT ANPASSEN (DRAG & DROP)
+            🛠️ TOUCH-LAYOUT ANPASSEN (POSITION & GRÖSSE)
           </button>
 
           <!-- SYSTEM-VERSION & UPDATES SECTION -->
@@ -221,6 +236,7 @@ export class Settings {
     // Attach Sliders & Toggles Listeners
     const closeBtn = container.querySelector('#modal-settings-close-btn');
     const masterSlider = container.querySelector('#slider-master-volume');
+    const musicSlider = container.querySelector('#slider-music-volume');
     const sfxSlider = container.querySelector('#slider-sfx-volume');
     const crtBtn = container.querySelector('#btn-toggle-crt');
     const shakeBtn = container.querySelector('#btn-toggle-shake');
@@ -276,6 +292,18 @@ export class Settings {
       bindTouchSlider(masterSlider, updateMaster);
     }
 
+    if (musicSlider) {
+      const updateMusic = (val) => {
+        this.musicVolume = val / 100;
+        const badge = container.querySelector('#val-music-volume');
+        if (badge) badge.textContent = `${val}%`;
+        this.applySettings();
+        this.saveSettings();
+      };
+      musicSlider.addEventListener('input', (e) => updateMusic(parseInt(e.target.value, 10)));
+      bindTouchSlider(musicSlider, updateMusic);
+    }
+
     if (sfxSlider) {
       const updateSfx = (val) => {
         this.sfxVolume = val / 100;
@@ -325,25 +353,25 @@ export class Settings {
       shakeBtn.addEventListener('touchstart', toggleShake, { passive: false });
     }
 
-    // Touch Control Type Toggle
-    const joystickBtn = container.querySelector('#btn-ctrl-joystick');
+    // Touch Control Type Toggle: D-Pad vs Swipe
     const dpadBtn = container.querySelector('#btn-ctrl-dpad');
+    const swipeBtn = container.querySelector('#btn-ctrl-swipe');
 
-    if (joystickBtn && dpadBtn) {
+    if (dpadBtn && swipeBtn) {
       const selectType = (type) => {
         if (this.touchControls) {
           this.touchControls.setControlType(type);
         }
-        joystickBtn.classList.toggle('active', type === 'JOYSTICK');
         dpadBtn.classList.toggle('active', type === 'DPAD');
+        swipeBtn.classList.toggle('active', type === 'SWIPE');
         if (this.audio) this.audio.playUIBlip();
       };
 
-      joystickBtn.addEventListener('click', () => selectType('JOYSTICK'));
-      joystickBtn.addEventListener('touchstart', (e) => { e.preventDefault(); selectType('JOYSTICK'); }, { passive: false });
-
       dpadBtn.addEventListener('click', () => selectType('DPAD'));
       dpadBtn.addEventListener('touchstart', (e) => { e.preventDefault(); selectType('DPAD'); }, { passive: false });
+
+      swipeBtn.addEventListener('click', () => selectType('SWIPE'));
+      swipeBtn.addEventListener('touchstart', (e) => { e.preventDefault(); selectType('SWIPE'); }, { passive: false });
     }
 
     // Touch Scale Step Buttons

@@ -974,82 +974,52 @@ kbd {
 }
 
 /* =========================================================
-   VIRTUAL ANALOG JOYSTICK
+   ADAPTIVE RESPONSIVE DISPLAY SCALING
    ========================================================= */
-.touch-joystick {
-  position: relative;
-  width: 126px;
-  height: 126px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  pointer-events: auto;
-  touch-action: none;
-  user-select: none;
+@media (orientation: portrait) {
+  #game-wrapper {
+    justify-content: flex-start;
+    padding-top: max(12px, env(safe-area-inset-top, 12px));
+  }
+
+  .canvas-container {
+    width: 100vw;
+    height: calc(100vw * (18 / 25));
+    max-height: 48dvh;
+    margin-top: 8px;
+  }
+
+  .touch-controls-bar {
+    position: relative;
+    width: 100%;
+    flex: 1;
+    min-height: 220px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 12px 16px max(16px, env(safe-area-inset-bottom, 16px)) 16px;
+    box-sizing: border-box;
+  }
+
+  .touch-dpad {
+    position: relative;
+    left: 0;
+    bottom: 0;
+  }
+
+  .touch-actions {
+    position: relative;
+    right: 0;
+    bottom: 0;
+  }
 }
 
-.joystick-base {
-  position: relative;
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(0, 240, 255, 0.08) 0%, rgba(4, 10, 16, 0.95) 75%);
-  border: 1.5px solid rgba(0, 240, 255, 0.45);
-  box-shadow: 0 0 16px rgba(0, 240, 255, 0.15), inset 0 0 12px rgba(0, 240, 255, 0.1);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  touch-action: none;
-  user-select: none;
-  cursor: pointer;
-}
-
-.joystick-ring {
-  position: absolute;
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  border: 1px dashed rgba(0, 240, 255, 0.25);
-  pointer-events: none;
-}
-
-.joystick-dir-indicator {
-  position: absolute;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 700;
-  color: rgba(0, 240, 255, 0.35);
-  pointer-events: none;
-  transition: color 0.1s, text-shadow 0.1s;
-}
-
-.joystick-dir-indicator.active {
-  color: #00F0FF;
-  text-shadow: 0 0 8px #00F0FF;
-}
-
-.joystick-dir-up { top: 6px; left: calc(50% - 5px); }
-.joystick-dir-down { bottom: 6px; left: calc(50% - 5px); }
-.joystick-dir-left { left: 8px; top: calc(50% - 7px); }
-.joystick-dir-right { right: 8px; top: calc(50% - 7px); }
-
-.joystick-knob {
-  position: absolute;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #00f0ff 0%, #007099 55%, #051824 100%);
-  border: 2px solid var(--cyan-primary);
-  box-shadow: 0 0 14px rgba(0, 240, 255, 0.65), inset 0 0 8px rgba(255, 255, 255, 0.4);
-  top: calc(50% - 24px);
-  left: calc(50% - 24px);
-  pointer-events: none;
-  will-change: transform;
-  transform: translate(0px, 0px);
-}
-
-.joystick-knob.active {
-  box-shadow: 0 0 22px rgba(0, 240, 255, 0.95), inset 0 0 10px rgba(255, 255, 255, 0.7);
+@media (max-width: 480px) and (orientation: portrait) {
+  .touch-btn-ping {
+    width: 135px;
+    height: 46px;
+    font-size: 12px;
+  }
 }
 
 /* =========================================================

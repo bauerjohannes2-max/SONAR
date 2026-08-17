@@ -50,7 +50,7 @@ export class HUD {
     ctx.font = '700 11.5px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = crystalsLeft === 0 ? '#00FF88' : '#e0f8ff';
     const sectorTag = isEndless ? `ETAGE ${String(floor).padStart(2, '0')}` : (levelData ? `SEKTOR 0${levelData.sectorNumber || 1}` : 'MISSION');
-    ctx.fillText(`${sectorTag} // DATENKERNE: ${collected} / ${totalCrystals}`, 28, 19);
+    ctx.fillText(`${sectorTag} • DATENKERNE: ${collected} / ${totalCrystals}`, 28, 19);
 
     // 3. Center Info: Extraction Alarm or Stealth & Decoy status
     ctx.textAlign = 'center';
@@ -89,23 +89,15 @@ export class HUD {
     }
 
     // Frequency Meter Background
-    ctx.fillStyle = 'rgba(6, 21, 32, 0.9)';
+    ctx.fillStyle = 'rgba(0, 240, 255, 0.12)';
     ctx.fillRect(barX, barY, barW, barH);
 
     // Frequency Meter Fill
-    if (isReady) {
-      ctx.fillStyle = '#00F0FF';
-      ctx.shadowColor = '#00F0FF';
-      ctx.shadowBlur = 6 * pulseFactor;
-      ctx.fillRect(barX, barY, barW, barH);
-      ctx.shadowBlur = 0;
-    } else {
-      ctx.fillStyle = '#008899';
-      ctx.fillRect(barX, barY, barW * Math.min(1.0, pingCooldownRatio), barH);
-    }
+    ctx.fillStyle = isReady ? '#00FF88' : '#00F0FF';
+    ctx.fillRect(barX, barY, barW * Math.min(1.0, pingCooldownRatio), barH);
 
     // Frequency Meter Border
-    ctx.strokeStyle = isReady ? 'rgba(0, 240, 255, 0.9)' : 'rgba(0, 240, 255, 0.35)';
+    ctx.strokeStyle = 'rgba(0, 240, 255, 0.4)';
     ctx.lineWidth = 1;
     ctx.strokeRect(barX, barY, barW, barH);
 
@@ -128,7 +120,7 @@ export class HUD {
 
     ctx.font = '700 28px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = CONFIG.COLORS.PLAYER;
-    ctx.fillText('PAUSE // SYSTEM BEREIT', this.width / 2, 120);
+    ctx.fillText('PAUSE • SYSTEM BEREIT', this.width / 2, 120);
 
     const buttons = [
       { text: '▶ WEITERSPIELEN (ESC / SPACE)', y: 200, color: CONFIG.COLORS.PLAYER },
@@ -170,8 +162,8 @@ export class HUD {
     ctx.fillStyle = CONFIG.COLORS.HUNTER;
 
     const title = deathCause === 'WALL_CRASH'
-      ? 'DROHNEN-KOLLISION // AN WAND ZERSCHELLT'
-      : 'SIGNAL VERLOREN // ELIMINIERT';
+      ? 'DROHNEN-KOLLISION • AN WAND ZERSCHELLT'
+      : 'SIGNAL VERLOREN • ELIMINIERT';
     ctx.fillText(title, this.width / 2, 110);
 
     ctx.font = '500 13px "Chakra Petch", "JetBrains Mono", monospace';
@@ -179,8 +171,8 @@ export class HUD {
     const subText = deathCause === 'WALL_CRASH'
       ? 'Die Drohne hält Wandaufprallen nicht stand! Nutze Pings (SPACE) & bewege dich vorsichtig.'
       : (isEndless
-        ? `Drohne auf Etage ${floor} zerstört // Raubtier-Kontakt`
-        : `Drohne in Sektor 0${sectorIndex + 1} zerstört // Raubtier-Kontakt`);
+        ? `Drohne auf Etage ${floor} zerstört • Feindkontakt`
+        : `Drohne in Sektor 0${sectorIndex + 1} zerstört • Feindkontakt`);
     ctx.fillText(subText, this.width / 2, 160);
 
     const buttons = [
@@ -299,7 +291,7 @@ export class HUD {
 
     ctx.font = '600 13.5px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = CONFIG.COLORS.CRYSTAL;
-    ctx.fillText('ALLE 10 SEKTOREN ERFOLGREICH BEREINIGT // APEX-STATUS ERREICHT', this.width / 2, 170);
+    ctx.fillText('ALLE 10 SEKTOREN ERFOLGREICH BEREINIGT • APEX-STATUS ERREICHT', this.width / 2, 170);
 
     ctx.font = '500 12.5px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = CONFIG.COLORS.TEXT_DIM;

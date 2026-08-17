@@ -1,6 +1,6 @@
 /**
  * SONAR: The Echo Chamber
- * Mobile Touch Controls with Customizable Layout, Virtual Joystick, D-Pad, Multi-Touch & Scaling
+ * Modern Mobile Touch Controls with Ergonomic D-Pad, Swipe Gestures & Custom Scaling
  */
 
 import { CONFIG } from '../config.js';
@@ -17,9 +17,10 @@ export class TouchControls {
 
     // Movement state
     this.dpadContainer = null;
-    this.joystickContainer = null;
     this.dpadTouchId = null;
-    this.joystickTouchId = null;
+    this.swipeTouchId = null;
+    this.swipeStartX = 0;
+    this.swipeStartY = 0;
     this.currentDirection = null; // { dx, dy }
 
     // Configuration
@@ -31,15 +32,15 @@ export class TouchControls {
 
   getDefaultConfig() {
     return {
-      controlType: 'JOYSTICK', // 'JOYSTICK' | 'DPAD'
-      scale: 1.0,              // global fallback
+      controlType: 'DPAD', // 'DPAD' | 'SWIPE'
+      scale: 1.0,          // global fallback
       elementScales: {
         movement: 1.0,
         sneak: 1.0,
         decoy: 1.0,
         ping: 1.0
       },
-      positions: null          // null means default layout
+      positions: null      // null means default layout
     };
   }
 
@@ -48,7 +49,10 @@ export class TouchControls {
       const data = localStorage.getItem(CONFIG.STORAGE.TOUCH_CONFIG);
       if (data) {
         const parsed = JSON.parse(data);
-        if (parsed.controlType) this.config.controlType = parsed.controlType;
+        if (parsed.controlType) {
+          // Clean legacy JOYSTICK setting to DPAD
+          this.config.controlType = parsed.controlType === 'JOYSTICK' ? 'DPAD' : parsed.controlType;
+        }
         if (parsed.scale !== undefined) this.config.scale = parsed.scale;
         if (parsed.elementScales) this.config.elementScales = parsed.elementScales;
         if (parsed.positions) this.config.positions = parsed.positions;
@@ -73,6 +77,7 @@ export class TouchControls {
   applyConfig(newConfig) {
     if (newConfig) {
       this.config = JSON.parse(JSON.stringify(newConfig));
+      if (this.config.controlType === 'JOYSTICK') this.config.controlType = 'DPAD';
     }
     this.updateControlVisibility();
     this.applyScaleAndPositions();
@@ -90,14 +95,13 @@ export class TouchControls {
     }, { once: true, passive: true });
 
     if (this.touchOverlay) {
-      this.touchOverlay.style.display = 'none'; // Strictly invisible in MENU / modals
+      this.touchOverlay.style.display = 'none';
     }
 
     this.dpadContainer = document.getElementById('touch-dpad-container');
-    this.joystickContainer = document.getElementById('touch-joystick-container');
 
     this.bindDpadSliding();
-    this.bindJoystick();
+    this.bindSwipeGestures();
     this.bindButtons();
 
     this.updateControlVisibility();
@@ -105,13 +109,9 @@ export class TouchControls {
   }
 
   updateControlVisibility() {
-    if (this.config.controlType === 'JOYSTICK') {
-      if (this.joystickContainer) this.joystickContainer.style.display = 'block';
-      if (this.dpadContainer) this.dpadContainer.style.display = 'none';
-    } else {
-      if (this.joystickContainer) this.joystickContainer.style.display = 'none';
-      if (this.dpadContainer) this.dpadContainer.style.display = 'block';
-    }
+    if (!this.dpadContainer) return;
+    const isDpad = this.config.controlType === 'DPAD';
+    this.dpadContainer.style.display = isDpad ? 'block' : 'none';
   }
 
   applyScaleAndPositions() {
@@ -122,7 +122,7 @@ export class TouchControls {
     const decoyScale = elemScales.decoy || defaultScale;
     const pingScale = elemScales.ping || defaultScale;
 
-    const moveEl = this.config.controlType === 'JOYSTICK' ? this.joystickContainer : this.dpadContainer;
+    const moveEl = this.dpadContainer;
     const sneakBtn = document.getElementById('touch-sneak');
     const decoyBtn = document.getElementById('touch-decoy');
     const pingBtn = document.getElementById('touch-ping');
@@ -134,7 +134,7 @@ export class TouchControls {
   }
 
   setControlType(type) {
-    if (type === 'JOYSTICK' || type === 'DPAD') {
+    if (type === 'DPAD' || type === 'SWIPE') {
       this.config.controlType = type;
       this.updateControlVisibility();
       this.applyScaleAndPositions();
@@ -164,12 +164,15 @@ export class TouchControls {
       } else {
         document.body.classList.remove('has-touch-controls');
         this.clearDpad();
-        this.clearJoystick();
+        this.clearSwipe();
         this.input.clearTouchDirection();
       }
     }
   }
 
+  /**
+   * Bind sliding and tap input on the ergonomic D-Pad.
+   */
   bindDpadSliding() {
     if (!this.dpadContainer) return;
 
@@ -193,7 +196,7 @@ export class TouchControls {
       const dy = clientY - cy;
       const dist = Math.sqrt(dx * dx + dy * dy);
 
-      // Dead zone
+      // Dead zone (center rest)
       if (dist < 12 * (this.config.scale || 1.0)) {
         if (this.currentDirection) {
           this.currentDirection = null;
@@ -277,131 +280,69 @@ export class TouchControls {
     });
   }
 
-  bindJoystick() {
-    if (!this.joystickContainer) return;
+  /**
+   * Bind intuitive full-screen swipe/drag gestures (Wisch-Steuerung).
+   */
+  bindSwipeGestures() {
+    const canvas = document.getElementById('gameCanvas');
+    if (!canvas) return;
 
-    const baseEl = this.joystickContainer.querySelector('.joystick-base');
-    const knobEl = this.joystickContainer.querySelector('.joystick-knob');
-    const indUp = this.joystickContainer.querySelector('.joystick-dir-up');
-    const indDown = this.joystickContainer.querySelector('.joystick-dir-down');
-    const indLeft = this.joystickContainer.querySelector('.joystick-dir-left');
-    const indRight = this.joystickContainer.querySelector('.joystick-dir-right');
-
-    const updateIndicators = (dir) => {
-      if (indUp) indUp.classList.toggle('active', !!(dir && dir.dy === -1));
-      if (indDown) indDown.classList.toggle('active', !!(dir && dir.dy === 1));
-      if (indLeft) indLeft.classList.toggle('active', !!(dir && dir.dx === -1));
-      if (indRight) indRight.classList.toggle('active', !!(dir && dir.dx === 1));
-    };
-
-    const processPoint = (clientX, clientY) => {
-      if (!baseEl || !knobEl) return;
-      const rect = baseEl.getBoundingClientRect();
-      const cx = rect.left + rect.width / 2;
-      const cy = rect.top + rect.height / 2;
-      const dx = clientX - cx;
-      const dy = clientY - cy;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-
-      const maxDist = 36 * (this.config.scale || 1.0);
-      const angle = Math.atan2(dy, dx);
-
-      // Clamp knob movement to base radius
-      const clampedDist = Math.min(dist, maxDist);
-      const knobX = Math.cos(angle) * clampedDist;
-      const knobY = Math.sin(angle) * clampedDist;
-
-      knobEl.style.transform = `translate(${knobX}px, ${knobY}px)`;
-      knobEl.classList.add('active');
-
-      // Dead zone check (10px)
-      if (dist < 10 * (this.config.scale || 1.0)) {
-        if (this.currentDirection) {
-          this.currentDirection = null;
-          updateIndicators(null);
-          this.input.clearTouchDirection();
-        }
-        return;
-      }
-
-      // Convert angle to 4-way cardinal direction
-      let newDir = null;
-      if (angle >= -Math.PI / 4 && angle <= Math.PI / 4) {
-        newDir = { dx: 1, dy: 0 }; // Right
-      } else if (angle > Math.PI / 4 && angle < (3 * Math.PI) / 4) {
-        newDir = { dx: 0, dy: 1 }; // Down
-      } else if (angle >= (3 * Math.PI) / 4 || angle <= (-3 * Math.PI) / 4) {
-        newDir = { dx: -1, dy: 0 }; // Left
-      } else {
-        newDir = { dx: 0, dy: -1 }; // Up
-      }
-
-      if (!this.currentDirection || this.currentDirection.dx !== newDir.dx || this.currentDirection.dy !== newDir.dy) {
-        this.currentDirection = newDir;
-        updateIndicators(newDir);
-        this.input.setTouchDirection(newDir.dx, newDir.dy);
-        if (this.audio) this.audio.ensureContext();
-      }
-    };
-
-    // Touch Event Handlers
-    this.joystickContainer.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      if (this.joystickTouchId === null && e.changedTouches.length > 0) {
+    const onTouchStart = (e) => {
+      if (this.config.controlType !== 'SWIPE' || !this.isVisible) return;
+      if (this.swipeTouchId === null && e.changedTouches.length > 0) {
         const touch = e.changedTouches[0];
-        this.joystickTouchId = touch.identifier;
-        processPoint(touch.clientX, touch.clientY);
-      }
-    }, { passive: false });
-
-    this.joystickContainer.addEventListener('touchmove', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      if (this.joystickTouchId !== null) {
-        for (let i = 0; i < e.touches.length; i++) {
-          if (e.touches[i].identifier === this.joystickTouchId) {
-            processPoint(e.touches[i].clientX, e.touches[i].clientY);
-            break;
-          }
+        // Only accept touches on left 65% of screen to avoid colliding with action buttons
+        if (touch.clientX < window.innerWidth * 0.7) {
+          this.swipeTouchId = touch.identifier;
+          this.swipeStartX = touch.clientX;
+          this.swipeStartY = touch.clientY;
+          if (this.audio) this.audio.ensureContext();
         }
       }
-    }, { passive: false });
+    };
 
-    const handleTouchEnd = (e) => {
-      if (this.joystickTouchId !== null) {
+    const onTouchMove = (e) => {
+      if (this.config.controlType !== 'SWIPE' || this.swipeTouchId === null) return;
+      for (let i = 0; i < e.touches.length; i++) {
+        const touch = e.touches[i];
+        if (touch.identifier === this.swipeTouchId) {
+          const dx = touch.clientX - this.swipeStartX;
+          const dy = touch.clientY - this.swipeStartY;
+          const threshold = 18;
+
+          if (Math.abs(dx) > threshold || Math.abs(dy) > threshold) {
+            let newDir = null;
+            if (Math.abs(dx) > Math.abs(dy)) {
+              newDir = dx > 0 ? { dx: 1, dy: 0 } : { dx: -1, dy: 0 };
+            } else {
+              newDir = dy > 0 ? { dx: 0, dy: 1 } : { dx: 0, dy: -1 };
+            }
+
+            if (!this.currentDirection || this.currentDirection.dx !== newDir.dx || this.currentDirection.dy !== newDir.dy) {
+              this.currentDirection = newDir;
+              this.input.setTouchDirection(newDir.dx, newDir.dy);
+            }
+          }
+          break;
+        }
+      }
+    };
+
+    const onTouchEnd = (e) => {
+      if (this.swipeTouchId !== null) {
         for (let i = 0; i < e.changedTouches.length; i++) {
-          if (e.changedTouches[i].identifier === this.joystickTouchId) {
-            this.clearJoystick();
+          if (e.changedTouches[i].identifier === this.swipeTouchId) {
+            this.clearSwipe();
             break;
           }
         }
       }
     };
 
-    this.joystickContainer.addEventListener('touchend', handleTouchEnd, { passive: false });
-    this.joystickContainer.addEventListener('touchcancel', handleTouchEnd, { passive: false });
-
-    // Mouse Fallback for Desktop Simulation
-    let isMouseDown = false;
-    this.joystickContainer.addEventListener('mousedown', (e) => {
-      e.preventDefault();
-      isMouseDown = true;
-      processPoint(e.clientX, e.clientY);
-    });
-
-    window.addEventListener('mousemove', (e) => {
-      if (isMouseDown && this.config.controlType === 'JOYSTICK') {
-        processPoint(e.clientX, e.clientY);
-      }
-    });
-
-    window.addEventListener('mouseup', () => {
-      if (isMouseDown) {
-        isMouseDown = false;
-        this.clearJoystick();
-      }
-    });
+    canvas.addEventListener('touchstart', onTouchStart, { passive: true });
+    canvas.addEventListener('touchmove', onTouchMove, { passive: true });
+    canvas.addEventListener('touchend', onTouchEnd, { passive: true });
+    canvas.addEventListener('touchcancel', onTouchEnd, { passive: true });
   }
 
   clearDpad() {
@@ -418,24 +359,9 @@ export class TouchControls {
     this.input.clearTouchDirection();
   }
 
-  clearJoystick() {
-    this.joystickTouchId = null;
+  clearSwipe() {
+    this.swipeTouchId = null;
     this.currentDirection = null;
-    if (this.joystickContainer) {
-      const knobEl = this.joystickContainer.querySelector('.joystick-knob');
-      if (knobEl) {
-        knobEl.style.transform = 'translate(0px, 0px)';
-        knobEl.classList.remove('active');
-      }
-      const indUp = this.joystickContainer.querySelector('.joystick-dir-up');
-      const indDown = this.joystickContainer.querySelector('.joystick-dir-down');
-      const indLeft = this.joystickContainer.querySelector('.joystick-dir-left');
-      const indRight = this.joystickContainer.querySelector('.joystick-dir-right');
-      if (indUp) indUp.classList.remove('active');
-      if (indDown) indDown.classList.remove('active');
-      if (indLeft) indLeft.classList.remove('active');
-      if (indRight) indRight.classList.remove('active');
-    }
     this.input.clearTouchDirection();
   }
 
@@ -453,8 +379,10 @@ export class TouchControls {
       };
 
       const handleUp = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
         el.classList.remove('active');
         if (onUp) onUp();
       };
@@ -462,8 +390,10 @@ export class TouchControls {
       el.addEventListener('touchstart', handleDown, { passive: false });
       el.addEventListener('touchend', handleUp, { passive: false });
       el.addEventListener('touchcancel', handleUp, { passive: false });
+
       el.addEventListener('mousedown', handleDown);
       el.addEventListener('mouseup', handleUp);
+      el.addEventListener('mouseleave', handleUp);
     };
 
     // Action Buttons
@@ -491,53 +421,48 @@ export class TouchControls {
         if (this.sneakToggled) {
           sneakBtn.classList.add('sneak-on');
           if (sneakBadge) sneakBadge.innerText = 'EIN';
+          this.input.sneakActive = true;
         } else {
           sneakBtn.classList.remove('sneak-on');
           if (sneakBadge) sneakBadge.innerText = 'AUS';
+          this.input.sneakActive = false;
         }
-
         if (this.audio) this.audio.playUIBlip();
       };
 
       sneakBtn.addEventListener('click', toggleSneak);
       sneakBtn.addEventListener('touchstart', toggleSneak, { passive: false });
-      sneakBtn.addEventListener('mousedown', toggleSneak);
     }
   }
 
-  isSneakActive() {
-    return this.sneakToggled;
+  updateDecoyCount(remaining) {
+    const decoyBadge = document.getElementById('touch-decoy-count');
+    const decoyBtn = document.getElementById('touch-decoy');
+    if (decoyBadge) {
+      decoyBadge.textContent = `${remaining}/1`;
+    }
+    if (decoyBtn) {
+      decoyBtn.style.opacity = remaining > 0 ? '1' : '0.4';
+    }
   }
 
   update(player) {
     if (!player) return;
-
-    // 1. Update Ping Cooldown Text & Style
     const pingBtn = document.getElementById('touch-ping');
     const pingLabel = document.getElementById('touch-ping-label');
-    if (pingBtn) {
-      const pingSec = player.getPingRemainingSeconds();
-      if (pingSec > 0) {
-        if (pingLabel) pingLabel.innerText = `PING ${pingSec}s`;
-        pingBtn.style.opacity = '0.65';
-        pingBtn.style.borderColor = '#ff4466';
-        pingBtn.style.color = '#ff8899';
+    if (pingBtn && pingLabel) {
+      const remainingSec = typeof player.getPingRemainingSeconds === 'function' ? player.getPingRemainingSeconds() : 0;
+      if (remainingSec > 0) {
+        pingBtn.style.opacity = '0.5';
+        pingLabel.textContent = `PING (${remainingSec}s)`;
       } else {
-        if (pingLabel) pingLabel.innerText = 'PING';
         pingBtn.style.opacity = '1.0';
-        pingBtn.style.borderColor = 'var(--cyan-primary, #00F0FF)';
-        pingBtn.style.color = 'var(--cyan-primary, #00F0FF)';
+        pingLabel.textContent = 'PING';
       }
     }
-
-    // 2. Update Decoy Count
-    this.updateDecoyCount(player.decoysRemaining);
   }
 
-  updateDecoyCount(remaining) {
-    const el = document.getElementById('touch-decoy-count');
-    if (el) {
-      el.innerText = `${remaining}/1`;
-    }
+  isSneakActive() {
+    return !!this.sneakToggled;
   }
 }

@@ -77,33 +77,20 @@ export class TouchLayoutEditor {
         <!-- Draggable Movement Control -->
         <div class="layout-editable-item" id="editor-elem-move" data-item="movement" style="transform: scale(${moveScale});">
           <div class="layout-element-label">
-            <span>${isJoystick ? 'JOYSTICK' : 'D-PAD'}</span>
+            <span>STEUERKREUZ</span>
             <div class="elem-scale-controls">
               <button class="btn-elem-scale" data-action="dec" data-target="movement">−</button>
               <span class="elem-scale-val" id="scale-val-movement">${Math.round(moveScale * 100)}%</span>
               <button class="btn-elem-scale" data-action="inc" data-target="movement">+</button>
             </div>
           </div>
-          ${isJoystick ? `
-            <div class="touch-joystick" style="pointer-events: none;">
-              <div class="joystick-base">
-                <div class="joystick-ring"></div>
-                <div class="joystick-dir-indicator joystick-dir-up">▲</div>
-                <div class="joystick-dir-indicator joystick-dir-down">▼</div>
-                <div class="joystick-dir-indicator joystick-dir-left">◀</div>
-                <div class="joystick-dir-indicator joystick-dir-right">▶</div>
-                <div class="joystick-knob"></div>
-              </div>
-            </div>
-          ` : `
-            <div class="touch-dpad" style="pointer-events: none;">
-              <div class="dpad-btn dpad-up">▲</div>
-              <div class="dpad-btn dpad-down">▼</div>
-              <div class="dpad-btn dpad-left">◀</div>
-              <div class="dpad-btn dpad-right">▶</div>
-              <div class="dpad-center"></div>
-            </div>
-          `}
+          <div class="touch-dpad" style="pointer-events: none;">
+            <div class="dpad-btn dpad-up">▲</div>
+            <div class="dpad-btn dpad-down">▼</div>
+            <div class="dpad-btn dpad-left">◀</div>
+            <div class="dpad-btn dpad-right">▶</div>
+            <div class="dpad-center"></div>
+          </div>
         </div>
 
         <!-- Draggable Sneak Button -->

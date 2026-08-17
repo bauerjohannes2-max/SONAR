@@ -32,7 +32,7 @@ export class ProfileModal {
         <div class="modal-header">
           <div class="modal-title">
             <span class="status-dot"></span>
-            <span>PILOTEN-PROFIL // CLOUD-SYNC</span>
+            <span>SPIELER-PROFIL • CLOUD-SYNC</span>
           </div>
           <button id="modal-profile-close-btn" class="modal-close-btn">✕</button>
         </div>
@@ -43,15 +43,15 @@ export class ProfileModal {
           </div>
 
           <div class="modal-form-group">
-            <label for="input-pilot-callsign">PILOT-CALLSIGN (NAME):</label>
-            <input type="text" id="input-pilot-callsign" maxlength="12" placeholder="Z.B. APEX_1" autocomplete="off" spellcheck="false" />
-            <span class="field-hint">3–12 Zeichen, Buchstaben, Zahlen, _ und -</span>
+            <label for="input-pilot-callsign">DEIN SPIELERNAME:</label>
+            <input type="text" id="input-pilot-callsign" maxlength="12" placeholder="Z.B. ALEX" autocomplete="off" spellcheck="false" />
+            <span class="field-hint">3–12 Zeichen (Buchstaben, Zahlen, Bindestriche)</span>
           </div>
 
           <div class="modal-form-group">
-            <label for="input-pilot-pin">4-STELLIGE SICHERHEITS-PIN:</label>
+            <label for="input-pilot-pin">4-STELLIGE PIN:</label>
             <input type="password" id="input-pilot-pin" maxlength="4" placeholder="••••" inputmode="numeric" pattern="[0-9]*" autocomplete="off" />
-            <span class="field-hint">4 Ziffern zum Schutz deines Cloud-Spielstands</span>
+            <span class="field-hint">4 Ziffern zum Schutz deines Online-Spielstands</span>
           </div>
 
           <div id="modal-profile-msg" class="modal-message-box"></div>
@@ -61,7 +61,7 @@ export class ProfileModal {
               ➔ ANMELDEN / REGISTRIEREN
             </button>
             <button id="btn-profile-logout" class="modal-btn modal-btn-secondary">
-              ⎋ ABMELDEN (GAST)
+              ⎋ ABMELDEN (GAST-MODUS)
             </button>
           </div>
         </div>
@@ -140,14 +140,14 @@ export class ProfileModal {
     if (banner) {
       if (isGuest) {
         banner.innerHTML = `
-          <div class="status-badge guest">STATUS: [ LOKALER GAST ] (NUR BROWSER-SPEICHER)</div>
-          <div class="status-detail">Erstelle ein Pilot-Profil mit Callsign & PIN, um deinen Fortschritt global in der Cloud zu sichern.</div>
+          <div class="status-badge guest">STATUS: GAST (NUR LOKAL GESPEICHERT)</div>
+          <div class="status-detail">Gib deinen Namen & eine 4-stellige PIN ein, um deinen Spielstand online zu sichern.</div>
         `;
         if (logoutBtn) logoutBtn.style.display = 'none';
       } else {
         const cloudLabel = isFbOnline ? 'CLOUD-SYNC AKTIV ★' : 'LOKAL GESICHERT';
         banner.innerHTML = `
-          <div class="status-badge logged-in">PILOT: <strong>${pilot.callsign}</strong> // [ ${cloudLabel} ]</div>
+          <div class="status-badge logged-in">SPIELER: <strong>${pilot.callsign}</strong> • [ ${cloudLabel} ]</div>
           <div class="status-detail">Höchster Sektor: 0${pilot.unlockedSector || 1} • Endless Rekord: Etage ${pilot.endlessHighscore || 1}</div>
         `;
         if (logoutBtn) logoutBtn.style.display = 'inline-block';

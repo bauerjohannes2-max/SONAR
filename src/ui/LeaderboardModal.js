@@ -29,7 +29,7 @@ export class LeaderboardModal {
         <div class="modal-header">
           <div class="modal-title">
             <span class="status-dot"></span>
-            <span>GLOBALES LEADERBOARD // TOP 10 PILOTEN</span>
+            <span>BESTENLISTE • TOP 10 SPIELER</span>
           </div>
           <button id="modal-lb-close-btn" class="modal-close-btn">✕</button>
         </div>
@@ -38,7 +38,7 @@ export class LeaderboardModal {
           <div class="lb-header-bar">
             <div id="lb-status-indicator" class="lb-status">
               <span class="status-pulse-dot"></span>
-              <span id="lb-status-text">// STATUS: VERBINDE...</span>
+              <span id="lb-status-text">STATUS: VERBINDE...</span>
             </div>
             <button id="btn-lb-refresh" class="modal-btn modal-btn-small">
               ⟳ AKTUALISIEREN
@@ -50,14 +50,14 @@ export class LeaderboardModal {
               <thead>
                 <tr>
                   <th class="col-rank">RANG</th>
-                  <th class="col-pilot">PILOT (NAME)</th>
+                  <th class="col-pilot">SPIELER</th>
                   <th class="col-level">GESCHAFFTE SEKTOREN</th>
                   <th class="col-date">DATUM</th>
                 </tr>
               </thead>
               <tbody id="lb-table-body">
                 <tr>
-                  <td colspan="4" class="lb-loading">Lade Pilotendaten aus dem Sonar-Netzwerk...</td>
+                  <td colspan="4" class="lb-loading">Lade Rangliste aus der Sonar-Cloud...</td>
                 </tr>
               </tbody>
             </table>
@@ -76,6 +76,7 @@ export class LeaderboardModal {
     wrapper.appendChild(container);
     this.modalEl = container;
 
+    // Attach Event Listeners
     const closeBtn = container.querySelector('#modal-lb-close-btn');
     const backBtn = container.querySelector('#btn-lb-back');
     const refreshBtn = container.querySelector('#btn-lb-refresh');
@@ -114,7 +115,7 @@ export class LeaderboardModal {
     const refreshBtn = this.modalEl.querySelector('#btn-lb-refresh');
 
     if (refreshBtn) refreshBtn.disabled = true;
-    if (statusText) statusText.textContent = '// STATUS: LADE DATEN...';
+    if (statusText) statusText.textContent = 'STATUS: LADE DATEN...';
 
     const data = await leaderboardService.getLeaderboard(forceRefresh);
 
@@ -122,16 +123,16 @@ export class LeaderboardModal {
 
     if (statusText) {
       if (data.isCloud) {
-        statusText.innerHTML = '<span class="online-tag">FIRESTORE CLOUD LIVE</span> // GLOBALE DATENBANK';
+        statusText.innerHTML = '<span class="online-tag">CLOUD LIVE</span> • GLOBALE BESTENLISTE';
       } else {
-        statusText.innerHTML = '<span class="fallback-tag">LOKALER SPEICHER / BENCHMARK</span> // GAST-MODUS';
+        statusText.innerHTML = '<span class="fallback-tag">LOKALER SPEICHER</span> • GAST-MODUS';
       }
     }
 
     if (!tbody) return;
 
     if (!data.entries || data.entries.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="4" class="lb-empty">Keine Piloteneinträge vorhanden.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="4" class="lb-empty">Keine Spielereinträge vorhanden.</td></tr>`;
       return;
     }
 

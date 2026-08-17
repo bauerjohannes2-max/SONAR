@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 
-test.describe('SONAR v1.8.0 Hydrodynamic Wake & Particle Physics E2E Validation', () => {
+test.describe('SONAR v1.8.1 Profile Isolation & Update Engine E2E Validation', () => {
 
   test.beforeEach(async ({ page }) => {
     page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
@@ -11,11 +11,11 @@ test.describe('SONAR v1.8.0 Hydrodynamic Wake & Particle Physics E2E Validation'
     });
   });
 
-  test('1. Version Endpoint & JSON Integrity (v1.8.0)', async ({ request }) => {
+  test('1. Version Endpoint & JSON Integrity (v1.8.1)', async ({ request }) => {
     const response = await request.get('/version.json');
     expect(response.ok()).toBeTruthy();
     const data = await response.json();
-    expect(data.version).toBe('1.8.0');
+    expect(data.version).toBe('1.8.1');
     expect(data.build).toBe(20260817);
   });
 
@@ -304,6 +304,67 @@ test.describe('SONAR v1.8.0 Hydrodynamic Wake & Particle Physics E2E Validation'
     expect(result.countAfterWall).toBe(5);
     expect(result.hasWakeType).toBeTruthy();
     expect(result.hasSparkType).toBeTruthy();
+  });
+
+  test('13. Strict Multi-User Pilot Profile Progress Isolation (v1.8.1)', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    const result = await page.evaluate(async () => {
+      const sm = window.game.storageManager;
+      const ts = Date.now();
+      const userA = 'PILOT_A_' + ts.toString().slice(-4);
+      const userB = 'PILOT_B_' + ts.toString().slice(-4);
+
+      // 1. Pilot A registers and achieves Level 5
+      await sm.login(userA, '1234');
+      const aInitial = sm.getCampaignProgress().unlockedSector;
+      sm.saveCampaignProgress(4, { rank: 'S', time: 18.2 }); // Cleared sector 4 (unlocked 5)
+      const aSector = sm.getCampaignProgress().unlockedSector;
+
+      // 2. Pilot B registers
+      await sm.login(userB, '5678');
+      // When Pilot B first registers, he MUST start at 1, NOT at Pilot A's 5!
+      const bInitial = sm.getCampaignProgress().unlockedSector;
+      sm.saveCampaignProgress(2, { rank: 'A', time: 24.1 }); // Pilot B clears sector 2 (unlocked 3)
+      const bSector = sm.getCampaignProgress().unlockedSector;
+      const bMaxCleared = sm.getCampaignProgress().maxClearedSector;
+
+      // 3. Log out to GAST
+      sm.logout();
+      const guestSector = sm.getCampaignProgress().unlockedSector;
+
+      // 4. Log back into Pilot A
+      await sm.login(userA, '1234');
+      const aRestoredSector = sm.getCampaignProgress().unlockedSector;
+
+      // 5. Log back into Pilot B
+      await sm.login(userB, '5678');
+      const bRestoredSector = sm.getCampaignProgress().unlockedSector;
+
+      return { aInitial, aSector, bInitial, bSector, bMaxCleared, guestSector, aRestoredSector, bRestoredSector };
+    });
+
+    expect(result.aInitial).toBe(1);
+    expect(result.aSector).toBe(5);
+    expect(result.bInitial).toBe(1); // Pilot B must NOT inherit Level 5 from Pilot A!
+    expect(result.bSector).toBe(3);
+    expect(result.bMaxCleared).toBe(2);
+    expect(result.guestSector).toBe(1);
+    expect(result.aRestoredSector).toBe(5); // Pilot A keeps Level 5!
+    expect(result.bRestoredSector).toBe(3); // Pilot B keeps Level 3!
+  });
+
+  test('14. Auto-Update Banner Disappearance when running Current Version (v1.8.1)', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    const bannerExists = await page.evaluate(async () => {
+      await window.game.checkAutoUpdate();
+      return !!document.getElementById('auto-update-banner');
+    });
+
+    expect(bannerExists).toBeFalsy();
   });
 
 });

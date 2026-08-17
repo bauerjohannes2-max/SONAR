@@ -118,17 +118,52 @@ class FirebaseService {
     const ready = await this.init();
     if (!ready || !this.db) {
       // Fallback: local session simulation when Firebase is offline / unconfigured
+      const localKey = 'sonar_pilot_' + callsign.toUpperCase();
+      let storedPilot = null;
+      try {
+        const raw = localStorage.getItem(localKey);
+        if (raw) storedPilot = JSON.parse(raw);
+      } catch (e) {}
+
+      if (storedPilot) {
+        if (storedPilot.pinHash && storedPilot.pinHash !== pinHash) {
+          return { success: false, error: 'Falsche PIN für dieses Pilot-Callsign!' };
+        }
+        return {
+          success: true,
+          offline: true,
+          isNew: false,
+          data: {
+            callsign: storedPilot.callsign || callsign,
+            unlockedSector: storedPilot.unlockedSector || 1,
+            maxClearedSector: storedPilot.maxClearedSector || 0,
+            sectorStats: storedPilot.sectorStats || {},
+            endlessHighscore: storedPilot.endlessHighscore || 0,
+            highestLevel: storedPilot.maxClearedSector || storedPilot.unlockedSector || 1
+          },
+          message: `Willkommen zurück, Pilot ${callsign}!`
+        };
+      }
+
+      const newPilotData = {
+        callsign,
+        pinHash,
+        unlockedSector: 1,
+        maxClearedSector: 0,
+        sectorStats: {},
+        endlessHighscore: 0,
+        highestLevel: 1
+      };
+      try {
+        localStorage.setItem(localKey, JSON.stringify(newPilotData));
+      } catch (e) {}
+
       return {
         success: true,
         offline: true,
-        data: {
-          callsign,
-          unlockedSector: 1,
-          sectorStats: {},
-          endlessHighscore: 0,
-          highestLevel: 1
-        },
-        message: 'Lokal eingeloggt (Offline/Gast-Modus).'
+        isNew: true,
+        data: newPilotData,
+        message: `Neues Pilot-Profil registriert: ${callsign}!`
       };
     }
 
@@ -194,8 +229,16 @@ class FirebaseService {
    */
   async savePilotProgress(callsign, progressData) {
     if (!callsign || callsign === 'GAST') return false;
+
+    const localKey = 'sonar_pilot_' + callsign.toUpperCase();
+    try {
+      const existing = localStorage.getItem(localKey);
+      const parsed = existing ? JSON.parse(existing) : {};
+      localStorage.setItem(localKey, JSON.stringify({ ...parsed, ...progressData, callsign }));
+    } catch (e) {}
+
     const ready = await this.init();
-    if (!ready || !this.db) return false;
+    if (!ready || !this.db) return true;
 
     try {
       const { doc, setDoc, serverTimestamp } = this.firestoreModule;

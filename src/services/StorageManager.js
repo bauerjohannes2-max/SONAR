@@ -45,7 +45,7 @@ class StorageManager {
   }
 
   /**
-   * Login or Register Pilot. Merges cloud and local progress (highest level wins).
+   * Login or Register Pilot. Strictly isolates each pilot's personal progress.
    */
   async login(callsign, pin) {
     const res = await firebaseService.loginOrRegister(callsign, pin);
@@ -54,52 +54,76 @@ class StorageManager {
     }
 
     const cloudData = res.data || {};
-    const localProgress = this.getCampaignProgress();
-    const localEndless = this.getEndlessProgress();
+    const pilotCallsign = (cloudData.callsign || callsign).toUpperCase();
 
-    // Smart Merge: take the highest progress
-    const mergedUnlockedSector = Math.max(localProgress.unlockedSector || 1, cloudData.unlockedSector || 1);
-    const mergedMaxClearedSector = Math.max(
-      localProgress.maxClearedSector || (localProgress.unlockedSector > 1 ? localProgress.unlockedSector - 1 : 0),
-      cloudData.maxClearedSector !== undefined ? cloudData.maxClearedSector : (cloudData.highestLevel > 1 ? cloudData.highestLevel - 1 : 0)
-    );
-    const mergedSectorStats = { ...(cloudData.sectorStats || {}), ...(localProgress.sectorStats || {}) };
-    const mergedEndlessHighscore = Math.max(localEndless.bestFloor || 1, cloudData.endlessHighscore || 0);
+    let localPilot = null;
+    try {
+      const raw = localStorage.getItem('sonar_pilot_' + pilotCallsign);
+      if (raw) localPilot = JSON.parse(raw);
+    } catch (e) {}
+
+    let pilotUnlocked = cloudData.unlockedSector || (localPilot ? localPilot.unlockedSector : 1) || 1;
+    let pilotMaxCleared = cloudData.maxClearedSector !== undefined
+      ? cloudData.maxClearedSector
+      : (localPilot && localPilot.maxClearedSector !== undefined
+          ? localPilot.maxClearedSector
+          : (pilotUnlocked > 1 ? pilotUnlocked - 1 : 0));
+
+    if (localPilot) {
+      pilotUnlocked = Math.max(pilotUnlocked, localPilot.unlockedSector || 1);
+      pilotMaxCleared = Math.max(pilotMaxCleared, localPilot.maxClearedSector || 0);
+    }
+
+    let pilotSectorStats = { ...(localPilot ? localPilot.sectorStats : {}), ...(cloudData.sectorStats || {}) };
+    let pilotEndless = Math.max(cloudData.endlessHighscore || 0, localPilot ? (localPilot.endlessHighscore || 0) : 0);
+
+    // Only for brand-new registrations from Guest mode: option to preserve initial guest progress
+    if (res.isNew && this.isGuest()) {
+      const guestProgress = this.getCampaignProgress();
+      const guestEndless = this.getEndlessProgress();
+      if ((guestProgress.unlockedSector && guestProgress.unlockedSector > 1) || guestProgress.maxClearedSector > 0) {
+        pilotUnlocked = Math.max(pilotUnlocked, guestProgress.unlockedSector || 1);
+        pilotMaxCleared = Math.max(pilotMaxCleared, guestProgress.maxClearedSector || 0);
+        pilotSectorStats = { ...pilotSectorStats, ...(guestProgress.sectorStats || {}) };
+        pilotEndless = Math.max(pilotEndless, guestEndless.bestFloor || 0);
+      }
+    }
 
     this.currentPilot = {
-      callsign: cloudData.callsign || callsign.toUpperCase(),
+      callsign: pilotCallsign,
       isGuest: false,
-      unlockedSector: mergedUnlockedSector,
-      maxClearedSector: mergedMaxClearedSector,
-      sectorStats: mergedSectorStats,
-      endlessHighscore: mergedEndlessHighscore,
-      highestLevel: mergedMaxClearedSector
+      unlockedSector: pilotUnlocked,
+      maxClearedSector: pilotMaxCleared,
+      sectorStats: pilotSectorStats,
+      endlessHighscore: pilotEndless,
+      highestLevel: pilotMaxCleared
     };
 
     // Save session to localStorage
     try {
       localStorage.setItem(CONFIG.STORAGE.PILOT_SESSION, JSON.stringify(this.currentPilot));
       localStorage.setItem(CONFIG.STORAGE.PROGRESS, JSON.stringify({
-        unlockedSector: mergedUnlockedSector,
-        maxClearedSector: mergedMaxClearedSector,
-        sectorStats: mergedSectorStats
+        unlockedSector: pilotUnlocked,
+        maxClearedSector: pilotMaxCleared,
+        sectorStats: pilotSectorStats
       }));
       localStorage.setItem(CONFIG.STORAGE.ENDLESS, JSON.stringify({
-        bestFloor: mergedEndlessHighscore,
-        bestCrystals: localEndless.bestCrystals || 0
+        bestFloor: pilotEndless,
+        bestCrystals: 0
       }));
+      localStorage.setItem('sonar_pilot_' + pilotCallsign, JSON.stringify(this.currentPilot));
     } catch (e) {
       console.warn('[StorageManager] Local storage save error:', e);
     }
 
-    // Sync merged state back to cloud
+    // Sync to cloud if online
     if (!res.offline) {
       firebaseService.savePilotProgress(this.currentPilot.callsign, {
-        unlockedSector: mergedUnlockedSector,
-        maxClearedSector: mergedMaxClearedSector,
-        sectorStats: mergedSectorStats,
-        endlessHighscore: mergedEndlessHighscore,
-        highestLevel: mergedMaxClearedSector
+        unlockedSector: pilotUnlocked,
+        maxClearedSector: pilotMaxCleared,
+        sectorStats: pilotSectorStats,
+        endlessHighscore: pilotEndless,
+        highestLevel: pilotMaxCleared
       });
     }
 
@@ -112,7 +136,7 @@ class StorageManager {
   }
 
   /**
-   * Log out active pilot and switch back to Guest mode.
+   * Log out active pilot and switch back to Guest mode with clean guest state.
    */
   logout() {
     this.currentPilot = {
@@ -121,6 +145,21 @@ class StorageManager {
     };
     try {
       localStorage.removeItem(CONFIG.STORAGE.PILOT_SESSION);
+
+      // Restore guest progress (or start clean at sector 1)
+      let guestProg = { unlockedSector: 1, maxClearedSector: 0, sectorStats: {} };
+      const rawGuest = localStorage.getItem('sonar_guest_progress');
+      if (rawGuest) {
+        try { guestProg = JSON.parse(rawGuest); } catch (e) {}
+      }
+      localStorage.setItem(CONFIG.STORAGE.PROGRESS, JSON.stringify(guestProg));
+
+      let guestEndless = { bestFloor: 1, bestCrystals: 0 };
+      const rawEndless = localStorage.getItem('sonar_guest_endless');
+      if (rawEndless) {
+        try { guestEndless = JSON.parse(rawEndless); } catch (e) {}
+      }
+      localStorage.setItem(CONFIG.STORAGE.ENDLESS, JSON.stringify(guestEndless));
     } catch (e) {
       console.warn('[StorageManager] Session clear error:', e);
     }
@@ -172,17 +211,24 @@ class StorageManager {
     // Save locally
     try {
       localStorage.setItem(CONFIG.STORAGE.PROGRESS, JSON.stringify(payload));
+      if (this.isGuest()) {
+        localStorage.setItem('sonar_guest_progress', JSON.stringify(payload));
+      } else {
+        const updatedPilot = {
+          ...this.currentPilot,
+          ...payload,
+          highestLevel: maxClearedSector
+        };
+        this.currentPilot = updatedPilot;
+        localStorage.setItem('sonar_pilot_' + this.currentPilot.callsign, JSON.stringify(updatedPilot));
+        localStorage.setItem(CONFIG.STORAGE.PILOT_SESSION, JSON.stringify(updatedPilot));
+      }
     } catch (e) {
       console.warn('[StorageManager] Local progress save error:', e);
     }
 
     // Cloud auto-sync
     if (!this.isGuest()) {
-      this.currentPilot.unlockedSector = unlockedSector;
-      this.currentPilot.maxClearedSector = maxClearedSector;
-      this.currentPilot.sectorStats = sectorStats;
-      this.currentPilot.highestLevel = maxClearedSector;
-
       firebaseService.savePilotProgress(this.currentPilot.callsign, {
         unlockedSector,
         maxClearedSector,
@@ -226,12 +272,18 @@ class StorageManager {
 
     try {
       localStorage.setItem(CONFIG.STORAGE.ENDLESS, JSON.stringify(payload));
+      if (this.isGuest()) {
+        localStorage.setItem('sonar_guest_endless', JSON.stringify(payload));
+      } else {
+        this.currentPilot.endlessHighscore = bestFloor;
+        localStorage.setItem('sonar_pilot_' + this.currentPilot.callsign, JSON.stringify(this.currentPilot));
+        localStorage.setItem(CONFIG.STORAGE.PILOT_SESSION, JSON.stringify(this.currentPilot));
+      }
     } catch (e) {
       console.warn('[StorageManager] Local endless save error:', e);
     }
 
     if (!this.isGuest()) {
-      this.currentPilot.endlessHighscore = bestFloor;
       firebaseService.savePilotProgress(this.currentPilot.callsign, {
         unlockedSector: this.currentPilot.unlockedSector || 1,
         sectorStats: this.currentPilot.sectorStats || {},

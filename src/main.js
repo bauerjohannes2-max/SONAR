@@ -30,6 +30,7 @@ import { ProfileModal } from './ui/ProfileModal.js';
 import { LeaderboardModal } from './ui/LeaderboardModal.js';
 import { TouchLayoutEditor } from './ui/TouchLayoutEditor.js';
 import { storageManager } from './services/StorageManager.js';
+import { firebaseService } from './services/FirebaseService.js';
 import { spriteManager } from './engine/SpriteManager.js';
 
 export class Game {
@@ -42,6 +43,8 @@ export class Game {
     // Subsystems
     this.audioEngine = new AudioEngine();
     this.spriteManager = spriteManager;
+    this.storageManager = storageManager;
+    this.firebaseService = firebaseService;
     this.particleEngine = new ParticleEngine(this.canvas);
     this.inputHandler = new InputHandler(this.canvas);
     this.waveSystem = new WaveSystem();
@@ -181,8 +184,12 @@ export class Game {
       if (!res.ok) return;
       const data = await res.json();
 
-      if (data && data.version && (data.version !== CONFIG.VERSION || (data.build && data.build > CONFIG.BUILD))) {
+      const isNewer = data && data.version && (data.version !== CONFIG.VERSION || (data.build && Number(data.build) > Number(CONFIG.BUILD)));
+      if (isNewer) {
         this.showUpdateBanner(data.version);
+      } else {
+        const existingBanner = document.getElementById('auto-update-banner');
+        if (existingBanner) existingBanner.remove();
       }
     } catch (err) {
       console.warn('[AutoUpdate] Update check skipped (offline mode):', err);
@@ -211,16 +218,25 @@ export class Game {
 
     const updateBtn = banner.querySelector('#btn-banner-update-now');
     if (updateBtn) {
-      const handleUpdate = (e) => {
+      const handleUpdate = async (e) => {
         if (e) e.preventDefault();
-        if ('caches' in window) {
-          caches.keys().then((keys) => {
-            keys.forEach((k) => caches.delete(k));
-            window.location.reload(true);
-          });
-        } else {
-          window.location.reload(true);
+        updateBtn.disabled = true;
+        updateBtn.textContent = '⚡ WIRD AKTUALISIERT...';
+        try {
+          if ('serviceWorker' in navigator) {
+            const regs = await navigator.serviceWorker.getRegistrations();
+            for (const reg of regs) await reg.unregister();
+          }
+          if ('caches' in window) {
+            const keys = await caches.keys();
+            for (const k of keys) await caches.delete(k);
+          }
+        } catch (err) {
+          console.warn('Update clear cache error:', err);
         }
+        const url = new URL(window.location.href);
+        url.searchParams.set('v', Date.now().toString());
+        window.location.replace(url.toString());
       };
       updateBtn.addEventListener('click', handleUpdate);
       updateBtn.addEventListener('touchstart', handleUpdate, { passive: false });

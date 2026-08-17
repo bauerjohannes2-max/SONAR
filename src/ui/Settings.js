@@ -433,28 +433,39 @@ export class Settings {
           const data = await res.json();
 
           if (data && data.version) {
-            if (data.version === CONFIG.VERSION && (!data.build || data.build === CONFIG.BUILD)) {
+            const isNewer = data.version !== CONFIG.VERSION || (data.build && Number(data.build) > Number(CONFIG.BUILD));
+            if (!isNewer) {
               if (updateMsg) {
                 updateMsg.style.color = '#00FF88';
                 updateMsg.textContent = `✓ Du nutzt die neueste Version (v${CONFIG.VERSION}).`;
               }
+              const banner = document.getElementById('auto-update-banner');
+              if (banner) banner.remove();
             } else {
               if (updateMsg) {
                 updateMsg.style.color = '#FFAA00';
                 updateMsg.innerHTML = `⚡ Neue Version v${data.version} verfügbar! <a href="#" id="link-reload-update" style="color: #00F0FF; font-weight: 700; text-decoration: underline; margin-left: 6px;">[ JETZT AKTUALISIEREN ]</a>`;
                 const reloadLink = container.querySelector('#link-reload-update');
                 if (reloadLink) {
-                  reloadLink.addEventListener('click', (ev) => {
-                    ev.preventDefault();
-                    if ('caches' in window) {
-                      caches.keys().then((keys) => {
-                        keys.forEach((k) => caches.delete(k));
-                        window.location.reload();
-                      });
-                    } else {
-                      window.location.reload();
-                    }
-                  });
+                  const triggerReload = async (ev) => {
+                    if (ev) ev.preventDefault();
+                    reloadLink.textContent = '[ WIRD AKTUALISIERT... ]';
+                    try {
+                      if ('serviceWorker' in navigator) {
+                        const regs = await navigator.serviceWorker.getRegistrations();
+                        for (const reg of regs) await reg.unregister();
+                      }
+                      if ('caches' in window) {
+                        const keys = await caches.keys();
+                        for (const k of keys) await caches.delete(k);
+                      }
+                    } catch (e) {}
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('v', Date.now().toString());
+                    window.location.replace(url.toString());
+                  };
+                  reloadLink.addEventListener('click', triggerReload);
+                  reloadLink.addEventListener('touchstart', triggerReload, { passive: false });
                 }
               }
             }
@@ -657,11 +668,21 @@ export class Settings {
           const applyBtn = statusEl.querySelector('#btn-apply-update');
           if (applyBtn) {
             applyBtn.addEventListener('click', async () => {
-              if ('caches' in window) {
-                const keys = await caches.keys();
-                await Promise.all(keys.map(k => caches.delete(k)));
-              }
-              window.location.reload(true);
+              applyBtn.disabled = true;
+              applyBtn.textContent = '🚀 WIRD AKTUALISIERT...';
+              try {
+                if ('serviceWorker' in navigator) {
+                  const regs = await navigator.serviceWorker.getRegistrations();
+                  for (const reg of regs) await reg.unregister();
+                }
+                if ('caches' in window) {
+                  const keys = await caches.keys();
+                  for (const k of keys) await caches.delete(k);
+                }
+              } catch (e) {}
+              const url = new URL(window.location.href);
+              url.searchParams.set('v', Date.now().toString());
+              window.location.replace(url.toString());
             });
           }
         }

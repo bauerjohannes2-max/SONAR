@@ -1,7 +1,7 @@
 # SONAR: Continuous Improvements & Pareto-Gauntlet Roadmap
 
 > **System-Status:** Autonomer Continuous Pareto-Gauntlet-Loop aktiv  
-> **Aktuelle Version:** `v1.8.0` (Build 20260817)  
+> **Aktuelle Version:** `v1.8.1` (Build 20260817)  
 > **Zielsetzung:** Maximierung von Immersion, akustischem Thrill, visueller Brillanz und langfristiger Spieler-Retention durch das 80/20-Prinzip (80% Hebelwirkung bei 20% Umsetzungsaufwand).
 
 ---
@@ -25,13 +25,21 @@ Jeder Meilenstein und jeder Zyklus erfordert ein zwingendes Semantic Versioning 
 
 ## 🏆 Abgeschlossene Gauntlet-Zyklen (Milestones)
 
+### ✅ Zyklus 3 [v1.8.1]: Strict Multi-User Profile Isolation & Update Engine Loop Fix
+- **Domäne 5 (Onboarding & User Profiles) & Domäne 4 (UX):**
+  - **Strikte Spieler-Trennung:** Jeder Pilot besitzt einen isolierten Datensatz (`sonar_pilot_${CALLSIGN}`). Kein Level-Bleeding mehr zwischen verschiedenen Konten (z. B. Pilot A auf Level 5 vs. Pilot B auf Level 3).
+  - **Gast-Modus Entkopplung:** Beim Abmelden wird ein neutraler Gast-Stand (`sonar_guest_progress`) geladen, ohne vorherige Spielstände zu kontaminieren.
+  - **Update-Banner Fix:** Deep ServiceWorker Unregistration & Cache-Purging beim Klick auf `[ JETZT AKTUALISIEREN ]` verhindert Update-Endlosschleifen.
+  - **Auto-Banner Cleanup:** Das Banner schließt sich automatisch, sobald die aktuelle Version aktiv ist.
+- **E2E Test-Gauntlet:** 14/14 Tests erfolgreich bestanden.
+
 ### ✅ Zyklus 2 [v1.8.0]: Hydrodynamic Wake Trail & Acoustic Wall Reflection Sparks
 - **Domäne 1 (Visuelles Feedback & Game-Juice):**
   - Neuer Partikeltyp `WAKE_TRAIL` mit additivem Blending (`lighter`), weichem Phosphor-Gleiten und Turbulenz-Drift.
   - 100%ige optische Unterdrückung im Schleichgang (`SNEAK`) für sofort spürbares Stealth-Feedback.
 - **Domäne 3 (Core Gameloop & Wellenphysik):**
   - Implementierung von `WaveSystem.update(dt, gridMap, particleEngine)` mit Kantenreflexion: Beim Auftreffen von Schallwellen auf unbeleuchtete Wände (`TILES.WALL`) entstehen feine, weiße & cyanfarbene Funken (*Acoustic Reflection Sparks*).
-- **E2E Test-Gauntlet:** 12/12 Tests erfolgreich bestanden.
+- **E2E Test-Gauntlet:** 12/12 Tests bestanden.
 
 ### ✅ Zyklus 1 [v1.7.0]: Dynamic Heartbeat Audio, Mobile Touch UX & Escape Portal Beacon
 - **Domäne 2 (Audio & Soundscape) & Domäne 1 (Game-Juice):**

@@ -79,6 +79,7 @@ Grid: 25x18 (32px tiles). Screen: 800x576px.
 - [x] **Tutorial-Karte 7 Köder-Rework**: Exakt 3 Blöcke Wurfweite, präziser Taktik-Text & Munitionsanzeige (HUD: 1/1).
 - [x] **Milestone [v1.7.0]: Dynamic Heartbeat Audio & Mobile Touch UX**: Prozeduraler Muffled Sub-Bass Pulse (52–160 BPM) bei Feindnähe, Mobile-Haptik und vollständiges Touch-Scrolling für Modals.
 - [x] **Milestone [v1.8.0]: Hydrodynamic Wake Trail & Acoustic Wall Sparks**: Partikelschweif bei Drohnenschub (100% Unterdrückung im Schleichgang) und Funkenreflexion beim Auftreffen von Schallwellen auf Wände.
+- [x] **Milestone [v1.8.1]: User Profile Isolation & Update Engine Loop Fix**: Strikte Datentrennung einzelner Piloten-Accounts (kein Level-Bleeding), neutraler Gast-Modus und sauberes Cache-Purging beim Aktualisieren.
 
 ## WORKFLOW & VERSIONING RULES (Binding SemVer Standard)
 - **Eiserne Direktive:** Kein Commit und kein Zyklus ohne sinnvolle, dynamische Versionserhöhung nach Semantic Versioning (**SemVer**):

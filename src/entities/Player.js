@@ -239,19 +239,21 @@ export class Player {
   }
 
   calculateRank() {
-    let rank = 'A';
-    if (this.timeElapsed <= 25 && this.pingsUsed <= 3) rank = 'S';
-    else if (this.timeElapsed <= 40) rank = 'A';
-    else if (this.timeElapsed <= 60) rank = 'B';
-    else rank = 'C';
+    const isSpeedy = this.timeElapsed <= 45;
+    const isStealthy = this.pingsUsed <= 3;
 
-    let stars = 1; // 1 Star: Sector Cleared
-    if (this.pingsUsed <= 2) stars++; // 2 Stars: Stealth Discipline (max 2 pings)
-    if (rank === 'S' || (this.timeElapsed <= 28 && this.pingsUsed <= 3)) stars = 3; // 3 Stars: Apex Pilot
+    let stars = 1; // Stern 1: Sektor erfolgreich geräumt & evakuiert
+    if (isSpeedy) stars++; // Stern 2: Tempo-Ziel (<= 45 Sek.)
+    if (isStealthy) stars++; // Stern 3: Ghost-Meisterschaft (<= 3 Pings)
+    stars = Math.min(3, stars);
+
+    const rank = stars === 3 ? 'S' : (stars === 2 ? 'A' : 'B');
 
     return {
       rank,
       stars,
+      isSpeedy,
+      isStealthy,
       time: this.timeElapsed,
       pingsUsed: this.pingsUsed,
       stepsTaken: this.stepsTaken,

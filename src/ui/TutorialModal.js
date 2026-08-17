@@ -1,6 +1,7 @@
 /**
  * SONAR: The Echo Chamber
  * Interactive 7-Card Procedural Image Tutorial & Tactical Manual Modal
+ * Uses child-friendly 3-point structure: WAS IST DAS? / WIE REAGIERST DU? / PROFI-TIPP
  */
 
 import { CONFIG } from '../config.js';
@@ -24,10 +25,12 @@ export class TutorialModal {
       {
         id: 'principle',
         title: '01. DU BIST DIE DROHNE ECHO',
-        category: 'DEINE SPIELFIGUR',
-        role: 'Der leuchtende Pfeil auf dem Bildschirm',
-        behavior: 'Du steuerst die kleine Unterwasser-Drohne ECHO (den leuchtenden Pfeil). Bewege dich mit WASD, Pfeiltasten oder der Touch-Steuerung!',
-        counter: 'In der Station TETHYS-6 ist der Strom ausgefallen: Du bist blind und musst dich durch Schallwellen orientieren.',
+        whatIsIt: 'Der leuchtende Cyan-Pfeil ist deine kleine Aufklärungsdrohne ECHO in Station ABYSS.',
+        howToReact: 'Steuere mit WASD / Pfeiltasten oder der Touch-Steuerung. Du bist blind und musst dich durch Schallwellen orientieren.',
+        proTip: 'Fliege vorausschauend: Taste SPACE / [PING] sendet einen Sonar-Puls aus, um den Weg zu beleuchten.',
+        role: 'Der leuchtende Cyan-Pfeil ist deine kleine Aufklärungsdrohne ECHO in Station ABYSS.',
+        behavior: 'Steuere mit WASD / Pfeiltasten oder der Touch-Steuerung. Du bist blind und musst dich durch Schallwellen orientieren.',
+        counter: 'Fliege vorausschauend: Taste SPACE / [PING] sendet einen Sonar-Puls aus, um den Weg zu beleuchten.',
         renderVisual: (ctx, t) => {
           ctx.fillStyle = '#030305';
           ctx.fillRect(0, 0, 280, 140);
@@ -87,10 +90,12 @@ export class TutorialModal {
       {
         id: 'drone',
         title: '02. SCHALLWELLEN & WÄNDE',
-        category: 'ECHOLOT & PINGS',
-        role: 'Wände kurz aufleuchten lassen',
-        behavior: 'Drücke LEERTASTE (oder PING-Button), um Wände kurz aufleuchten zu lassen. Sieh genau hin, wo der Gang frei ist.',
-        counter: 'WICHTIG: Fliege niemals blind in eine Wand — die Drohne zerbricht sonst sofort beim Aufprall!',
+        whatIsIt: 'Schallwellen breiten sich kreisförmig aus und lassen Wände kurz im Dunkeln aufleuchten.',
+        howToReact: 'Drücke SPACE (oder [PING]), um Gänge sichtbar zu machen. Sieh genau hin, wo der Weg frei ist.',
+        proTip: 'WICHTIG: Fliege niemals blind in eine Wand – deine Drohne zerbricht sonst sofort beim Aufprall!',
+        role: 'Wände und Gänge kurz im Dunkeln aufleuchten lassen',
+        behavior: 'Drücke SPACE (oder [PING]), um Gänge sichtbar zu machen. Sieh genau hin, wo der Weg frei ist.',
+        counter: 'WICHTIG: Fliege niemals blind in eine Wand – deine Drohne zerbricht sonst sofort beim Aufprall!',
         renderVisual: (ctx, t) => {
           ctx.fillStyle = '#030305';
           ctx.fillRect(0, 0, 280, 140);
@@ -140,15 +145,16 @@ export class TutorialModal {
       {
         id: 'objective',
         title: '03. KRISTALLE EINSAMMELN',
-        category: 'MISSION: ENTSCHLÜSSELUNG',
-        role: 'Alle Datenkristalle finden',
-        behavior: 'In jedem Sektor sind leuchtende grüne Kristalle versteckt. Finde und sammle jeden einzelnen Diamanten ein!',
-        counter: 'Oben links im HUD siehst du immer: DATENKERNE: Gesammelt / Gesamt.',
+        whatIsIt: 'Grün leuchtende Resonanz-Kristalle, die in jedem Sektor versteckt sind.',
+        howToReact: 'Finde und sammle alle Kristalle ein, um die Energie für das Rettungsportal freizuschalten.',
+        proTip: 'Wenn Schallwellen einen Kristall streifen, erzeugt er ein helles Klingeln und funkelnde Glitzerpartikel!',
+        role: 'Grün leuchtende Resonanz-Kristalle bergen',
+        behavior: 'Finde und sammle alle Kristalle ein, um die Energie für das Rettungsportal freizuschalten.',
+        counter: 'Wenn Schallwellen einen Kristall streifen, erzeugt er ein helles Klingeln und funkelnde Glitzerpartikel!',
         renderVisual: (ctx, t) => {
           ctx.fillStyle = '#030305';
           ctx.fillRect(0, 0, 280, 140);
 
-          // 3 Crystals
           for (let i = 0; i < 3; i++) {
             const cx = 70 + i * 70;
             const cy = 70 + Math.sin(t * 3 + i) * 6;
@@ -182,15 +188,16 @@ export class TutorialModal {
       {
         id: 'portal',
         title: '04. DER GRÜNE FLUCHTAUFZUG',
-        category: 'ZIEL: LEVEL GEWINNEN',
-        role: 'Rettungs-Portal öffnet sich',
-        behavior: 'Sobald du alle Kristalle hast, öffnet sich der geheime grüne Fluchtaufzug!',
-        counter: 'Folge den grünen Signal-Wellen und dem Richtungspfeil am Bildschirmrand. Flieg hinein zum Sieg!',
+        whatIsIt: 'Das Rettungs-Portal zur Evakuierung und zum erfolgreichen Abschluss des Sektors.',
+        howToReact: 'Sobald alle Kristalle geborgen sind, öffnet sich der Aufzug. Fliege hinein, um den Sektor zu sichern!',
+        proTip: 'Folge den pulsierenden grünen Signal-Wellen und dem Richtungspfeil am Bildschirmrand zum Ausgang.',
+        role: 'Das Rettungs-Portal zur Evakuierung',
+        behavior: 'Sobald alle Kristalle geborgen sind, öffnet sich der Aufzug. Fliege hinein, um den Sektor zu sichern!',
+        counter: 'Folge den pulsierenden grünen Signal-Wellen und dem Richtungspfeil am Bildschirmrand zum Ausgang.',
         renderVisual: (ctx, t) => {
           ctx.fillStyle = '#030305';
           ctx.fillRect(0, 0, 280, 140);
 
-          // Green Extraction Airlock Gate (Center)
           const gx = 140;
           const gy = 70;
           ctx.save();
@@ -229,16 +236,17 @@ export class TutorialModal {
       // Card 5: Red Monsters (Hunters)
       {
         id: 'hunter',
-        title: '05. ROTE MONSTER',
-        category: 'FEINDE (SIGNAL-ROT)',
-        role: 'Hören deine Pings & Schritte',
-        behavior: 'Die roten Monster sind blind, haben aber super Ohren: Sie hören jeden deiner Pings und Schritte!',
-        counter: 'Wenn sie dich berühren, wirst du zerstört! Schleiche leise an ihnen vorbei oder lenke sie ab.',
+        title: '05. ROTE MONSTER (JÄGER)',
+        whatIsIt: 'Gefährliche blinde Raubdrohnen, die durch die dunklen Gänge der Station ABYSS patrouillieren.',
+        howToReact: 'Sie sind blind, aber hören jeden Ping! Wenn sie rot blinken und jagen, halte Abstand und bleib ruhig.',
+        proTip: 'Schleiche leise an ihnen vorbei oder wirf mit Taste E einen Köder, um sie wegzulocken!',
+        role: 'Gefährliche blinde Raubdrohnen in Station ABYSS',
+        behavior: 'Sie sind blind, aber hören jeden Ping! Wenn sie rot blinken und jagen, halte Abstand und bleib ruhig.',
+        counter: 'Schleiche leise an ihnen vorbei oder wirf mit Taste E einen Köder, um sie wegzulocken!',
         renderVisual: (ctx, t) => {
           ctx.fillStyle = '#030305';
           ctx.fillRect(0, 0, 280, 140);
 
-          // Pulsing Sound origin on left
           const soundX = 60;
           const soundY = 70;
           const r = (t * 60) % 100;
@@ -248,14 +256,13 @@ export class TutorialModal {
           ctx.arc(soundX, soundY, r, 0, Math.PI * 2);
           ctx.stroke();
 
-          // Hunter sprinting to sound origin
           const hunterProgress = (t * 0.6) % 1.0;
           const hx = 220 - hunterProgress * 130;
           const hy = 70;
 
           ctx.save();
           ctx.translate(hx, hy);
-          ctx.rotate(Math.PI); // Facing left
+          ctx.rotate(Math.PI);
 
           ctx.fillStyle = '#1e050a';
           ctx.strokeStyle = '#FF1E44';
@@ -272,14 +279,12 @@ export class TutorialModal {
           ctx.fill();
           ctx.stroke();
 
-          // Alert Eye
           ctx.fillStyle = '#FFFFFF';
           ctx.beginPath();
           ctx.arc(3, 0, 3, 0, Math.PI * 2);
           ctx.fill();
           ctx.restore();
 
-          // Exclamation icon
           ctx.font = '700 16px "Chakra Petch", "JetBrains Mono", monospace';
           ctx.fillStyle = '#FF1E44';
           ctx.textAlign = 'center';
@@ -293,15 +298,16 @@ export class TutorialModal {
       {
         id: 'sneak',
         title: '06. LEISE SCHLEICHEN',
-        category: 'LAUTLOSE FORTBEWEGUNG',
-        role: 'Lautlos an Feinden vorbei',
-        behavior: 'Halte SHIFT gedrückt (oder tippe auf SCHLEICHEN), um dich lautlos fortzubewegen.',
-        counter: 'Beim Schleichen erzeugst du 0 Schallwellen. Monster in der Nähe bemerken dich nicht!',
+        whatIsIt: 'Der Schleich-Modus für lautlose Fortbewegung (Taste SHIFT oder Button [SCHLEICHEN]).',
+        howToReact: 'Schalte Schleichen ein, wenn Feinde in der Nähe sind. Deine Drohne bewegt sich langsamer, aber 100% leise.',
+        proTip: 'Beim Schleichen erzeugst du 0 Schallwellen. Monster schlafen einfach weiter!',
+        role: 'Lautlose Fortbewegung im Schleich-Modus',
+        behavior: 'Schalte Schleichen ein, wenn Feinde in der Nähe sind. Deine Drohne bewegt sich langsamer, aber 100% leise.',
+        counter: 'Beim Schleichen erzeugst du 0 Schallwellen. Monster schlafen einfach weiter!',
         renderVisual: (ctx, t) => {
           ctx.fillStyle = '#030305';
           ctx.fillRect(0, 0, 280, 140);
 
-          // Sneaking drone (slow, glowing softly cyan)
           const sx = 80 + (t * 20) % 120;
           const sy = 70;
 
@@ -323,7 +329,6 @@ export class TutorialModal {
           ctx.stroke();
           ctx.restore();
 
-          // Sneak badge & silence indicator
           ctx.font = '700 13px "Chakra Petch", "JetBrains Mono", monospace';
           ctx.fillStyle = '#00FF88';
           ctx.textAlign = 'center';
@@ -339,10 +344,12 @@ export class TutorialModal {
       {
         id: 'decoy',
         title: '07. KÖDER-WURF (E)',
-        category: 'ABLENKUNG & TRICKS (E / KÖDER)',
-        role: 'Ablenkungs-Wurfkörper (HUD: 1/1)',
-        behavior: 'Drücke Taste E (oder den KÖDER-Button), um einen Köder 3 Blöcke weit in Blickrichtung zu schleudern.',
-        counter: 'Der Köder piept laut und lockt alle Monster an. So hast du freie Bahn zum Fluchtaufzug!',
+        whatIsIt: 'Ein akustischer Ablenkungs-Wurfkörper (HUD-Anzeige: 1/1 Köder pro Sektor).',
+        howToReact: 'Drücke Taste E (oder [KÖDER]), um die Bake 3 Felder weit nach vorne zu schleudern.',
+        proTip: 'Der Köder piept laut und zieht alle Jäger magisch an. Nutze die Chance und sprinte zum Ausgang!',
+        role: 'Akustischer Ablenkungs-Wurfkörper',
+        behavior: 'Drücke Taste E (oder [KÖDER]), um die Bake 3 Felder weit nach vorne zu schleudern.',
+        counter: 'Der Köder piept laut und zieht alle Jäger magisch an. Nutze die Chance und sprinte zum Ausgang!',
         renderVisual: (ctx, t) => {
           ctx.fillStyle = '#030305';
           ctx.fillRect(0, 0, 280, 140);
@@ -350,7 +357,6 @@ export class TutorialModal {
           const dx = 170;
           const dy = 70;
 
-          // Expanding Decoy Waves
           const wR = (t * 60) % 90;
           ctx.strokeStyle = '#FFAA00';
           ctx.lineWidth = 2.5;
@@ -360,7 +366,6 @@ export class TutorialModal {
           ctx.arc(dx, dy, wR, 0, Math.PI * 2);
           ctx.stroke();
 
-          // Decoy Flare rotating beacon
           ctx.save();
           ctx.translate(dx, dy);
           ctx.rotate(t * 4);
@@ -370,7 +375,6 @@ export class TutorialModal {
           ctx.fillRect(-6, -6, 12, 12);
           ctx.restore();
 
-          // Hunter running toward Decoy (Right side)
           const hx = 250 - ((t * 40) % 70);
           ctx.save();
           ctx.translate(hx, dy);
@@ -419,11 +423,6 @@ export class TutorialModal {
 
     const click = inputHandler.consumeMouseClick();
     if (click) {
-      // Check modal navigation buttons with generous touch hitboxes:
-      // Prev: x: 100..270, y: 460..535
-      // Next: x: 530..700, y: 460..535
-      // Close Bottom: x: 280..520, y: 460..535
-      // Close Top-Right X: x: 620..710, y: 30..90
       if (click.x >= 100 && click.x <= 270 && click.y >= 460 && click.y <= 535) {
         this.prevCard();
       } else if (click.x >= 530 && click.x <= 700 && click.y >= 460 && click.y <= 535) {
@@ -511,20 +510,20 @@ export class TutorialModal {
 
     // Render Procedural Animated Canvas (Upper Half)
     card.renderVisual(this.miniCtx, time);
-    ctx.drawImage(this.miniCanvas, boxX + (boxW - 280) / 2, boxY + 50);
+    ctx.drawImage(this.miniCanvas, boxX + (boxW - 280) / 2, boxY + 48);
 
     // Card Title
     ctx.textAlign = 'center';
     ctx.font = '700 14px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = CONFIG.COLORS.TEXT_MAIN;
     ctx.shadowBlur = 0;
-    ctx.fillText(card.title, CONFIG.CANVAS_WIDTH / 2, boxY + 215);
+    ctx.fillText(card.title, CONFIG.CANVAS_WIDTH / 2, boxY + 205);
 
     // Tactical Table Box (Lower Half)
     const tblX = boxX + 24;
-    const tblY = boxY + 235;
+    const tblY = boxY + 222;
     const tblW = boxW - 48;
-    const tblH = 195;
+    const tblH = 205;
 
     ctx.fillStyle = '#04080c';
     ctx.fillRect(tblX, tblY, tblW, tblH);
@@ -533,28 +532,28 @@ export class TutorialModal {
     ctx.strokeRect(tblX, tblY, tblW, tblH);
 
     const rows = [
-      { label: 'ROLLE', val: card.role, color: CONFIG.COLORS.PLAYER },
-      { label: 'VERHALTEN', val: card.behavior, color: CONFIG.COLORS.TEXT_MAIN },
-      { label: 'GEGENMASSNAHME', val: card.counter, color: CONFIG.COLORS.CRYSTAL }
+      { label: 'WAS IST DAS?', val: card.whatIsIt, color: CONFIG.COLORS.PLAYER },
+      { label: 'WIE REAGIERST DU?', val: card.howToReact, color: '#FFFFFF' },
+      { label: 'PROFI-TIPP', val: card.proTip, color: CONFIG.COLORS.CRYSTAL }
     ];
 
-    let currentY = tblY + 18;
+    let currentY = tblY + 16;
     rows.forEach((r) => {
       ctx.textAlign = 'left';
       ctx.font = '700 11px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.fillStyle = r.color;
       ctx.shadowBlur = 0;
-      ctx.fillText(`• ${r.label}:`, tblX + 16, currentY);
+      ctx.fillText(`• ${r.label}`, tblX + 16, currentY);
 
       ctx.font = '500 10.5px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.fillStyle = CONFIG.COLORS.TEXT_MAIN;
       ctx.shadowBlur = 0;
-      currentY = this.wrapText(ctx, r.val, tblX + 16, currentY + 16, tblW - 32, 14);
+      currentY = this.wrapText(ctx, r.val, tblX + 16, currentY + 15, tblW - 32, 14);
       currentY += 6;
     });
 
-    // Navigation Buttons at Bottom (36px high for touch accessibility)
-    const btnY = boxY + boxH - 24;
+    // Navigation Buttons at Bottom (34px high)
+    const btnY = boxY + boxH - 22;
 
     // VORHERIGE
     ctx.fillStyle = '#091520';

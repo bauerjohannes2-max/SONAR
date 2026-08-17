@@ -247,35 +247,29 @@ export class HUD {
     ctx.textBaseline = 'middle';
     ctx.shadowBlur = 0;
 
-    ctx.font = '700 28px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.font = '800 26px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = CONFIG.COLORS.CRYSTAL;
     const title = isEndless
       ? `ETAGE ${currentSectorIndex} BEREINIGT!`
       : `SEKTOR 0${currentSectorIndex + 1} GESICHERT!`;
-    ctx.fillText(title, this.width / 2, 75);
+    ctx.fillText(title, this.width / 2, 70);
 
-    // Rank Badge & 3-Star Rating
-    const rank = stats.rank || 'A';
-    const stars = stats.stars || (rank === 'S' ? 3 : (stats.pingsUsed <= 2 ? 2 : 1));
+    // 3-Star Rating Display
+    const stars = stats.stars || 1;
+    const starIcons = (stars >= 3 ? '⭐ ⭐ ⭐' : (stars === 2 ? '⭐ ⭐ ☆' : '⭐ ☆ ☆'));
 
-    ctx.font = '700 38px "Chakra Petch", "JetBrains Mono", monospace';
-    ctx.fillStyle = rank === 'S' ? '#FFE600' : (rank === 'A' ? CONFIG.COLORS.CRYSTAL : CONFIG.COLORS.PLAYER);
-    ctx.fillText(`RANG ${rank}`, this.width / 2, 125);
-
-    // Render Star Icons (Gold for earned, Dark for unearned)
-    const starText = (stars >= 3 ? '★ ★ ★' : (stars === 2 ? '★ ★ ☆' : '★ ☆ ☆'));
-    ctx.font = '700 20px "JetBrains Mono", monospace';
+    ctx.font = '700 32px "JetBrains Mono", monospace';
     ctx.fillStyle = '#FFD700';
-    ctx.shadowColor = 'rgba(255, 215, 0, 0.6)';
-    ctx.shadowBlur = 10;
-    ctx.fillText(starText, this.width / 2, 155);
+    ctx.shadowColor = 'rgba(255, 215, 0, 0.7)';
+    ctx.shadowBlur = 14;
+    ctx.fillText(starIcons, this.width / 2, 115);
     ctx.shadowBlur = 0;
 
-    // Performance Stats Box
-    const boxW = 400;
-    const boxH = 110;
+    // Performance Stats Box with Clear Criteria Breakdown
+    const boxW = 460;
+    const boxH = 120;
     const boxX = (this.width - boxW) / 2;
-    const boxY = 180;
+    const boxY = 145;
 
     ctx.fillStyle = '#061311';
     ctx.fillRect(boxX, boxY, boxW, boxH);
@@ -283,13 +277,22 @@ export class HUD {
     ctx.lineWidth = 1.5;
     ctx.strokeRect(boxX, boxY, boxW, boxH);
 
-    ctx.font = '500 13px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.font = '600 12px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.textAlign = 'left';
-    ctx.fillStyle = CONFIG.COLORS.TEXT_MAIN;
 
-    ctx.fillText(`• EINSATZDAUER : ${stats.time.toFixed(1)} s`, boxX + 30, boxY + 30);
-    ctx.fillText(`• SONAR-PINGS  : ${stats.pingsUsed}`, boxX + 30, boxY + 58);
-    ctx.fillText(`• SCHRITTE     : ${stats.stepsTaken}`, boxX + 30, boxY + 86);
+    // Criteria 1: Evacuated
+    ctx.fillStyle = '#00ff88';
+    ctx.fillText('⭐ STERN 1: BERGUNG ERFOLGREICH (EVAKUIERT)  ✓', boxX + 20, boxY + 30);
+
+    // Criteria 2: Speed (< 45s)
+    const isSpeedy = stats.isSpeedy !== undefined ? stats.isSpeedy : stats.time <= 45;
+    ctx.fillStyle = isSpeedy ? '#00ff88' : '#708898';
+    ctx.fillText(`⭐ STERN 2: TEMPO-REKORD (${stats.time.toFixed(1)}s / ZIEL: ≤ 45s)  ${isSpeedy ? '✓' : '✗'}`, boxX + 20, boxY + 60);
+
+    // Criteria 3: Stealth (<= 3 Pings)
+    const isStealthy = stats.isStealthy !== undefined ? stats.isStealthy : stats.pingsUsed <= 3;
+    ctx.fillStyle = isStealthy ? '#00ff88' : '#708898';
+    ctx.fillText(`⭐ STERN 3: GHOST-MEISTERSCHAFT (${stats.pingsUsed} PINGS / MAX: 3)  ${isStealthy ? '✓' : '✗'}`, boxX + 20, boxY + 90);
 
     const nextActionLabel = isEndless
       ? '▶ NÄCHSTE ETAGE (SPACE / ENTER)'

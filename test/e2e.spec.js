@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 
-test.describe('SONAR v1.9.4 Tactical Gauntlet Loop E2E Validation', () => {
+test.describe('SONAR v1.10.0 Tactical Gauntlet Loop E2E Validation', () => {
 
   test.beforeEach(async ({ page }) => {
     page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
@@ -11,11 +11,11 @@ test.describe('SONAR v1.9.4 Tactical Gauntlet Loop E2E Validation', () => {
     });
   });
 
-  test('1. Version Endpoint & JSON Integrity (v1.9.4)', async ({ request }) => {
+  test('1. Version Endpoint & JSON Integrity (v1.10.0)', async ({ request }) => {
     const response = await request.get('/version.json');
     expect(response.ok()).toBeTruthy();
     const data = await response.json();
-    expect(data.version).toBe('1.9.4');
+    expect(data.version).toBe('1.10.0');
     expect(data.build).toBe(20260817);
   });
 
@@ -375,17 +375,17 @@ test.describe('SONAR v1.9.4 Tactical Gauntlet Loop E2E Validation', () => {
       window.game.loadSector(0);
       const player = window.game.player;
 
-      // Case 1: Apex Run (time <= 25s, pings <= 2) -> 3 Stars & S-Rank
+      // Case 1: Apex Run (time <= 45s, pings <= 3) -> 3 Stars & S-Rank
       player.timeElapsed = 18.5;
       player.pingsUsed = 1;
       const apexStats = player.calculateRank();
 
-      // Case 2: Good Run (time 35s, pings <= 2) -> 2 Stars & A-Rank
+      // Case 2: Speedy Run with excessive pings (time <= 45s, pings > 3) -> 2 Stars & A-Rank
       player.timeElapsed = 35.0;
-      player.pingsUsed = 2;
+      player.pingsUsed = 5;
       const goodStats = player.calculateRank();
 
-      // Case 3: Slow & Heavy Pings (time 55s, pings 8) -> 1 Star & B-Rank
+      // Case 3: Slow & Heavy Pings (time > 45s, pings > 3) -> 1 Star & B-Rank
       player.timeElapsed = 55.0;
       player.pingsUsed = 8;
       const normalStats = player.calculateRank();
@@ -504,6 +504,133 @@ test.describe('SONAR v1.9.4 Tactical Gauntlet Loop E2E Validation', () => {
     });
 
     expect(result.hasExecuteFn).toBeTruthy();
+  });
+
+  test('20. Clean Main Menu: Endless Mode Removed & Campaign Hero Focus (v1.10.0)', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    const menuState = await page.evaluate(() => {
+      const menu = window.game.menuSystem;
+      const options = menu.options.map(o => o.id);
+      const hasEndless = options.includes('ENDLESS');
+      const hasCampaign = options.includes('SECTOR_SELECT');
+      return { options, hasEndless, hasCampaign };
+    });
+
+    expect(menuState.hasEndless).toBeFalsy();
+    expect(menuState.hasCampaign).toBeTruthy();
+    expect(menuState.options).toEqual(['SECTOR_SELECT', 'LEADERBOARD', 'PROFILE', 'SETTINGS']);
+  });
+
+  test('21. Settings Modal Touch Scaling with Live-Preview Synchronization (v1.10.0)', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    await page.click('#btn-settings-gear');
+    await expect(page.locator('#settings-modal')).toBeVisible();
+
+    // Check Live-Preview element presence
+    await expect(page.locator('#touch-live-preview-box')).toBeVisible();
+    await expect(page.locator('#preview-dpad')).toBeVisible();
+
+    // Change scale to 125%
+    await page.click('button.btn-scale-step[data-scale="1.25"]');
+    const scaleBadge = page.locator('#val-touch-scale');
+    expect(await scaleBadge.innerText()).toBe('125%');
+
+    const previewTag = page.locator('#preview-mode-tag');
+    expect(await previewTag.innerText()).toContain('125%');
+
+    // Switch to SWIPE
+    await page.click('#btn-ctrl-swipe');
+    await expect(page.locator('#preview-swipe-indicator')).toBeVisible();
+    expect(await previewTag.innerText()).toContain('SWIPE');
+  });
+
+  test('22. Consolidated 3-Star Campaign Rating & HUD Breakdown (v1.10.0)', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    const result = await page.evaluate(() => {
+      window.game.loadSector(0);
+      const player = window.game.player;
+
+      // Case 1: 3-Star Apex Run (<= 45s, <= 3 pings)
+      player.timeElapsed = 22.4;
+      player.pingsUsed = 2;
+      const rank3 = player.calculateRank();
+
+      // Case 2: 2-Star Run (Speedy but 4 pings)
+      player.timeElapsed = 35.0;
+      player.pingsUsed = 4;
+      const rank2 = player.calculateRank();
+
+      // Case 3: 1-Star Run (> 45s and > 3 pings)
+      player.timeElapsed = 52.0;
+      player.pingsUsed = 6;
+      const rank1 = player.calculateRank();
+
+      return { rank3, rank2, rank1 };
+    });
+
+    expect(result.rank3.stars).toBe(3);
+    expect(result.rank3.isSpeedy).toBeTruthy();
+    expect(result.rank3.isStealthy).toBeTruthy();
+
+    expect(result.rank2.stars).toBe(2);
+    expect(result.rank2.isSpeedy).toBeTruthy();
+    expect(result.rank2.isStealthy).toBeFalsy();
+
+    expect(result.rank1.stars).toBe(1);
+    expect(result.rank1.isSpeedy).toBeFalsy();
+    expect(result.rank1.isStealthy).toBeFalsy();
+  });
+
+  test('23. Visual Leaderboard: Tabs, Rivals Star & 1v1 Comparison Modal (v1.10.0)', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    // Open Leaderboard
+    await page.evaluate(() => window.game.leaderboardModal.open());
+    await expect(page.locator('#leaderboard-modal')).toBeVisible();
+
+    // Verify tabs
+    await expect(page.locator('#tab-lb-world')).toBeVisible();
+    await expect(page.locator('#tab-lb-rivals')).toBeVisible();
+
+    // Click on 1v1 button of the first entry
+    const first1v1Btn = page.locator('.btn-compare-link').first();
+    await expect(first1v1Btn).toBeVisible();
+    await first1v1Btn.click();
+
+    // Verify 1v1 Rival Direct Comparison modal is open
+    await expect(page.locator('#rival-compare-modal')).toBeVisible();
+    await expect(page.locator('.rival-compare-grid')).toBeVisible();
+  });
+
+  test('24. Station ABYSS Lore & Child-Friendly 3-Point Tutorial Cards (v1.10.0)', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    const tut = await page.evaluate(() => {
+      const cards = window.game.tutorialModal.cards;
+      return {
+        cardCount: cards.length,
+        card1: cards[0],
+        card5: cards[4]
+      };
+    });
+
+    expect(tut.cardCount).toBe(7);
+    expect(tut.card1.whatIsIt).toContain('Station ABYSS');
+    expect(tut.card1.whatIsIt).toContain('ECHO');
+    expect(tut.card1.howToReact).toBeDefined();
+    expect(tut.card1.proTip).toBeDefined();
+
+    expect(tut.card5.title).toContain('ROTE MONSTER');
+    expect(tut.card5.whatIsIt).toContain('Station ABYSS');
+    expect(tut.card5.howToReact).toContain('blind');
   });
 
 });

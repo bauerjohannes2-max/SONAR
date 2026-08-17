@@ -296,6 +296,54 @@ class StorageManager {
   }
 
   /**
+   * Rivals / Friends Management
+   */
+  getRivals() {
+    try {
+      const raw = localStorage.getItem('sonar_rivals');
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return ['ECHO_GHOST', 'SHADOW_RUN']; // Default friendly rivals
+  }
+
+  isRival(callsign) {
+    if (!callsign) return false;
+    const rivals = this.getRivals();
+    return rivals.some((r) => r.toUpperCase() === callsign.toUpperCase());
+  }
+
+  toggleRival(callsign) {
+    if (!callsign) return false;
+    let rivals = this.getRivals();
+    const upper = callsign.toUpperCase();
+    const exists = rivals.some((r) => r.toUpperCase() === upper);
+
+    if (exists) {
+      rivals = rivals.filter((r) => r.toUpperCase() !== upper);
+    } else {
+      rivals.push(upper);
+    }
+
+    try {
+      localStorage.setItem('sonar_rivals', JSON.stringify(rivals));
+    } catch (e) {}
+
+    return !exists;
+  }
+
+  calculateTotalStars(sectorStats = null) {
+    const stats = sectorStats || this.getCampaignProgress().sectorStats || {};
+    let total = 0;
+    for (let key in stats) {
+      const s = stats[key];
+      if (s) {
+        total += s.stars || (s.rank === 'S' ? 3 : (s.rank === 'A' ? 2 : 1));
+      }
+    }
+    return total;
+  }
+
+  /**
    * Reset all local saves.
    */
   resetAll() {
@@ -303,6 +351,7 @@ class StorageManager {
       localStorage.removeItem(CONFIG.STORAGE.PROGRESS);
       localStorage.removeItem(CONFIG.STORAGE.ENDLESS);
       localStorage.removeItem(CONFIG.STORAGE.PILOT_SESSION);
+      localStorage.removeItem('sonar_rivals');
       this.currentPilot = { callsign: 'GAST', isGuest: true };
     } catch (e) {
       console.warn('[StorageManager] Reset error:', e);

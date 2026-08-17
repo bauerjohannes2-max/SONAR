@@ -1,6 +1,6 @@
 /**
  * SONAR: The Echo Chamber
- * Sci-Fi Terminal Menu System (Clean 2-Tier Hierarchy, High-Clarity Typography, No Brackets)
+ * Sci-Fi Terminal Menu System (Modern Hero Layout, Campaign Focus, Glassmorphism Pilot Bar)
  */
 
 import { CONFIG } from '../config.js';
@@ -10,48 +10,44 @@ import { storageManager } from '../services/StorageManager.js';
 export class MenuSystem {
   constructor(audioEngine) {
     this.audio = audioEngine;
-    this.selectedIndex = 0; // 0: Campaign, 1: Endless, 2: Profile, 3: Leaderboard, 4: Tutorial
+    this.selectedIndex = 0; // 0: Campaign, 1: Leaderboard, 2: Profile, 3: Settings
     this.selectedSectorIndex = 0;
     this.unlockedSector = 1;
+    this.maxClearedSector = 0;
     this.sectorStats = {};
 
     this.options = [
-      // Primary Tier (Large Prominent Cards)
+      // 0. Hero Campaign Element
       {
         id: 'SECTOR_SELECT',
-        title: 'KAMPAGNE',
-        subtitle: 'Operation Zero-Light • Sektoren 01 – 10',
+        title: 'KAMPAGNE (SEKTOREN 01–10)',
+        subtitle: 'Operation Zero-Light • Station ABYSS',
         tag: '10 SEKTOREN',
-        desc: 'TETHYS-6: Berge Resonanz-Datenkerne aus 10 taktischen Sektoren'
+        desc: 'Station ABYSS: Berge Datenkerne aus 10 taktischen Sektoren'
       },
-      {
-        id: 'ENDLESS',
-        title: 'ENDLESS ECHO',
-        subtitle: 'Prozeduraler Überlebensmodus',
-        tag: 'ROGUELIKE',
-        desc: 'Endless Echo: Prozedural generiertes Überlebens-Labyrinth'
-      },
-      // Secondary Tier (3 Compact Action Buttons)
-      {
-        id: 'PROFILE',
-        title: 'SPIELER-PROFIL',
-        subtitle: '',
-        tag: '',
-        desc: 'Spieler: Name & PIN zur Cloud-Sicherung'
-      },
+      // 1. Leaderboard Tile
       {
         id: 'LEADERBOARD',
         title: 'BESTENLISTE',
-        subtitle: '',
-        tag: '',
-        desc: 'Bestenliste: Weltweite Top-Ranglisten der besten Läufe'
+        subtitle: 'Ränge & Rivalen',
+        icon: '🏆',
+        desc: 'Weltweite Top-Piloten & Freunde-Direktvergleich'
       },
+      // 2. Profile Tile
       {
-        id: 'TUTORIAL',
-        title: 'TUTORIAL',
-        subtitle: '',
-        tag: '',
-        desc: 'Missions-Briefing & Steuerungshandbuch'
+        id: 'PROFILE',
+        title: 'PILOTEN-PROFIL',
+        subtitle: 'Callsign & Cloud',
+        icon: '👤',
+        desc: 'Callsign & PIN zur Cloud-Sicherung'
+      },
+      // 3. Settings Tile
+      {
+        id: 'SETTINGS',
+        title: 'EINSTELLUNGEN',
+        subtitle: 'Audio & Touch',
+        icon: '⚙️',
+        desc: 'Soundtrack, Touch-Skalierung & Steuerung'
       }
     ];
 
@@ -98,45 +94,36 @@ export class MenuSystem {
   }
 
   updateProfileLabel() {
-    // Keep profile label dynamic if needed
+    // Keeps state synchronized
   }
 
   handleMenuInput(inputHandler) {
     const move = inputHandler.getMovement();
     if (move) {
-      // 2-Tier Navigation Logic
       if (move.dy < 0) {
-        // UP
-        if (this.selectedIndex === 0) {
-          this.selectedIndex = 2; // Wrap to profile
-        } else if (this.selectedIndex === 1) {
-          this.selectedIndex = 0; // Go to campaign
-        } else {
-          this.selectedIndex = 1; // From secondary to endless
+        // UP: From sub-tiles to Hero Campaign
+        if (this.selectedIndex !== 0) {
+          this.selectedIndex = 0;
+          if (this.audio) this.audio.playUIBlip();
         }
-        if (this.audio) this.audio.playUIBlip();
       } else if (move.dy > 0) {
-        // DOWN
+        // DOWN: From Hero Campaign to sub-tiles
         if (this.selectedIndex === 0) {
-          this.selectedIndex = 1; // Go to endless
-        } else if (this.selectedIndex === 1) {
-          this.selectedIndex = 2; // Go to secondary
-        } else {
-          this.selectedIndex = 0; // Wrap to campaign
+          this.selectedIndex = 1;
+          if (this.audio) this.audio.playUIBlip();
         }
-        if (this.audio) this.audio.playUIBlip();
       }
 
       if (move.dx < 0) {
-        // LEFT
-        if (this.selectedIndex >= 2 && this.selectedIndex <= 4) {
-          this.selectedIndex = this.selectedIndex === 2 ? 4 : this.selectedIndex - 1;
+        // LEFT: Navigate within sub-tiles (1 -> 3 wrap)
+        if (this.selectedIndex >= 1 && this.selectedIndex <= 3) {
+          this.selectedIndex = this.selectedIndex === 1 ? 3 : this.selectedIndex - 1;
           if (this.audio) this.audio.playUIBlip();
         }
       } else if (move.dx > 0) {
-        // RIGHT
-        if (this.selectedIndex >= 2 && this.selectedIndex <= 4) {
-          this.selectedIndex = this.selectedIndex === 4 ? 2 : this.selectedIndex + 1;
+        // RIGHT: Navigate within sub-tiles (3 -> 1 wrap)
+        if (this.selectedIndex >= 1 && this.selectedIndex <= 3) {
+          this.selectedIndex = this.selectedIndex === 3 ? 1 : this.selectedIndex + 1;
           if (this.audio) this.audio.playUIBlip();
         }
       }
@@ -147,44 +134,42 @@ export class MenuSystem {
       return this.options[this.selectedIndex].id;
     }
 
-    // Direct mouse click handling
+    // Direct mouse / touch click handling
     const click = inputHandler.consumeMouseClick();
     if (click) {
-      // 0. Pilot Status Badge Click (Cloud-Save / Profile)
-      if (click.x >= 120 && click.x <= 680 && click.y >= 88 && click.y <= 138) {
+      // 0. Pilot Status Badge Click: x 120..680, y 96..142
+      if (click.x >= 120 && click.x <= 680 && click.y >= 96 && click.y <= 142) {
         this.selectedIndex = 2;
         if (this.audio) this.audio.playUIBlip();
         return 'PROFILE';
       }
 
-      // 1. Primary Card 0 (Campaign): x 148..652, y 148..216
-      if (click.x >= 148 && click.x <= 652 && click.y >= 148 && click.y <= 216) {
+      // 1. Hero Campaign Card: x 120..680, y 160..270
+      if (click.x >= 120 && click.x <= 680 && click.y >= 160 && click.y <= 270) {
         this.selectedIndex = 0;
         if (this.audio) this.audio.playUIBlip();
-        return this.options[0].id;
+        return 'SECTOR_SELECT';
       }
 
-      // 2. Primary Card 1 (Endless): x 148..652, y 226..294
-      if (click.x >= 148 && click.x <= 652 && click.y >= 226 && click.y <= 294) {
-        this.selectedIndex = 1;
-        if (this.audio) this.audio.playUIBlip();
-        return this.options[1].id;
-      }
-
-      // 3. Secondary 3 Buttons (Row): y 308..348
-      if (click.y >= 308 && click.y <= 348) {
-        const secDefs = [
-          { idx: 2, minX: 148, maxX: 306 }, // Profile
-          { idx: 3, minX: 321, maxX: 479 }, // Leaderboard
-          { idx: 4, minX: 494, maxX: 652 }  // Tutorial
-        ];
-
-        for (let sec of secDefs) {
-          if (click.x >= sec.minX && click.x <= sec.maxX) {
-            this.selectedIndex = sec.idx;
-            if (this.audio) this.audio.playUIBlip();
-            return this.options[sec.idx].id;
-          }
+      // 2. Sub-Tiles Row (y: 295..405)
+      if (click.y >= 295 && click.y <= 405) {
+        // Tile 1: Leaderboard (x: 120..295)
+        if (click.x >= 120 && click.x <= 295) {
+          this.selectedIndex = 1;
+          if (this.audio) this.audio.playUIBlip();
+          return 'LEADERBOARD';
+        }
+        // Tile 2: Profile (x: 312..487)
+        if (click.x >= 312 && click.x <= 487) {
+          this.selectedIndex = 2;
+          if (this.audio) this.audio.playUIBlip();
+          return 'PROFILE';
+        }
+        // Tile 3: Settings (x: 505..680)
+        if (click.x >= 505 && click.x <= 680) {
+          this.selectedIndex = 3;
+          if (this.audio) this.audio.playUIBlip();
+          return 'SETTINGS';
         }
       }
     }
@@ -221,13 +206,12 @@ export class MenuSystem {
 
     const click = inputHandler.consumeMouseClick();
     if (click) {
-      // Check 2x5 grid buttons
       const startX = 70;
-      const startY = 135;
+      const startY = 120;
       const cardW = 120;
-      const cardH = 120;
+      const cardH = 125;
       const gapX = 18;
-      const gapY = 24;
+      const gapY = 22;
 
       for (let i = 0; i < totalSectors; i++) {
         const col = i % 5;
@@ -244,7 +228,7 @@ export class MenuSystem {
         }
       }
 
-      // Back Button
+      // Back Button: x: 310..490, y: 475..515
       if (click.x >= 310 && click.x <= 490 && click.y >= 475 && click.y <= 515) {
         return { action: 'BACK' };
       }
@@ -253,7 +237,7 @@ export class MenuSystem {
     return null;
   }
 
-  renderMenu(ctx, time, endlessMode) {
+  renderMenu(ctx, time) {
     const pilot = storageManager.getCurrentPilot();
     const isGuest = storageManager.isGuest();
 
@@ -264,8 +248,8 @@ export class MenuSystem {
     ctx.fillRect(0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
 
     // 2. Animated Ambient Radar Ring
-    const radarRadius = Math.max(0, (time * 60) % 460);
-    const radarAlpha = Math.max(0, 1 - radarRadius / 460) * 0.20;
+    const radarRadius = Math.max(0, (time * 55) % 480);
+    const radarAlpha = Math.max(0, 1 - radarRadius / 480) * 0.18;
     ctx.beginPath();
     ctx.arc(CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT / 2, Math.max(0, radarRadius), 0, Math.PI * 2);
     ctx.strokeStyle = `rgba(0, 240, 255, ${radarAlpha})`;
@@ -287,219 +271,152 @@ export class MenuSystem {
       ctx.fill();
     }
 
-    // 4. Game Title Banner (Sharp Vector Monospace)
+    // 4. Game Logo Banner with Subtle Scanline & Glowing Subtitle
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
+
+    // Sci-Fi Header SONAR
+    ctx.font = '800 40px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.fillStyle = '#00f0ff';
+    ctx.shadowColor = 'rgba(0, 240, 255, 0.6)';
+    ctx.shadowBlur = 16;
+    ctx.fillText('S O N A R', CONFIG.CANVAS_WIDTH / 2, 44);
     ctx.shadowBlur = 0;
 
-    // Main Title
-    ctx.font = '700 36px "Chakra Petch", "JetBrains Mono", monospace';
-    ctx.fillStyle = '#00f0ff';
-    ctx.fillText('S O N A R', CONFIG.CANVAS_WIDTH / 2, 46);
+    // Glowing Subtitle
+    ctx.font = '600 11px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.fillStyle = '#658296';
+    ctx.fillText('// THE ECHO CHAMBER • ZERO-LIGHT STEALTH', CONFIG.CANVAS_WIDTH / 2, 72);
 
-    // Subtitle & Version
-    ctx.font = '600 10.5px "Chakra Petch", "JetBrains Mono", monospace';
-    ctx.fillStyle = '#607b8b';
-    ctx.fillText(`ZERO-LIGHT SURVIVAL • v${CONFIG.VERSION}`, CONFIG.CANVAS_WIDTH / 2, 70);
+    // 5. Sleek Glassmorphism Pilot Bar (Top)
+    const barW = 560;
+    const barH = 40;
+    const barX = CONFIG.CANVAS_WIDTH / 2 - barW / 2;
+    const barY = 96;
 
-    // Player Status Banner Box (Clear Cloud-Save & Guest Notice)
-    const badgeW = 520;
-    const badgeH = 44;
-    const badgeX = CONFIG.CANVAS_WIDTH / 2 - badgeW / 2;
-    const badgeY = 88;
-
-    ctx.fillStyle = isGuest ? 'rgba(255, 230, 0, 0.03)' : 'rgba(0, 255, 136, 0.04)';
-    ctx.fillRect(badgeX, badgeY, badgeW, badgeH);
-    ctx.strokeStyle = isGuest ? 'rgba(255, 230, 0, 0.25)' : 'rgba(0, 255, 136, 0.3)';
+    ctx.fillStyle = isGuest ? 'rgba(255, 200, 0, 0.04)' : 'rgba(0, 255, 136, 0.05)';
+    ctx.fillRect(barX, barY, barW, barH);
+    ctx.strokeStyle = isGuest ? 'rgba(255, 200, 0, 0.22)' : 'rgba(0, 255, 136, 0.25)';
     ctx.lineWidth = 1;
-    ctx.strokeRect(badgeX, badgeY, badgeW, badgeH);
+    ctx.strokeRect(barX, barY, barW, barH);
 
     if (isGuest) {
-      // Line 1: Guest Notice
-      ctx.font = '600 10.5px "Chakra Petch", "JetBrains Mono", monospace';
+      ctx.font = '600 11.5px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.fillStyle = '#f0c040';
-      ctx.fillText('SPIELER: GAST (NUR LOKAL) • FORTSCHRITT IM BROWSER GESPEICHERT', CONFIG.CANVAS_WIDTH / 2, badgeY + 14);
-
-      // Line 2: Pulsing Cloud-Save Button Badge
-      const pulse = 0.75 + 0.25 * Math.sin(time * 5);
-      ctx.font = '700 11px "Chakra Petch", "JetBrains Mono", monospace';
-      ctx.fillStyle = `rgba(0, 240, 255, ${pulse})`;
-      ctx.fillText('[ ☁ CLOUD-SPEICHERUNG AKTIVIEREN ]', CONFIG.CANVAS_WIDTH / 2, badgeY + 31);
+      ctx.fillText('PILOT: GAST (LOKAL)  •  [ CLOUD-SYNC AKTIVIEREN ]', CONFIG.CANVAS_WIDTH / 2, barY + barH / 2);
     } else {
-      // Logged In Status
-      ctx.font = '700 12px "Chakra Petch", "JetBrains Mono", monospace';
-      ctx.fillStyle = '#00ff88';
-      ctx.fillText(`SPIELER: ${pilot.callsign.toUpperCase()} • CLOUD-SYNC AKTIV ★`, CONFIG.CANVAS_WIDTH / 2, badgeY + 14);
-
       const maxCleared = this.maxClearedSector !== undefined ? this.maxClearedSector : (this.unlockedSector > 1 ? this.unlockedSector - 1 : 0);
-      let detailText = maxCleared === 0
-        ? `SEKTOR 01 BEREIT (0 / 10 GESCHAFFT)`
-        : `FORTSCHRITT: ${maxCleared} / 10 SEKTOREN GESCHAFFT`;
-      if (endlessMode && endlessMode.bestFloor > 1) {
-        detailText += `  •  ENDLESS BEST: ETAGE ${endlessMode.bestFloor}`;
-      }
-      ctx.font = '500 10.5px "Chakra Petch", "JetBrains Mono", monospace';
-      ctx.fillStyle = '#80b0c8';
-      ctx.fillText(detailText, CONFIG.CANVAS_WIDTH / 2, badgeY + 31);
+      ctx.font = '600 11.5px "Chakra Petch", "JetBrains Mono", monospace';
+      ctx.fillStyle = '#00ffaa';
+      ctx.fillText(`PILOT: ${pilot.callsign.toUpperCase()}  •  CLOUD-SYNC AKTIV  •  ${maxCleared} / 10 SEKTOREN`, CONFIG.CANVAS_WIDTH / 2, barY + barH / 2);
     }
 
-    // 5. Primary Tier: 2 Large Prominent Cards
-    const primDefs = [
-      { idx: 0, y: 148, h: 68 },
-      { idx: 1, y: 226, h: 68 }
-    ];
-    const cardW = 504;
-    const cardX = CONFIG.CANVAS_WIDTH / 2 - cardW / 2;
+    // 6. Large Hero Element: Campaign (Option 0)
+    const heroX = barX;
+    const heroY = 160;
+    const heroW = barW;
+    const heroH = 106;
+    const isHeroSelected = this.selectedIndex === 0;
 
-    for (let item of primDefs) {
-      const opt = this.options[item.idx];
-      const isSelected = this.selectedIndex === item.idx;
+    ctx.save();
+    const heroPulse = 0.7 + 0.3 * Math.sin(time * 4);
+    ctx.shadowColor = '#00F0FF';
+    ctx.shadowBlur = isHeroSelected ? (18 * heroPulse) : (8 * heroPulse);
 
-      ctx.save();
+    ctx.fillStyle = isHeroSelected ? 'rgba(0, 240, 255, 0.15)' : 'rgba(0, 240, 255, 0.06)';
+    ctx.fillRect(heroX, heroY, heroW, heroH);
 
-      // Living Cyan Focus Glow on Campaign (Item 0)
-      if (item.idx === 0) {
-        const pulse = 0.7 + 0.3 * Math.sin(time * 4);
-        ctx.shadowColor = '#00F0FF';
-        ctx.shadowBlur = isSelected ? (14 * pulse) : (6 * pulse);
-      }
+    ctx.strokeStyle = isHeroSelected ? '#00f0ff' : 'rgba(0, 240, 255, 0.45)';
+    ctx.lineWidth = isHeroSelected ? 2 : 1.2;
+    ctx.strokeRect(heroX, heroY, heroW, heroH);
 
-      if (isSelected) {
-        // Active Primary Card
-        ctx.fillStyle = 'rgba(0, 240, 255, 0.12)';
-        ctx.fillRect(cardX, item.y, cardW, item.h);
+    // Left cyan accent pillar
+    ctx.fillStyle = '#00f0ff';
+    ctx.fillRect(heroX, heroY, 6, heroH);
 
-        ctx.strokeStyle = '#00f0ff';
-        ctx.lineWidth = 1.5;
-        ctx.strokeRect(cardX, item.y, cardW, item.h);
+    // Hero Title
+    ctx.textAlign = 'left';
+    ctx.font = '800 21px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText('KAMPAGNE (SEKTOREN 01–10)', heroX + 26, heroY + 36);
 
-        // Left accent bar
-        ctx.fillStyle = '#00f0ff';
-        ctx.fillRect(cardX, item.y, 4, item.h);
+    // Hero Subtitle
+    ctx.font = '600 13px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.fillStyle = '#00f0ff';
+    ctx.fillText('Operation Zero-Light • Station ABYSS', heroX + 26, heroY + 68);
 
-        // Title
-        ctx.textAlign = 'left';
-        ctx.font = '700 18px "Chakra Petch", "JetBrains Mono", monospace';
-        ctx.fillStyle = '#ffffff';
-        ctx.fillText(opt.title, cardX + 22, item.y + 24);
-
-        // Subtitle
-        ctx.font = '500 12px "Chakra Petch", "JetBrains Mono", monospace';
-        ctx.fillStyle = '#00f0ff';
-        ctx.fillText(opt.subtitle, cardX + 22, item.y + 48);
-
-        // Right Tag
-        ctx.textAlign = 'right';
-        ctx.font = '700 11px "Chakra Petch", "JetBrains Mono", monospace';
-        ctx.fillStyle = '#00f0ff';
-        ctx.fillText(opt.tag, cardX + cardW - 20, item.y + 34);
-      } else {
-        // Inactive Primary Card
-        ctx.fillStyle = item.idx === 0 ? 'rgba(0, 240, 255, 0.04)' : 'rgba(5, 14, 22, 0.75)';
-        ctx.fillRect(cardX, item.y, cardW, item.h);
-
-        ctx.strokeStyle = item.idx === 0 ? 'rgba(0, 240, 255, 0.45)' : 'rgba(0, 240, 255, 0.22)';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(cardX, item.y, cardW, item.h);
-
-        // Title
-        ctx.textAlign = 'left';
-        ctx.font = '700 17px "Chakra Petch", "JetBrains Mono", monospace';
-        ctx.fillStyle = '#00f0ff';
-        ctx.fillText(opt.title, cardX + 20, item.y + 24);
-
-        // Subtitle
-        ctx.font = '500 12px "Chakra Petch", "JetBrains Mono", monospace';
-        ctx.fillStyle = '#607b8b';
-        ctx.fillText(opt.subtitle, cardX + 20, item.y + 48);
-
-        // Right Tag
-        ctx.textAlign = 'right';
-        ctx.font = '600 11px "Chakra Petch", "JetBrains Mono", monospace';
-        ctx.fillStyle = '#456070';
-        ctx.fillText(opt.tag, cardX + cardW - 20, item.y + 34);
-      }
-      ctx.restore();
-    }
-
-    // 6. Secondary Tier: 3 Compact Action Buttons
-    const secY = 308;
-    const secH = 40;
-    const secBtnW = 158;
-    const secGap = 15;
-    const secStartX = cardX;
-
-    const isTutorialPulsing = this.tutorialPulseUntil && Date.now() < this.tutorialPulseUntil;
-
-    const secIndices = [2, 3, 4];
-    for (let i = 0; i < secIndices.length; i++) {
-      const idx = secIndices[i];
-      const opt = this.options[idx];
-      const isSelected = this.selectedIndex === idx;
-      const x = secStartX + i * (secBtnW + secGap);
-      const isPulsingThis = (idx === 4 && isTutorialPulsing);
-
-      ctx.save();
-      if (isSelected) {
-        ctx.fillStyle = 'rgba(0, 240, 255, 0.18)';
-        ctx.fillRect(x, secY, secBtnW, secH);
-
-        ctx.strokeStyle = '#00f0ff';
-        ctx.lineWidth = 1.5;
-        ctx.strokeRect(x, secY, secBtnW, secH);
-
-        ctx.textAlign = 'center';
-        ctx.font = '700 11.5px "Chakra Petch", "JetBrains Mono", monospace';
-        ctx.fillStyle = '#ffffff';
-        ctx.fillText(idx === 4 ? '📖 TUTORIAL' : opt.title, x + secBtnW / 2, secY + secH / 2);
-      } else if (isPulsingThis) {
-        // Prominent Tutorial Attention Indicator
-        const pulse = 0.5 + 0.5 * Math.sin(time * 6);
-        ctx.fillStyle = `rgba(0, 240, 255, ${0.12 + 0.15 * pulse})`;
-        ctx.fillRect(x, secY, secBtnW, secH);
-
-        ctx.strokeStyle = `rgba(0, 240, 255, ${0.6 + 0.4 * pulse})`;
-        ctx.lineWidth = 2;
-        ctx.shadowColor = '#00f0ff';
-        ctx.shadowBlur = 10 * pulse;
-        ctx.strokeRect(x, secY, secBtnW, secH);
-
-        ctx.textAlign = 'center';
-        ctx.font = '700 11.5px "Chakra Petch", "JetBrains Mono", monospace';
-        ctx.fillStyle = '#00f0ff';
-        ctx.fillText('📖 TUTORIAL', x + secBtnW / 2, secY + secH / 2);
-
-        // Attention Hint Badge
-        ctx.shadowBlur = 0;
-        ctx.font = '700 9px "Chakra Petch", "JetBrains Mono", monospace';
-        ctx.fillStyle = `rgba(0, 255, 170, ${0.8 + 0.2 * pulse})`;
-        ctx.fillText('[ HIER JEDERZEIT ABRUFBAR ]', x + secBtnW / 2, secY - 8);
-      } else {
-        ctx.fillStyle = 'rgba(5, 14, 22, 0.7)';
-        ctx.fillRect(x, secY, secBtnW, secH);
-
-        ctx.strokeStyle = idx === 4 ? 'rgba(0, 240, 255, 0.35)' : 'rgba(0, 240, 255, 0.18)';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(x, secY, secBtnW, secH);
-
-        ctx.textAlign = 'center';
-        ctx.font = '600 11px "Chakra Petch", "JetBrains Mono", monospace';
-        ctx.fillStyle = idx === 4 ? '#00f0ff' : '#7895a5';
-        ctx.fillText(idx === 4 ? '📖 TUTORIAL' : opt.title, x + secBtnW / 2, secY + secH / 2);
-      }
-      ctx.restore();
-    }
-
-    // 7. Clean Minimal Footer Navigation Hints & Version
-    ctx.textAlign = 'center';
-    ctx.font = '500 11px "Chakra Petch", "JetBrains Mono", monospace';
-    ctx.fillStyle = '#556e7d';
-    ctx.fillText('W / S / Pfeiltasten: Navigieren  •  Enter: Bestätigen  •  F: Vollbild', CONFIG.CANVAS_WIDTH / 2, 532);
-
+    // Right Action Badge
     ctx.textAlign = 'right';
-    ctx.font = '600 10.5px "JetBrains Mono", "Share Tech Mono", monospace';
-    ctx.fillStyle = '#3a5465';
-    ctx.fillText(`v${CONFIG.VERSION || '1.2.1'}`, CONFIG.CANVAS_WIDTH - 20, 560);
+    ctx.font = '700 13px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.fillStyle = '#00f0ff';
+    ctx.fillText('[ STARTEN ▶ ]', heroX + heroW - 24, heroY + heroH / 2);
+    ctx.restore();
+
+    // 7. Sub-Tiles Row: 3 Even Tiles (Leaderboard, Profile, Settings)
+    const tileY = 295;
+    const tileH = 106;
+    const tileW = 173;
+    const tileGap = 20;
+
+    const subOptions = [
+      { idx: 1, opt: this.options[1] },
+      { idx: 2, opt: this.options[2] },
+      { idx: 3, opt: this.options[3] }
+    ];
+
+    for (let i = 0; i < subOptions.length; i++) {
+      const { idx, opt } = subOptions[i];
+      const x = barX + i * (tileW + tileGap);
+      const isSelected = this.selectedIndex === idx;
+
+      ctx.save();
+      if (isSelected) {
+        ctx.fillStyle = 'rgba(0, 240, 255, 0.16)';
+        ctx.fillRect(x, tileY, tileW, tileH);
+        ctx.strokeStyle = '#00f0ff';
+        ctx.lineWidth = 1.8;
+        ctx.shadowColor = '#00f0ff';
+        ctx.shadowBlur = 10;
+        ctx.strokeRect(x, tileY, tileW, tileH);
+
+        ctx.textAlign = 'center';
+        ctx.font = '22px sans-serif';
+        ctx.fillText(opt.icon, x + tileW / 2, tileY + 32);
+
+        ctx.font = '700 13px "Chakra Petch", "JetBrains Mono", monospace';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(opt.title, x + tileW / 2, tileY + 65);
+
+        ctx.font = '500 10.5px "Chakra Petch", "JetBrains Mono", monospace';
+        ctx.fillStyle = '#00f0ff';
+        ctx.fillText(opt.subtitle, x + tileW / 2, tileY + 86);
+      } else {
+        ctx.fillStyle = 'rgba(5, 14, 22, 0.75)';
+        ctx.fillRect(x, tileY, tileW, tileH);
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.22)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x, tileY, tileW, tileH);
+
+        ctx.textAlign = 'center';
+        ctx.font = '20px sans-serif';
+        ctx.fillText(opt.icon, x + tileW / 2, tileY + 32);
+
+        ctx.font = '700 12.5px "Chakra Petch", "JetBrains Mono", monospace';
+        ctx.fillStyle = '#00f0ff';
+        ctx.fillText(opt.title, x + tileW / 2, tileY + 65);
+
+        ctx.font = '500 10px "Chakra Petch", "JetBrains Mono", monospace';
+        ctx.fillStyle = '#5c788a';
+        ctx.fillText(opt.subtitle, x + tileW / 2, tileY + 86);
+      }
+      ctx.restore();
+    }
+
+    // 8. Clean Minimal Footer Status
+    ctx.textAlign = 'center';
+    ctx.font = '500 10.5px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.fillStyle = '#425866';
+    ctx.fillText(`SONAR TACTICAL OS • v${CONFIG.VERSION} • SYSTEM BEREIT`, CONFIG.CANVAS_WIDTH / 2, 532);
 
     ctx.restore();
   }
@@ -515,9 +432,7 @@ export class MenuSystem {
     ctx.textBaseline = 'middle';
     ctx.shadowBlur = 0;
 
-    // Header
-    ctx.font = '700 24px "Chakra Petch", "JetBrains Mono", monospace';
-    // Calculate total earned stars
+    // Calculate total earned stars across sectors
     let totalStars = 0;
     for (let i = 1; i <= totalSectors; i++) {
       const st = this.sectorStats[i];
@@ -526,13 +441,14 @@ export class MenuSystem {
       }
     }
 
+    // Header
     ctx.font = '700 24px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = '#00f0ff';
-    ctx.fillText('SEKTOR-AUSWAHL • 10 SEKTOREN', CONFIG.CANVAS_WIDTH / 2, 48);
+    ctx.fillText('SEKTOR-AUSWAHL • 10 SEKTOREN', CONFIG.CANVAS_WIDTH / 2, 46);
 
-    ctx.font = '600 12px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.font = '700 12.5px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = '#FFD700';
-    ctx.fillText(`★ ${totalStars} / 30 STERNE GESAMMELT • FREIGESCHALTET: 0${Math.min(10, this.unlockedSector)}`, CONFIG.CANVAS_WIDTH / 2, 78);
+    ctx.fillText(`GESAMTERFOLG: ${totalStars} / 30 ⭐ • FREIGESCHALTET: 0${Math.min(10, this.unlockedSector)}`, CONFIG.CANVAS_WIDTH / 2, 76);
 
     // 2x5 Grid of Sector Cards
     const startX = 70;
@@ -583,19 +499,19 @@ export class MenuSystem {
 
         if (stats) {
           const starsEarned = stats.stars || (stats.rank === 'S' ? 3 : (stats.rank === 'A' ? 2 : 1));
-          const starStr = starsEarned >= 3 ? '★ ★ ★' : (starsEarned === 2 ? '★ ★ ☆' : '★ ☆ ☆');
+          const starStr = starsEarned >= 3 ? '⭐⭐⭐' : (starsEarned === 2 ? '⭐⭐☆' : '⭐☆☆');
 
           ctx.font = '700 13px "JetBrains Mono", monospace';
           ctx.fillStyle = '#FFD700';
-          ctx.fillText(starStr, x + cardW / 2, y + 60);
+          ctx.fillText(starStr, x + cardW / 2, y + 64);
 
-          ctx.font = '700 12px "Chakra Petch", "JetBrains Mono", monospace';
-          ctx.fillStyle = stats.rank === 'S' ? '#FFE600' : '#00ff88';
-          ctx.fillText(`RANG ${stats.rank}`, x + cardW / 2, y + 82);
+          ctx.font = '600 11px "Chakra Petch", "JetBrains Mono", monospace';
+          ctx.fillStyle = '#00ff88';
+          ctx.fillText('GESICHERT', x + cardW / 2, y + 86);
 
           ctx.font = '500 10.5px "Chakra Petch", "JetBrains Mono", monospace';
           ctx.fillStyle = '#607b8b';
-          ctx.fillText(`${stats.time.toFixed(1)}s`, x + cardW / 2, y + 104);
+          ctx.fillText(`${stats.time.toFixed(1)}s`, x + cardW / 2, y + 106);
         } else {
           ctx.font = '600 11px "Chakra Petch", "JetBrains Mono", monospace';
           ctx.fillStyle = '#00ff88';

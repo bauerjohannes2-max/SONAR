@@ -117,20 +117,32 @@ export class TouchControls {
   applyScaleAndPositions() {
     const defaultScale = this.config.scale || 1.0;
     const elemScales = this.config.elementScales || {};
-    const moveScale = elemScales.movement || defaultScale;
-    const sneakScale = elemScales.sneak || defaultScale;
-    const decoyScale = elemScales.decoy || defaultScale;
-    const pingScale = elemScales.ping || defaultScale;
+    const moveScale = elemScales.movement !== undefined ? elemScales.movement : defaultScale;
+    const sneakScale = elemScales.sneak !== undefined ? elemScales.sneak : defaultScale;
+    const decoyScale = elemScales.decoy !== undefined ? elemScales.decoy : defaultScale;
+    const pingScale = elemScales.ping !== undefined ? elemScales.ping : defaultScale;
 
     const moveEl = this.dpadContainer;
     const sneakBtn = document.getElementById('touch-sneak');
     const decoyBtn = document.getElementById('touch-decoy');
     const pingBtn = document.getElementById('touch-ping');
 
-    if (moveEl) moveEl.style.transform = `scale(${moveScale})`;
-    if (sneakBtn) sneakBtn.style.transform = `scale(${sneakScale})`;
-    if (decoyBtn) decoyBtn.style.transform = `scale(${decoyScale})`;
-    if (pingBtn) pingBtn.style.transform = `scale(${pingScale})`;
+    if (moveEl) {
+      moveEl.style.transform = `scale(${moveScale})`;
+      moveEl.style.transformOrigin = 'bottom left';
+    }
+    if (sneakBtn) {
+      sneakBtn.style.transform = `scale(${sneakScale})`;
+      sneakBtn.style.transformOrigin = 'bottom center';
+    }
+    if (decoyBtn) {
+      decoyBtn.style.transform = `scale(${decoyScale})`;
+      decoyBtn.style.transformOrigin = 'bottom center';
+    }
+    if (pingBtn) {
+      pingBtn.style.transform = `scale(${pingScale})`;
+      pingBtn.style.transformOrigin = 'bottom right';
+    }
   }
 
   setControlType(type) {
@@ -143,7 +155,16 @@ export class TouchControls {
   }
 
   setScale(scale) {
-    this.config.scale = Math.max(0.6, Math.min(2.0, scale));
+    const s = Math.max(0.6, Math.min(2.0, scale));
+    this.config.scale = s;
+    if (!this.config.elementScales) {
+      this.config.elementScales = { movement: s, sneak: s, decoy: s, ping: s };
+    } else {
+      this.config.elementScales.movement = s;
+      this.config.elementScales.sneak = s;
+      this.config.elementScales.decoy = s;
+      this.config.elementScales.ping = s;
+    }
     this.applyScaleAndPositions();
     this.saveConfig();
   }

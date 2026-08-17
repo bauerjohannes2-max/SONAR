@@ -201,6 +201,31 @@ export class Settings {
             </div>
           </div>
 
+          <!-- Touch Controls Live-Preview Mini Screen -->
+          <div class="touch-preview-box" id="touch-live-preview-box">
+            <div class="touch-preview-header">
+              <span>🖥️ INTERAKTIVE LIVE-VORSCHAU</span>
+              <span id="preview-mode-tag" class="preview-mode-tag">${(touchConfig.controlType || 'DPAD')} (${Math.round((touchConfig.scale || 1.0) * 100)}%)</span>
+            </div>
+            <div class="touch-preview-viewport" id="touch-preview-viewport">
+              <div class="preview-dpad" id="preview-dpad" style="transform: scale(${touchConfig.scale || 1.0}); transform-origin: bottom left; ${touchConfig.controlType === 'SWIPE' ? 'display: none;' : ''}">
+                <div class="preview-dpad-btn preview-up">▲</div>
+                <div class="preview-dpad-btn preview-down">▼</div>
+                <div class="preview-dpad-btn preview-left">◀</div>
+                <div class="preview-dpad-btn preview-right">▶</div>
+              </div>
+              <div class="preview-swipe-indicator" id="preview-swipe-indicator" style="${touchConfig.controlType === 'SWIPE' ? 'display: flex;' : 'display: none;'}">
+                <span class="preview-swipe-icon">👆</span>
+                <span class="preview-swipe-text">WISCH-GESTEN (SWIPE) AKTIV</span>
+              </div>
+              <div class="preview-actions" id="preview-actions" style="transform: scale(${touchConfig.scale || 1.0}); transform-origin: bottom right;">
+                <div class="preview-btn-sneak">🤫</div>
+                <div class="preview-btn-decoy">💣</div>
+                <div class="preview-btn-ping">📡 PING</div>
+              </div>
+            </div>
+          </div>
+
           <!-- Visual Layout Editor Action Button -->
           <button id="btn-open-touch-editor" class="btn-full-action">
             🛠️ TOUCH-LAYOUT ANPASSEN (POSITION & GRÖSSE)
@@ -364,6 +389,7 @@ export class Settings {
         }
         dpadBtn.classList.toggle('active', type === 'DPAD');
         swipeBtn.classList.toggle('active', type === 'SWIPE');
+        this.updateLivePreview(null, type);
         if (this.audio) this.audio.playUIBlip();
       };
 
@@ -387,6 +413,7 @@ export class Settings {
         scaleBtns.forEach((b) => b.classList.remove('active'));
         btn.classList.add('active');
         if (scaleBadge) scaleBadge.textContent = `${Math.round(sc * 100)}%`;
+        this.updateLivePreview(sc, null);
         if (this.audio) this.audio.playUIBlip();
       };
       btn.addEventListener('click', selectScale);
@@ -598,11 +625,45 @@ export class Settings {
     }
   }
 
+  updateLivePreview(scale = null, controlType = null) {
+    if (!this.modalEl) return;
+    const touchConfig = this.touchControls ? this.touchControls.config : {};
+    const curScale = scale !== null ? scale : (touchConfig.scale || 1.0);
+    const curType = controlType !== null ? controlType : (touchConfig.controlType || 'DPAD');
+
+    const previewDpad = this.modalEl.querySelector('#preview-dpad');
+    const previewSwipe = this.modalEl.querySelector('#preview-swipe-indicator');
+    const previewActions = this.modalEl.querySelector('#preview-actions');
+    const modeTag = this.modalEl.querySelector('#preview-mode-tag');
+
+    if (modeTag) {
+      modeTag.textContent = `${curType === 'DPAD' ? 'D-PAD' : 'SWIPE'} (${Math.round(curScale * 100)}%)`;
+    }
+
+    if (previewDpad && previewSwipe) {
+      if (curType === 'DPAD') {
+        previewDpad.style.display = 'block';
+        previewDpad.style.transform = `scale(${curScale})`;
+        previewDpad.style.transformOrigin = 'bottom left';
+        previewSwipe.style.display = 'none';
+      } else {
+        previewDpad.style.display = 'none';
+        previewSwipe.style.display = 'flex';
+      }
+    }
+
+    if (previewActions) {
+      previewActions.style.transform = `scale(${curScale})`;
+      previewActions.style.transformOrigin = 'bottom right';
+    }
+  }
+
   open(isGameplay = false) {
     this.isGameplay = isGameplay;
     this.isOpen = true;
     if (this.modalEl) {
       this.updateDOMValues();
+      this.updateLivePreview();
       this.modalEl.style.display = 'flex';
     }
     if (this.audio) this.audio.playUIBlip();

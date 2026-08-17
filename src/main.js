@@ -195,6 +195,20 @@ export class Game {
       gearBtn.addEventListener('click', openSettings);
       gearBtn.addEventListener('touchstart', openSettings, { passive: false });
     }
+
+    const tutBtn = document.getElementById('btn-header-tutorial');
+    if (tutBtn) {
+      const handleOpenTut = (e) => {
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+        if (this.audioEngine) this.audioEngine.playUIBlip();
+        this.openTutorial();
+      };
+      tutBtn.addEventListener('click', handleOpenTut);
+      tutBtn.addEventListener('touchstart', handleOpenTut, { passive: false });
+    }
   }
 
   onProfileChanged(pilot) {
@@ -411,13 +425,12 @@ export class Game {
         const choice = this.menuSystem.handleMenuInput(this.inputHandler);
         if (choice === 'SECTOR_SELECT') {
           this.gameState = CONFIG.STATES.SECTOR_SELECT;
-        } else if (choice === 'ENDLESS') {
-          this.endlessMode.reset();
-          this.loadEndlessFloor(1);
         } else if (choice === 'PROFILE') {
           this.profileModal.open();
         } else if (choice === 'LEADERBOARD') {
           this.leaderboardModal.open();
+        } else if (choice === 'SETTINGS') {
+          this.settingsModal.open(false);
         } else if (choice === 'TUTORIAL') {
           this.openTutorial();
         }

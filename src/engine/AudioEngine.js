@@ -27,9 +27,9 @@ export class AudioEngine {
     this.isInitialized = false;
     this.isMuted = false;
     this.masterVolume = 0.5;   // Balanced comfortable default
-    this.sfxVolume = 0.35;     // Gentle sound effects
-    this.ambientVolume = 0.25; // Subtle ambient atmosphere
-    this.musicVolume = 0.35;   // Sci-Fi background music
+    this.sfxVolume = 0.22;     // Comfortable, warm sound effects (35% softer)
+    this.ambientVolume = 0.30; // Deep-sea oceanic atmosphere
+    this.musicVolume = 0.28;   // Sci-Fi cinematic soundtrack
 
     this.buffers = new Map();
     this.isLoadingAssets = false;
@@ -503,7 +503,7 @@ export class AudioEngine {
     filter.Q.setValueAtTime(8.0, now);
 
     gain1.gain.setValueAtTime(0.001, now);
-    gain1.gain.linearRampToValueAtTime(0.6, now + 0.04);
+    gain1.gain.linearRampToValueAtTime(0.38, now + 0.04);
     gain1.gain.exponentialRampToValueAtTime(0.0001, now + 1.4);
 
     osc1.connect(filter);
@@ -516,7 +516,7 @@ export class AudioEngine {
     subOsc.frequency.setValueAtTime(110, now);
     subOsc.frequency.exponentialRampToValueAtTime(55, now + 0.8);
 
-    subGain.gain.setValueAtTime(0.4, now);
+    subGain.gain.setValueAtTime(0.25, now);
     subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
 
     subOsc.connect(subGain);
@@ -554,12 +554,12 @@ export class AudioEngine {
 
     const filter = this.ctx.createBiquadFilter();
     filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(1600, now);
-    filter.Q.setValueAtTime(4.0, now);
+    filter.frequency.setValueAtTime(1400, now);
+    filter.Q.setValueAtTime(3.0, now);
 
     const gain = this.ctx.createGain();
     gain.gain.setValueAtTime(0.001, now);
-    gain.gain.linearRampToValueAtTime(0.5, now + 0.05);
+    gain.gain.linearRampToValueAtTime(0.28, now + 0.05);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
 
     carrier.connect(filter);

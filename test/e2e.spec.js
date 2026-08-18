@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 
-test.describe('SONAR v1.16.6 Tactical Gauntlet Loop E2E Validation', () => {
+test.describe('SONAR v1.16.8 Tactical Gauntlet Loop E2E Validation', () => {
 
   test.beforeEach(async ({ page }) => {
     page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
@@ -11,12 +11,12 @@ test.describe('SONAR v1.16.6 Tactical Gauntlet Loop E2E Validation', () => {
     });
   });
 
-  test('1. Version Endpoint & JSON Integrity (v1.16.6)', async ({ request }) => {
+  test('1. Version Endpoint & JSON Integrity (v1.16.8)', async ({ request }) => {
     const response = await request.get('/version.json');
     expect(response.ok()).toBeTruthy();
     const data = await response.json();
-    expect(data.version).toBe('1.16.6');
-    expect(data.build).toBe(20260827);
+    expect(data.version).toBe('1.16.8');
+    expect(data.build).toBe(20260829);
   });
 
   test('2. Sci-Fi Audio Assets Existence & Preloading in Web Audio API (10 MP3 Samples)', async ({ page }) => {
@@ -1553,6 +1553,78 @@ test.describe('SONAR v1.16.6 Tactical Gauntlet Loop E2E Validation', () => {
     expect(clusterStyles.opacity).toBe('1');
     expect(clusterStyles.pointerEvents).toBe('auto');
     expect(parseInt(clusterStyles.zIndex)).toBeGreaterThanOrEqual(50);
+  });
+
+  test('38. StoryIntro Briefing: First Click Fast-Reveals Full Text, Subsequent Click Anywhere Else Ignored, Only Mission Start Button Launches Level', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    // 1. Launch Sektor 01 campaign intro
+    await page.evaluate(() => {
+      window.game.startCampaignSector(0);
+    });
+
+    const state1 = await page.evaluate(() => window.game.gameState);
+    expect(state1).toBe('STORY_INTRO');
+
+    // Verify text is initially typing
+    const initRevealed = await page.evaluate(() => window.game.storyIntro.isTextFullyRevealed);
+    expect(initRevealed).toBe(false);
+
+    // 2. Click outside the button (e.g. at x: 100, y: 100) -> Reveals full text immediately
+    await page.evaluate(() => {
+      window.game.inputHandler.mouseClick = { x: 100, y: 100 };
+      window.game.update(0.016);
+    });
+
+    const postClickRevealed = await page.evaluate(() => window.game.storyIntro.isTextFullyRevealed);
+    expect(postClickRevealed).toBe(true);
+
+    // Verify game is STILL in STORY_INTRO state (mission did not launch yet)
+    const state2 = await page.evaluate(() => window.game.gameState);
+    expect(state2).toBe('STORY_INTRO');
+
+    // 3. Click outside the button again (x: 100, y: 100) -> Should do NOTHING
+    await page.evaluate(() => {
+      window.game.inputHandler.mouseClick = { x: 100, y: 100 };
+      window.game.update(0.016);
+    });
+
+    const state3 = await page.evaluate(() => window.game.gameState);
+    expect(state3).toBe('STORY_INTRO');
+
+    // 4. Click specifically on the "▶ MISSION STARTEN" button (x: 400, y: 415)
+    await page.evaluate(() => {
+      window.game.inputHandler.mouseClick = { x: 400, y: 415 };
+      window.game.update(0.016);
+    });
+
+    // Verify game transitions to PLAYING state!
+    const state4 = await page.evaluate(() => window.game.gameState);
+    expect(state4).toBe('PLAYING');
+  });
+
+  test('39. Sektor-Auswahl Zurück-Button Horizontally and Vertically Centered & Responsive Click Hitbox', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    // 1. Enter SECTOR_SELECT state
+    await page.evaluate(() => {
+      window.game.gameState = 'SECTOR_SELECT';
+    });
+
+    const state = await page.evaluate(() => window.game.gameState);
+    expect(state).toBe('SECTOR_SELECT');
+
+    // 2. Click Centered "Zurück" Button at (x: 400, y: 500)
+    await page.evaluate(() => {
+      window.game.inputHandler.mouseClick = { x: 400, y: 500 };
+      window.game.update(0.016);
+    });
+
+    // 3. Verify it navigated back to MENU
+    const backState = await page.evaluate(() => window.game.gameState);
+    expect(backState).toBe('MENU');
   });
 
 });

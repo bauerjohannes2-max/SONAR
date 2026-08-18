@@ -12,6 +12,7 @@ export class StoryIntro {
     this.isActive = false;
     this.startTime = 0;
     this.lastCharCount = 0;
+    this.isTextFullyRevealed = false;
 
     this.logLines = [
       'In der verlassenen Tiefseestation ist der Strom ausgefallen.',
@@ -27,6 +28,7 @@ export class StoryIntro {
     this.isActive = true;
     this.startTime = performance.now();
     this.lastCharCount = 0;
+    this.isTextFullyRevealed = false;
     if (onComplete) this.onComplete = onComplete;
     if (this.audio && typeof this.audio.playUIBlip === 'function') {
       this.audio.playUIBlip();
@@ -48,18 +50,51 @@ export class StoryIntro {
       return 'COMPLETE';
     }
 
-    if (inputHandler.consumeAction()) {
-      this.complete();
-      return 'COMPLETE';
-    }
-
+    const actionPressed = inputHandler.consumeAction();
     const click = inputHandler.consumeMouseClick();
-    if (click) {
-      // Hitbox for Start Mission / Skip or any screen tap after 200ms
-      const elapsed = performance.now() - this.startTime;
-      if (elapsed > 150) {
+
+    const boxW = 700;
+    const boxH = 340;
+    const boxX = (CONFIG.CANVAS_WIDTH - boxW) / 2;
+    const boxY = (CONFIG.CANVAS_HEIGHT - boxH) / 2;
+    const btnY = boxY + boxH - 58;
+    const btnW = 260;
+    const btnH = 38;
+    const btnX = boxX + (boxW - btnW) / 2;
+
+    if (actionPressed) {
+      if (!this.isTextFullyRevealed) {
+        // First press: reveal all text instantly
+        this.isTextFullyRevealed = true;
+        if (this.audio && typeof this.audio.playUIBlip === 'function') {
+          this.audio.playUIBlip();
+        }
+      } else {
+        // Second press: start mission
         this.complete();
         return 'COMPLETE';
+      }
+    }
+
+    if (click) {
+      const elapsed = performance.now() - this.startTime;
+      if (elapsed < 80) return null;
+
+      if (!this.isTextFullyRevealed) {
+        // First click anywhere: finish text instantly
+        this.isTextFullyRevealed = true;
+        if (this.audio && typeof this.audio.playUIBlip === 'function') {
+          this.audio.playUIBlip();
+        }
+      } else {
+        // Text is already fully revealed: ONLY start mission if clicking the button!
+        const hitButton = click.x >= btnX - 10 && click.x <= btnX + btnW + 10 &&
+                          click.y >= btnY - 8 && click.y <= btnY + btnH + 8;
+        if (hitButton) {
+          this.complete();
+          return 'COMPLETE';
+        }
+        // Clicking outside the button when text is finished does nothing
       }
     }
 
@@ -69,9 +104,14 @@ export class StoryIntro {
   render(ctx, time) {
     if (!this.isActive) return;
 
+    const totalLength = this.logLines.reduce((sum, line) => sum + (line ? line.length : 0), 0);
     const elapsedMs = performance.now() - this.startTime;
-    // Typewriter speed: ~40 characters per second
-    const totalChars = Math.floor(elapsedMs * 0.045);
+    // Typewriter speed: ~45 characters per second
+    const charCount = Math.floor(elapsedMs * 0.045);
+    if (charCount >= totalLength) {
+      this.isTextFullyRevealed = true;
+    }
+    const totalChars = this.isTextFullyRevealed ? totalLength : charCount;
 
     ctx.save();
 
@@ -151,8 +191,8 @@ export class StoryIntro {
           ctx.fillText(visibleText, boxX + 24, lineY);
         }
 
-        // Blinking terminal cursor on active line
-        if (visibleText.length < fullLine.length || (i === this.logLines.length - 1 && Math.floor(time * 4) % 2 === 0)) {
+        // Blinking terminal cursor on active line if not finished
+        if (!this.isTextFullyRevealed && (visibleText.length < fullLine.length || (i === this.logLines.length - 1 && Math.floor(time * 4) % 2 === 0))) {
           const textW = ctx.measureText(visibleText).width;
           ctx.fillStyle = '#00f0ff';
           ctx.fillText('█', boxX + 24 + textW + 2, lineY);
@@ -170,20 +210,21 @@ export class StoryIntro {
     const pulse = 0.8 + 0.2 * Math.sin(time * 5);
 
     // Primary Start Button
-    ctx.fillStyle = `rgba(0, 240, 255, ${0.12 * pulse})`;
+    ctx.fillStyle = this.isTextFullyRevealed ? `rgba(0, 240, 255, ${0.18 * pulse})` : 'rgba(0, 240, 255, 0.08)';
     ctx.fillRect(btnX, btnY, btnW, btnH);
-    ctx.strokeStyle = `rgba(0, 240, 255, ${0.7 * pulse})`;
-    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = `rgba(0, 240, 255, ${this.isTextFullyRevealed ? 0.85 * pulse : 0.4})`;
+    ctx.lineWidth = this.isTextFullyRevealed ? 2 : 1.5;
     ctx.shadowColor = '#00F0FF';
-    ctx.shadowBlur = 8 * pulse;
+    ctx.shadowBlur = this.isTextFullyRevealed ? 10 * pulse : 4;
     ctx.strokeRect(btnX, btnY, btnW, btnH);
     ctx.shadowBlur = 0;
 
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.font = '700 12.5px "Chakra Petch", "JetBrains Mono", monospace';
-    ctx.fillStyle = '#ffffff';
-    ctx.fillText('▶ MISSION STARTEN (SPACE / KLICK)', btnX + btnW / 2, btnY + btnH / 2);
+    ctx.fillStyle = this.isTextFullyRevealed ? '#ffffff' : '#a0d8ef';
+    const btnLabel = this.isTextFullyRevealed ? '▶ MISSION STARTEN' : '▶ TEXT BESCHLEUNIGEN (KLICK)';
+    ctx.fillText(btnLabel, btnX + btnW / 2, btnY + btnH / 2);
 
     // Skip Hint
     ctx.font = '500 10.5px "Chakra Petch", "JetBrains Mono", monospace';
@@ -193,3 +234,4 @@ export class StoryIntro {
     ctx.restore();
   }
 }
+

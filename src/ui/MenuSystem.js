@@ -228,8 +228,9 @@ export class MenuSystem {
         }
       }
 
-      // Back Button: x: 310..490, y: 475..515
-      if (click.x >= 310 && click.x <= 490 && click.y >= 475 && click.y <= 515) {
+      // Back Button: x: 290..510, y: 475..525
+      if (click.x >= 290 && click.x <= 510 && click.y >= 475 && click.y <= 525) {
+        if (this.audio) this.audio.playUIBlip();
         return { action: 'BACK' };
       }
     }
@@ -650,16 +651,28 @@ export class MenuSystem {
       ctx.restore();
     }
 
-    // Back Button
-    ctx.fillStyle = '#0a1722';
-    ctx.fillRect(CONFIG.CANVAS_WIDTH / 2 - 90, 480, 180, 36);
+    // Back Button (Centered with exact textBaseline and textAlign)
+    const backBtnW = 200;
+    const backBtnH = 40;
+    const backBtnX = (CONFIG.CANVAS_WIDTH - backBtnW) / 2;
+    const backBtnY = 480;
+
+    ctx.save();
+    ctx.fillStyle = 'rgba(10, 23, 34, 0.85)';
+    ctx.fillRect(backBtnX, backBtnY, backBtnW, backBtnH);
     ctx.strokeStyle = '#00f0ff';
     ctx.lineWidth = 1.5;
-    ctx.strokeRect(CONFIG.CANVAS_WIDTH / 2 - 90, 480, 180, 36);
+    ctx.shadowColor = '#00F0FF';
+    ctx.shadowBlur = 6;
+    ctx.strokeRect(backBtnX, backBtnY, backBtnW, backBtnH);
+    ctx.shadowBlur = 0;
 
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
     ctx.font = '700 13px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = '#00f0ff';
-    ctx.fillText('← ZURÜCK (ESC)', CONFIG.CANVAS_WIDTH / 2, 498);
+    ctx.fillText('← ZURÜCK (ESC)', CONFIG.CANVAS_WIDTH / 2, backBtnY + backBtnH / 2);
+    ctx.restore();
 
     ctx.restore();
   }

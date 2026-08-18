@@ -38,8 +38,9 @@ export class HUD {
     ctx.textBaseline = 'middle';
     ctx.shadowBlur = 0;
 
-    // 2. Top Left: Clean Sector Identifier
-    const sectorTag = isEndless ? `ETAGE ${String(floor).padStart(2, '0')}` : (levelData ? `SEKTOR 0${levelData.sectorNumber || 1}` : 'SEKTOR 01');
+    // 2. Top Left: Clean Sector Identifier & Level Subtitle
+    const subTitle = levelData && levelData.subtitle ? ` • ${levelData.subtitle.toUpperCase()}` : '';
+    const sectorTag = isEndless ? `ETAGE ${String(floor).padStart(2, '0')}` : (levelData ? `SEKTOR 0${levelData.sectorNumber || 1}${subTitle}` : 'SEKTOR 01 • BLINDSTART');
     ctx.textAlign = 'left';
     ctx.font = '700 12px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = '#00f0ff';

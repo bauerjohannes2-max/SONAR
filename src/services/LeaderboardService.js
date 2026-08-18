@@ -164,6 +164,14 @@ class LeaderboardService {
         };
       });
 
+      // Ensure current player is always visible in leaderboard
+      if (!formatted.some((e) => e.isCurrentPlayer)) {
+        const localPlayer = this.getLocalLeaderboard().find((e) => e.isCurrentPlayer);
+        if (localPlayer) {
+          formatted.push(localPlayer);
+        }
+      }
+
       this.cachedList = {
         source: 'FIRESTORE_LIVE',
         isCloud: true,

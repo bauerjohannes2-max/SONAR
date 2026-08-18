@@ -48,14 +48,6 @@ export class MenuSystem {
         subtitle: 'Callsign & Cloud',
         icon: '◈',
         desc: 'Callsign & PIN zur Cloud-Sicherung'
-      },
-      // 4. Settings Tile
-      {
-        id: 'SETTINGS',
-        title: 'OPTIONEN',
-        subtitle: 'Audio & Touch',
-        icon: '⛭',
-        desc: 'Soundtrack, Touch-Skalierung & Steuerung'
       }
     ];
 
@@ -123,15 +115,15 @@ export class MenuSystem {
       }
 
       if (move.dx < 0) {
-        // LEFT: Navigate within sub-tiles (1 -> 4 wrap)
-        if (this.selectedIndex >= 1 && this.selectedIndex <= 4) {
-          this.selectedIndex = this.selectedIndex === 1 ? 4 : this.selectedIndex - 1;
+        // LEFT: Navigate within 3 sub-tiles (1 -> 3 wrap)
+        if (this.selectedIndex >= 1 && this.selectedIndex <= 3) {
+          this.selectedIndex = this.selectedIndex === 1 ? 3 : this.selectedIndex - 1;
           if (this.audio) this.audio.playUIBlip();
         }
       } else if (move.dx > 0) {
-        // RIGHT: Navigate within sub-tiles (4 -> 1 wrap)
-        if (this.selectedIndex >= 1 && this.selectedIndex <= 4) {
-          this.selectedIndex = this.selectedIndex === 4 ? 1 : this.selectedIndex + 1;
+        // RIGHT: Navigate within 3 sub-tiles (3 -> 1 wrap)
+        if (this.selectedIndex >= 1 && this.selectedIndex <= 3) {
+          this.selectedIndex = this.selectedIndex === 3 ? 1 : this.selectedIndex + 1;
           if (this.audio) this.audio.playUIBlip();
         }
       }
@@ -159,31 +151,25 @@ export class MenuSystem {
         return 'SECTOR_SELECT';
       }
 
-      // 2. Sub-Tiles Row (y: 295..405)
+      // 2. Sub-Tiles Row (y: 295..405) - Symmetrical 3-Tile Grid (w: 176, gap: 16)
       if (click.y >= 295 && click.y <= 405) {
-        // Tile 1: Hangar (x: 120..247)
-        if (click.x >= 120 && click.x <= 247) {
+        // Tile 1: Hangar (x: 120..296)
+        if (click.x >= 120 && click.x <= 296) {
           this.selectedIndex = 1;
           if (this.audio) this.audio.playUIBlip();
           return 'HANGAR';
         }
-        // Tile 2: Leaderboard (x: 264..391)
-        if (click.x >= 264 && click.x <= 391) {
+        // Tile 2: Leaderboard (x: 312..488)
+        if (click.x >= 312 && click.x <= 488) {
           this.selectedIndex = 2;
           if (this.audio) this.audio.playUIBlip();
           return 'LEADERBOARD';
         }
-        // Tile 3: Profile (x: 408..535)
-        if (click.x >= 408 && click.x <= 535) {
+        // Tile 3: Profile (x: 504..680)
+        if (click.x >= 504 && click.x <= 680) {
           this.selectedIndex = 3;
           if (this.audio) this.audio.playUIBlip();
           return 'PROFILE';
-        }
-        // Tile 4: Settings (x: 552..680)
-        if (click.x >= 552 && click.x <= 680) {
-          this.selectedIndex = 4;
-          if (this.audio) this.audio.playUIBlip();
-          return 'SETTINGS';
         }
       }
     }
@@ -377,17 +363,16 @@ export class MenuSystem {
     ctx.fillText('[ STARTEN ▶ ]', heroX + heroW - 24, heroY + heroH / 2);
     ctx.restore();
 
-    // 7. Sub-Tiles Row: 4 Even Tiles (Hangar, Leaderboard, Profile, Settings)
+    // 7. Sub-Tiles Row: 3 Symmetrical Tiles (Hangar, Leaderboard, Profile)
     const tileY = 295;
     const tileH = 106;
-    const tileW = 127;
-    const tileGap = 17;
+    const tileW = 176;
+    const tileGap = 16;
 
     const subOptions = [
       { idx: 1, opt: this.options[1], id: 'HANGAR' },
       { idx: 2, opt: this.options[2], id: 'LEADERBOARD' },
-      { idx: 3, opt: this.options[3], id: 'PROFILE' },
-      { idx: 4, opt: this.options[4], id: 'SETTINGS' }
+      { idx: 3, opt: this.options[3], id: 'PROFILE' }
     ];
 
     for (let i = 0; i < subOptions.length; i++) {
@@ -413,15 +398,15 @@ export class MenuSystem {
       }
 
       // Draw Glowing Sci-Fi Vector Icon
-      this.drawMenuTileIcon(ctx, id, x + tileW / 2, tileY + 30, isSelected);
+      this.drawMenuTileIcon(ctx, id, x + tileW / 2, tileY + 28, isSelected);
 
       // Title & Subtitle
       ctx.textAlign = 'center';
-      ctx.font = isSelected ? '700 12.5px "Chakra Petch", "JetBrains Mono", monospace' : '700 12px "Chakra Petch", "JetBrains Mono", monospace';
+      ctx.font = isSelected ? '700 13px "Chakra Petch", "JetBrains Mono", monospace' : '700 12.5px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.fillStyle = isSelected ? '#ffffff' : '#00f0ff';
       ctx.fillText(opt.title, x + tileW / 2, tileY + 66);
 
-      ctx.font = '500 9.5px "Chakra Petch", "JetBrains Mono", monospace';
+      ctx.font = '500 10px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.fillStyle = isSelected ? '#00f0ff' : '#5c788a';
       ctx.fillText(opt.subtitle, x + tileW / 2, tileY + 86);
       ctx.restore();
@@ -445,24 +430,23 @@ export class MenuSystem {
     ctx.shadowBlur = isSelected ? 10 : 4;
 
     if (type === 'HANGAR') {
-      // Wrench / Drone Tool Icon
+      // Lucide-style Wrench / Drone Tool Icon
       ctx.beginPath();
       ctx.moveTo(cx - 7, cy - 7);
       ctx.lineTo(cx + 7, cy + 7);
-      ctx.lineWidth = isSelected ? 3 : 2.4;
+      ctx.lineWidth = isSelected ? 2.8 : 2.2;
       ctx.stroke();
       ctx.lineWidth = isSelected ? 1.8 : 1.4;
-      // Wrench Jaws
+      // Wrench Head
       ctx.beginPath();
-      ctx.arc(cx - 6, cy - 6, 4.5, 0.3 * Math.PI, 1.4 * Math.PI);
+      ctx.arc(cx - 6, cy - 6, 5, 0.3 * Math.PI, 1.4 * Math.PI);
       ctx.stroke();
-      // Glider Wing Accent
+      // Handle base dot
       ctx.beginPath();
-      ctx.moveTo(cx - 8, cy + 2);
-      ctx.lineTo(cx + 2, cy - 8);
-      ctx.stroke();
+      ctx.arc(cx + 7, cy + 7, 2, 0, Math.PI * 2);
+      ctx.fill();
     } else if (type === 'LEADERBOARD') {
-      // Clear Trophy Cup Symbol
+      // Lucide-style Trophy Cup
       ctx.beginPath();
       ctx.moveTo(cx - 8, cy - 8);
       ctx.lineTo(cx + 8, cy - 8);
@@ -476,7 +460,7 @@ export class MenuSystem {
       ctx.moveTo(cx + 7.5, cy - 7);
       ctx.arc(cx + 7.5, cy - 3.5, 3.5, -0.5 * Math.PI, 0.5 * Math.PI);
       ctx.stroke();
-      // Stem & Base
+      // Base
       ctx.beginPath();
       ctx.moveTo(cx, cy + 4);
       ctx.lineTo(cx, cy + 8);
@@ -484,7 +468,7 @@ export class MenuSystem {
       ctx.lineTo(cx + 6, cy + 8);
       ctx.stroke();
     } else if (type === 'PROFILE') {
-      // Pilot ID & Helmet with Visor
+      // Lucide-style Pilot Helmet & Visor
       ctx.beginPath();
       ctx.arc(cx, cy - 2, 7.5, Math.PI, 0);
       ctx.lineTo(cx + 7.5, cy + 4);
@@ -497,46 +481,20 @@ export class MenuSystem {
       ctx.lineTo(cx + 6, cy + 1);
       ctx.lineWidth = isSelected ? 2.5 : 2;
       ctx.stroke();
-    } else if (type === 'SETTINGS') {
-      // Precision Gear
-      ctx.beginPath();
-      ctx.arc(cx, cy, 5.5, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(cx, cy, 2.5, 0, Math.PI * 2);
-      ctx.stroke();
-      for (let i = 0; i < 6; i++) {
-        const a = (i * Math.PI) / 3;
-        ctx.beginPath();
-        ctx.moveTo(cx + 5.5 * Math.cos(a), cy + 5.5 * Math.sin(a));
-        ctx.lineTo(cx + 9.5 * Math.cos(a), cy + 9.5 * Math.sin(a));
-        ctx.lineWidth = isSelected ? 2.2 : 1.8;
-        ctx.stroke();
-      }
     }
 
     ctx.restore();
   }
 
+  /**
+   * Sector Select Screen (10-Sector Campaign Grid)
+   */
   renderSectorSelect(ctx) {
     const totalSectors = LEVELS.length; // 10
+    const totalStars = storageManager.calculateTotalStars();
 
     ctx.save();
-    ctx.fillStyle = '#05070a';
-    ctx.fillRect(0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
-
     ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.shadowBlur = 0;
-
-    // Calculate total earned stars across sectors
-    let totalStars = 0;
-    for (let i = 1; i <= totalSectors; i++) {
-      const st = this.sectorStats[i];
-      if (st) {
-        totalStars += st.stars || (st.rank === 'S' ? 3 : (st.rank === 'A' ? 2 : 1));
-      }
-    }
 
     // Header
     ctx.font = '700 24px "Chakra Petch", "JetBrains Mono", monospace';
@@ -547,13 +505,13 @@ export class MenuSystem {
     ctx.fillStyle = '#FFD700';
     ctx.fillText(`GESAMTERFOLG: ${totalStars} / 30 ★ • FREIGESCHALTET: 0${Math.min(10, this.unlockedSector)}`, CONFIG.CANVAS_WIDTH / 2, 76);
 
-    // 2x5 Grid of Sector Cards (Simplified 3-line Layout)
+    // 2x5 Grid of Sector Cards (Clean Layout with Level Names)
     const startX = 70;
-    const startY = 110;
+    const startY = 108;
     const cardW = 120;
-    const cardH = 130;
+    const cardH = 136;
     const gapX = 18;
-    const gapY = 20;
+    const gapY = 16;
 
     for (let i = 0; i < totalSectors; i++) {
       const col = i % 5;
@@ -564,6 +522,7 @@ export class MenuSystem {
       const isUnlocked = i < this.unlockedSector;
       const isSelected = i === this.selectedSectorIndex;
       const stats = this.sectorStats[i + 1];
+      const levelSubtitle = (LEVELS[i] && LEVELS[i].subtitle) ? LEVELS[i].subtitle : '';
 
       ctx.save();
       if (isSelected) {
@@ -584,9 +543,14 @@ export class MenuSystem {
 
       if (isUnlocked) {
         // Line 1: SEKTOR XX (Bold)
-        ctx.font = '700 15px "Chakra Petch", "JetBrains Mono", monospace';
+        ctx.font = '700 14px "Chakra Petch", "JetBrains Mono", monospace';
         ctx.fillStyle = isSelected ? '#FFFFFF' : '#00f0ff';
-        ctx.fillText(`SEKTOR ${numStr}`, x + cardW / 2, y + 36);
+        ctx.fillText(`SEKTOR ${numStr}`, x + cardW / 2, y + 28);
+
+        // Subtitle: Level Name
+        ctx.font = '500 10px "Chakra Petch", "JetBrains Mono", monospace';
+        ctx.fillStyle = isSelected ? '#00f0ff' : '#8da8b8';
+        ctx.fillText(levelSubtitle, x + cardW / 2, y + 46);
 
         if (stats) {
           // Line 2: ★ ★ ★ (Gold)
@@ -595,38 +559,43 @@ export class MenuSystem {
 
           ctx.font = '700 14px "JetBrains Mono", monospace';
           ctx.fillStyle = '#FFD700';
-          ctx.fillText(starStr, x + cardW / 2, y + 68);
+          ctx.fillText(starStr, x + cardW / 2, y + 78);
 
           // Line 3: 36.0s (Green / Cyan)
           ctx.font = '600 12px "Chakra Petch", "JetBrains Mono", monospace';
           ctx.fillStyle = '#00ff88';
-          ctx.fillText(`${stats.time.toFixed(1)}s`, x + cardW / 2, y + 98);
+          ctx.fillText(`${stats.time.toFixed(1)}s`, x + cardW / 2, y + 108);
         } else {
           // Line 2: ☆ ☆ ☆ (Dim / Outline)
           ctx.font = '700 14px "JetBrains Mono", monospace';
           ctx.fillStyle = 'rgba(255, 215, 0, 0.4)';
-          ctx.fillText('☆ ☆ ☆', x + cardW / 2, y + 68);
+          ctx.fillText('☆ ☆ ☆', x + cardW / 2, y + 78);
 
           // Line 3: BEREIT (Gold / Cyan)
           ctx.font = '700 12px "Chakra Petch", "JetBrains Mono", monospace';
           ctx.fillStyle = '#FFD700';
-          ctx.fillText('BEREIT', x + cardW / 2, y + 98);
+          ctx.fillText('BEREIT', x + cardW / 2, y + 108);
         }
       } else {
         // Line 1: SEKTOR XX (Dim)
-        ctx.font = '700 15px "Chakra Petch", "JetBrains Mono", monospace';
+        ctx.font = '700 14px "Chakra Petch", "JetBrains Mono", monospace';
         ctx.fillStyle = '#4a5760';
-        ctx.fillText(`SEKTOR ${numStr}`, x + cardW / 2, y + 36);
+        ctx.fillText(`SEKTOR ${numStr}`, x + cardW / 2, y + 28);
+
+        // Subtitle: Level Name (Dim)
+        ctx.font = '500 10px "Chakra Petch", "JetBrains Mono", monospace';
+        ctx.fillStyle = '#3a4750';
+        ctx.fillText(levelSubtitle, x + cardW / 2, y + 46);
 
         // Line 2: ☆ ☆ ☆ (Locked / Dim)
         ctx.font = '700 14px "JetBrains Mono", monospace';
         ctx.fillStyle = '#3a4750';
-        ctx.fillText('☆ ☆ ☆', x + cardW / 2, y + 68);
+        ctx.fillText('☆ ☆ ☆', x + cardW / 2, y + 78);
 
         // Line 3: GESPERRT (Red)
         ctx.font = '700 12px "Chakra Petch", "JetBrains Mono", monospace';
         ctx.fillStyle = '#883344';
-        ctx.fillText('GESPERRT', x + cardW / 2, y + 98);
+        ctx.fillText('GESPERRT', x + cardW / 2, y + 108);
       }
       ctx.restore();
     }

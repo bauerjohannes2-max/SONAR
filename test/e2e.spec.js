@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 
-test.describe('SONAR v1.15.0 Tactical Gauntlet Loop E2E Validation', () => {
+test.describe('SONAR v1.16.0 Tactical Gauntlet Loop E2E Validation', () => {
 
   test.beforeEach(async ({ page }) => {
     page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
@@ -11,12 +11,12 @@ test.describe('SONAR v1.15.0 Tactical Gauntlet Loop E2E Validation', () => {
     });
   });
 
-  test('1. Version Endpoint & JSON Integrity (v1.15.0)', async ({ request }) => {
+  test('1. Version Endpoint & JSON Integrity (v1.16.0)', async ({ request }) => {
     const response = await request.get('/version.json');
     expect(response.ok()).toBeTruthy();
     const data = await response.json();
-    expect(data.version).toBe('1.15.0');
-    expect(data.build).toBe(20260820);
+    expect(data.version).toBe('1.16.0');
+    expect(data.build).toBe(20260821);
   });
 
   test('2. Sci-Fi Audio Assets Existence & Preloading in Web Audio API (10 MP3 Samples)', async ({ page }) => {
@@ -190,7 +190,7 @@ test.describe('SONAR v1.15.0 Tactical Gauntlet Loop E2E Validation', () => {
     expect(result.hasBeaconWave).toBeTruthy();
   });
 
-  test('8. Settings Modal: Background Music Slider & D-Pad/Swipe Toggle', async ({ page }) => {
+  test('8. Settings Modal: Volume Sliders & Clean Controls Layout', async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('#gameCanvas');
 
@@ -200,9 +200,6 @@ test.describe('SONAR v1.15.0 Tactical Gauntlet Loop E2E Validation', () => {
     await expect(page.locator('#slider-master-volume')).toBeVisible();
     await expect(page.locator('#slider-music-volume')).toBeVisible();
     await expect(page.locator('#slider-sfx-volume')).toBeVisible();
-
-    await expect(page.locator('#btn-ctrl-dpad')).toBeVisible();
-    await expect(page.locator('#btn-ctrl-swipe')).toBeVisible();
 
     await page.click('#settings-modal', { position: { x: 10, y: 10 } });
     await expect(page.locator('#settings-modal')).not.toBeVisible();
@@ -521,7 +518,7 @@ test.describe('SONAR v1.15.0 Tactical Gauntlet Loop E2E Validation', () => {
     expect(result.hasExecuteFn).toBeTruthy();
   });
 
-  test('20. Clean Main Menu: Endless Mode Removed & Campaign Hero Focus (v1.10.0)', async ({ page }) => {
+  test('20. Clean Main Menu: Symmetrical 3-Tile Grid & Campaign Hero Focus', async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('#gameCanvas');
 
@@ -535,10 +532,10 @@ test.describe('SONAR v1.15.0 Tactical Gauntlet Loop E2E Validation', () => {
 
     expect(menuState.hasEndless).toBeFalsy();
     expect(menuState.hasCampaign).toBeTruthy();
-    expect(menuState.options).toEqual(['SECTOR_SELECT', 'HANGAR', 'LEADERBOARD', 'PROFILE', 'SETTINGS']);
+    expect(menuState.options).toEqual(['SECTOR_SELECT', 'HANGAR', 'LEADERBOARD', 'PROFILE']);
   });
 
-  test('21. Settings Modal Touch Scaling with Live-Preview Synchronization (v1.10.0)', async ({ page }) => {
+  test('21. Settings Modal Touch Scaling with Live-Preview Synchronization', async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('#gameCanvas');
 
@@ -557,10 +554,10 @@ test.describe('SONAR v1.15.0 Tactical Gauntlet Loop E2E Validation', () => {
     const previewTag = page.locator('#preview-mode-tag');
     expect(await previewTag.innerText()).toContain('125%');
 
-    // Switch to SWIPE
-    await page.click('#btn-ctrl-swipe');
-    await expect(page.locator('#preview-swipe-indicator')).toBeVisible();
-    expect(await previewTag.innerText()).toContain('SWIPE');
+    // Change scale to 80%
+    await page.click('button.btn-scale-step[data-scale="0.8"]');
+    expect(await scaleBadge.innerText()).toBe('80%');
+    expect(await previewTag.innerText()).toContain('80%');
   });
 
   test('22. Consolidated 3-Star Campaign Rating & HUD Breakdown (v1.10.0)', async ({ page }) => {
@@ -1168,6 +1165,116 @@ test.describe('SONAR v1.15.0 Tactical Gauntlet Loop E2E Validation', () => {
 
     expect(storyCheck.hasAbyss).toBe(true);
     expect(storyCheck.logLines.length).toBeGreaterThanOrEqual(4);
+  });
+
+  test('29. Leaderboard Star Calculation: 13 Earned Stars with Hangar Upgrades Retains 13 ★', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    // Set 13 stars across sectors in storage
+    const starsCheck = await page.evaluate(async () => {
+      const storage = window.game.storageManager;
+      // 5 sectors: 3 + 3 + 3 + 2 + 2 = 13 stars
+      const mockProgress = {
+        unlockedSector: 6,
+        maxClearedSector: 5,
+        sectorStats: {
+          1: { stars: 3, time: 24.5, rank: 'S', pingsUsed: 2 },
+          2: { stars: 3, time: 30.1, rank: 'S', pingsUsed: 3 },
+          3: { stars: 3, time: 35.8, rank: 'S', pingsUsed: 3 },
+          4: { stars: 2, time: 48.2, rank: 'A', pingsUsed: 4 },
+          5: { stars: 2, time: 52.0, rank: 'A', pingsUsed: 4 }
+        }
+      };
+      localStorage.setItem('sonar_progress_v1', JSON.stringify(mockProgress));
+      localStorage.setItem('sonar_guest_progress', JSON.stringify(mockProgress));
+      storage.saveUpgrades({ sonarBooster: 1, extraDecoy: 0, hydroDampener: 0, emergencyShield: 0 }); // spent 3 stars
+
+      const earned = storage.calculateTotalStars(mockProgress.sectorStats);
+      const available = storage.getAvailableStars();
+      const spent = storage.getSpentStars();
+
+      // Open leaderboard modal
+      await window.game.leaderboardModal.open();
+      await window.game.leaderboardModal.loadData(true);
+
+      return {
+        earned,
+        available,
+        spent
+      };
+    });
+
+    expect(starsCheck.earned).toBe(13);
+    expect(starsCheck.spent).toBe(2);
+    expect(starsCheck.available).toBe(11);
+
+    // Verify Leaderboard modal renders 13 ★ for current player
+    const playerRow = page.locator('.current-player-row');
+    await expect(playerRow).toBeVisible();
+    await expect(playerRow).toContainText('13 ★');
+  });
+
+  test('30. Ghost D-Pad Hidden in Menu & Symmetrical 3-Tile Main Menu Grid', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    // Check menu options count and items
+    const menuCheck = await page.evaluate(() => {
+      const menu = window.game.menuSystem;
+      const dpad = document.getElementById('touch-dpad-container');
+      const dpadDisplay = dpad ? window.getComputedStyle(dpad).display : 'none';
+      return {
+        optionsCount: menu.options.length,
+        optionIds: menu.options.map(o => o.id),
+        dpadDisplay,
+        hasSettingsTile: menu.options.some(o => o.id === 'SETTINGS')
+      };
+    });
+
+    expect(menuCheck.optionsCount).toBe(4); // 0: SECTOR_SELECT, 1: HANGAR, 2: LEADERBOARD, 3: PROFILE
+    expect(menuCheck.hasSettingsTile).toBe(false);
+    expect(menuCheck.optionIds).toEqual(['SECTOR_SELECT', 'HANGAR', 'LEADERBOARD', 'PROFILE']);
+    expect(menuCheck.dpadDisplay).toBe('none');
+  });
+
+  test('31. Settings Modal Clean Layout (No Emojis, No Joystick) & In-Game Action Cluster', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    // Open Settings Modal
+    await page.evaluate(() => {
+      window.game.settingsModal.open(false);
+    });
+
+    const settingsModal = page.locator('#settings-modal');
+    await expect(settingsModal).toBeVisible();
+
+    const title = page.locator('#settings-modal-title-text');
+    await expect(title).toHaveText('EINSTELLUNGEN');
+
+    // Check joystick button does not exist
+    const joystickBtn = page.locator('#btn-ctrl-swipe');
+    await expect(joystickBtn).toHaveCount(0);
+
+    // Close Settings Modal
+    await page.evaluate(() => {
+      window.game.settingsModal.close();
+    });
+
+    // Start active game sector
+    await page.evaluate(() => {
+      window.game.loadSector(0);
+    });
+
+    // In-game: Action buttons visible in lower right cluster
+    const pingBtn = page.locator('#btn-ping');
+    const sneakBtn = page.locator('#btn-sneak');
+    const baitBtn = page.locator('#btn-bait');
+
+    await expect(pingBtn).toBeVisible();
+    await expect(sneakBtn).toBeVisible();
+    await expect(baitBtn).toBeVisible();
   });
 
 });

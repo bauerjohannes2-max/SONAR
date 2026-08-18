@@ -370,8 +370,8 @@ export class LeaderboardModal {
     let rivalWins = 0;
 
     for (let s = 1; s <= totalSectors; s++) {
-      const mySec = myStats[s];
-      const rivalSec = rivalStats[s];
+      const mySec = myStats[s] || myStats[String(s)] || myStats[`0${s}`];
+      const rivalSec = rivalStats[s] || rivalStats[String(s)] || rivalStats[`0${s}`];
 
       const myTime = mySec && mySec.time ? mySec.time : null;
       const rivalT = rivalSec && rivalSec.time ? rivalSec.time : null;

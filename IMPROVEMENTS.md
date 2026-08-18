@@ -102,27 +102,27 @@ Jeder Meilenstein und jeder Zyklus erfordert ein zwingendes Semantic Versioning 
 
 ## 🎯 Top 5 Priorisierte Pareto-Maßnahmen (Nächste Zyklen)
 
-### 1. Ghost-Echo Replay-Projektion für Rekord-Läufe (Holographic Shadow Drone)
-- **Domäne:** 5 (Progression & Speedrunning) & 3 (Core Gameloop)
-- **80/20 Hebel:** Zeichnet die beste persönliche Zeit für jeden Sektor auf und visualisiert sie als transparente Geister-Drohne (Ghost ECHO) für Speedrunner.
-- **Module:** `src/services/StorageManager.js`, `src/entities/Player.js`, `src/engine/CanvasRenderer.js`.
+### 1. Chime-Tonleiter: Pentatonische Tonfolge bei Datenkern-Bergung
+- **Domäne:** 2 (Audio) & 3 (Gameloop Feedback)
+- **80/20 Hebel:** Jeder nacheinander gesammelte Datenkern triggert eine aufsteigende pentatonische Tonfolge ($C \to D \to E \to G \to A$), was den Sammel-Flow ungemein befriedigend macht.
+- **Module:** `src/engine/AudioEngine.js`, `src/main.js`.
 
-### 2. Schockwellen-Verzerrungs-Shader auf Canvas (Radial Displacement Ring)
-- **Domäne:** 1 (Visuelles Feedback & Game-Juice)
-- **80/20 Hebel:** Wellenfronten verzerren die umgebenden Kacheln minimal radial für spürbare akustische Wucht.
-- **Module:** `src/engine/WaveSystem.js`, `src/engine/CanvasRenderer.js`.
+### 2. Taktile Haptik-Engine für Mobile Pings & Wandnähe
+- **Domäne:** 4 (Mobile UX & Immersion)
+- **80/20 Hebel:** Feine, differenzierte Mikro-Vibrationen (`navigator.vibrate`) bei Sonar-Pings, Schleich-Modus und kritischer Wandnähe.
+- **Module:** `src/engine/TouchControls.js`, `src/entities/Player.js`.
 
-### 3. Sektor-Spezifische Gefahren (Druckwellen-Lüfter & EMP-Minen)
-- **Domäne:** 3 (Leveldesign & Hindernisse)
-- **80/20 Hebel:** Ergänzung einzelner Sektoren mit statischen Strömungsdüsen oder akustischen Störsendern für taktische Vielfalt.
-- **Module:** `src/world/levels.js`, `src/engine/CanvasRenderer.js`.
+### 3. Danger-Vignette: Dynamischer Puls bei Jäger-Annäherung
+- **Domäne:** 1 (Visual Polish & Horror-Thrill)
+- **80/20 Hebel:** Ein zarter, pulsierender roter Bildschirmrand warnt den Piloten instinktiv vor herannahenden Raubdrohnen im Dunkeln.
+- **Module:** `src/ui/HUD.js`, `src/engine/CanvasRenderer.js`.
 
-### 4. Dynamische Farbpaletten-Themes (Amber CRT, Phosphor Green, Cyber Cyan)
-- **Domäne:** 1 (Aesthetics & Accessibility)
-- **80/20 Hebel:** Umschaltbare Farbprofile in den Einstellungen für individuelle visuelle Vorlieben und Barrierefreiheit.
-- **Module:** `src/config.js`, `src/ui/Settings.js`.
+### 4. Hydrodynamische Antriebs-Partikel (Thruster-Bläschen)
+- **Domäne:** 1 (Visuelles Feedback & Physik-Atmosphäre)
+- **80/20 Hebel:** Sanfte, aufsteigende Mikro-Wasserbläschen hinter den Steuerdüsen der ECHO-Drohne bei Schubkraft.
+- **Module:** `src/engine/ParticleEngine.js`, `src/entities/Player.js`.
 
-### 5. Cloud-Ghost Rivalen-Import (Duell gegen Freunde-Geister)
-- **Domäne:** 4 (Social & Retention)
-- **80/20 Hebel:** Lädt den Bestzeit-Geist des markierten Rivalen aus Firestore herunter und blendet ihn direkt als 1v1-Ghost ein.
-- **Module:** `src/services/FirebaseService.js`, `src/ui/LeaderboardModal.js`.
+### 5. Instant-Restart via Taste R & Mobilem Doppel-Tap
+- **Domäne:** 5 (Speedrunning & Frictionless UX)
+- **80/20 Hebel:** Ermöglicht den sofortigen Sektor-Neustart ohne Verzögerung über die Taste <kbd>R</kbd> auf Desktop bzw. Doppel-Tap auf Touchscreens.
+- **Module:** `src/engine/InputHandler.js`, `src/main.js`.

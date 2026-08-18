@@ -104,14 +104,42 @@ export class TouchControls {
     this.bindSwipeGestures();
     this.bindButtons();
 
-    this.updateControlVisibility();
+    this.hide();
     this.applyScaleAndPositions();
   }
 
   updateControlVisibility() {
     if (!this.dpadContainer) return;
-    const isDpad = this.config.controlType === 'DPAD';
-    this.dpadContainer.style.display = isDpad ? 'block' : 'none';
+    this.dpadContainer.style.display = this.isVisible ? 'block' : 'none';
+  }
+
+  show() {
+    this.isVisible = true;
+    if (this.touchOverlay) {
+      this.touchOverlay.style.display = 'block';
+    }
+    if (this.dpadContainer) {
+      this.dpadContainer.style.display = 'block';
+    }
+    const actionsCluster = document.getElementById('touch-action-cluster') || document.querySelector('.touch-actions');
+    if (actionsCluster) {
+      actionsCluster.style.display = 'flex';
+    }
+  }
+
+  hide() {
+    this.isVisible = false;
+    if (this.touchOverlay) {
+      this.touchOverlay.style.display = 'none';
+    }
+    if (this.dpadContainer) {
+      this.dpadContainer.style.display = 'none';
+    }
+    const actionsCluster = document.getElementById('touch-action-cluster') || document.querySelector('.touch-actions');
+    if (actionsCluster) {
+      actionsCluster.style.display = 'none';
+    }
+    this.clearDpad();
   }
 
   applyScaleAndPositions() {

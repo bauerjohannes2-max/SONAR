@@ -251,11 +251,15 @@ class FirebaseService {
       const stats = progressData.sectorStats || {};
       let totalStars = 0;
       let totalTime = 0;
-      for (let k in stats) {
-        if (stats[k]) {
-          totalStars += stats[k].stars || 0;
-          if (stats[k].time) totalTime += stats[k].time;
+      for (let s = 1; s <= 10; s++) {
+        const item = stats[s] || stats[String(s)] || stats[`0${s}`];
+        if (item) {
+          totalStars += item.stars || (item.rank === 'S' ? 3 : (item.rank === 'A' ? 2 : 1));
+          if (item.time) totalTime += item.time;
         }
+      }
+      if (progressData.totalStars !== undefined && progressData.totalStars > totalStars) {
+        totalStars = progressData.totalStars;
       }
 
       const payload = {
@@ -309,13 +313,18 @@ class FirebaseService {
         const stats = d.sectorStats || {};
         let tStars = d.totalStars !== undefined ? d.totalStars : 0;
         let tTime = d.bestTime !== undefined ? d.bestTime : 0;
-        if (tStars === 0 && stats) {
-          for (let k in stats) {
-            if (stats[k]) {
-              tStars += stats[k].stars || 0;
-              if (stats[k].time) tTime += stats[k].time;
+        if (stats && Object.keys(stats).length > 0) {
+          let calculatedStars = 0;
+          let calculatedTime = 0;
+          for (let s = 1; s <= 10; s++) {
+            const item = stats[s] || stats[String(s)] || stats[`0${s}`];
+            if (item) {
+              calculatedStars += item.stars || (item.rank === 'S' ? 3 : (item.rank === 'A' ? 2 : 1));
+              if (item.time) calculatedTime += item.time;
             }
           }
+          if (calculatedStars > tStars) tStars = calculatedStars;
+          if (calculatedTime > 0 && tTime === 0) tTime = calculatedTime;
         }
 
         rawList.push({

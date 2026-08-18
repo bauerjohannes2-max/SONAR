@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=JetBrains+Mono:wght@400;600;800&family=Share+Tech+Mono&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles/main.css?v=1.15.0">
+  <link rel="stylesheet" href="./styles/main.css?v=1.16.0">
 </head>
 <body>
   <div id="game-wrapper">
@@ -23,50 +23,52 @@
     <div class="canvas-container">
       <canvas id="gameCanvas" width="800" height="576"></canvas>
       <div class="crt-overlay"></div>
-      <div class="scanlines"></div>
-      <div class="vignette"></div>
 
-      <!-- Top-Right Quick-Actions (In-Game & Menu) -->
+      <!-- In-Game Quick Action Overlay (Non-Intrusive) -->
       <div class="canvas-quick-actions">
-        <button id="btn-header-tutorial" class="canvas-action-btn" title="Anleitung & Briefing (T)">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+        <button id="btn-header-tutorial" class="header-action-btn" title="Einsatz-Handbuch & Taktik (H)">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
         </button>
-        <button id="btn-settings-gear" class="canvas-action-btn" title="Einstellungen (O)">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <button id="btn-settings-gear" class="header-action-btn" title="Einstellungen (O / ESC)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         </button>
-        <button id="btn-header-fullscreen" class="canvas-action-btn" title="Vollbild umschalten (F)">
+        <button id="btn-header-fullscreen" class="header-action-btn" title="Vollbild (F)">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
         </button>
-        <button id="btn-header-mute" class="canvas-action-btn" title="Ton stummschalten (M)">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+        <button id="btn-header-mute" class="header-action-btn" title="Ton stummschalten / aktivieren (M)">
+          <svg class="icon-speaker" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
         </button>
       </div>
 
-      <!-- Left Virtual D-Pad / Thumbstick -->
-      <div id="touch-dpad-container" class="touch-control-group touch-dpad">
-        <button class="touch-dpad-btn touch-dpad-up" data-dir="up">▲</button>
-        <button class="touch-dpad-btn touch-dpad-down" data-dir="down">▼</button>
-        <button class="touch-dpad-btn touch-dpad-left" data-dir="left">◀</button>
-        <button class="touch-dpad-btn touch-dpad-right" data-dir="right">▶</button>
-        <div class="touch-dpad-center"></div>
+      <!-- Dynamic Danger Vignette Glow (Red Alert Proximity Pulse) -->
+      <div id="danger-vignette" class="danger-vignette-overlay"></div>
+    </div>
+
+    <!-- Mobile Touch Controls Layer (Collision-Free Clustered D-Pad & Actions) -->
+    <div id="touch-controls" class="touch-overlay">
+      <!-- Ergonomic D-Pad (Left Safe-Area) -->
+      <div id="touch-dpad-container" class="touch-dpad" data-touch-id="movement">
+        <button class="dpad-btn dpad-up" id="touch-up">▲</button>
+        <button class="dpad-btn dpad-down" id="touch-down">▼</button>
+        <button class="dpad-btn dpad-left" id="touch-left">◀</button>
+        <button class="dpad-btn dpad-right" id="touch-right">▶</button>
+        <div class="dpad-center"></div>
       </div>
 
-      <!-- Right Tactical Action Buttons (Ping, Sneak, Decoy) -->
-      <div id="touch-action-cluster" class="touch-control-group touch-actions">
-        <div class="touch-aux-cluster">
-          <button class="touch-btn touch-btn-sneak" id="btn-sneak" data-touch-id="touch-sneak" title="Schleichfahrt umschalten (SHIFT)">
+      <!-- Action Buttons Cluster (Right Safe-Area, Zero Overlap) -->
+      <div class="touch-actions" id="touch-action-cluster">
+        <div class="touch-actions-row">
+          <button class="touch-btn touch-btn-sneak" id="btn-sneak" data-touch-id="touch-sneak" title="Schleichen Toggle (SHIFT)">
             <span class="sneak-icon">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
             </span>
-            <span class="sneak-label">SCHLEICHEN</span>
-            <span class="sneak-badge" id="touch-sneak-badge">AUS</span>
+            <span class="touch-btn-badge" id="touch-sneak-badge">AUS</span>
           </button>
-          <button class="touch-btn touch-btn-decoy" id="btn-bait" data-touch-id="touch-decoy" title="Köder werfen (E)">
+          <button class="touch-btn touch-btn-decoy" id="btn-bait" data-touch-id="touch-decoy" title="Köder / Decoy (F)">
             <span class="decoy-icon">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="7" stroke-dasharray="3 3"/><circle cx="12" cy="12" r="10" stroke-opacity="0.5"/></svg>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="7" stroke-dasharray="3 3"/></svg>
             </span>
-            <span class="decoy-label">KÖDER</span>
-            <span class="decoy-count" id="touch-decoy-count">1/1</span>
+            <span class="touch-btn-badge" id="touch-decoy-count">1/1</span>
           </button>
         </div>
         <button class="touch-btn touch-btn-ping" id="btn-ping" data-touch-id="touch-ping" title="Sonar Ping (SPACE)">
@@ -79,6 +81,6 @@
     </div>
   </div>
 
-  <script type="module" src="./src/main.js?v=1.15.0"></script>
+  <script type="module" src="./src/main.js?v=1.16.0"></script>
 </body>
 </html>

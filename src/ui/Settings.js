@@ -110,7 +110,7 @@ export class Settings {
         <div class="modal-header">
           <div class="modal-title">
             <span class="status-dot"></span>
-            <span id="settings-modal-title-text">SYSTEM-EINSTELLUNGEN</span>
+            <span id="settings-modal-title-text">EINSTELLUNGEN</span>
           </div>
           <button id="modal-settings-close-btn" class="modal-close-btn" title="Schließen (ESC)" aria-label="Schließen">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -120,9 +120,9 @@ export class Settings {
         <div class="modal-body">
           <!-- 1. AUDIO SECTION -->
           <div class="settings-section-divider">
-            <span class="settings-section-title">1. AUDIO & SOUNDTRACK</span>
+            <span class="settings-section-title">1. LAUTSTÄRKE</span>
             <div class="info-badge-wrapper">
-              <button class="info-badge-btn" type="button" aria-label="Info">ⓘ</button>
+              <button class="info-badge-btn" type="button" aria-label="Info">i</button>
               <div class="info-tooltip-popover">SFX regelt Ping-, Alarm- und Interaktionstöne. Musik steuert die atmosphärischen Hintergrund-Soundtracks.</div>
             </div>
             <div class="settings-section-line"></div>
@@ -131,7 +131,7 @@ export class Settings {
           <!-- Master Volume Slider -->
           <div class="settings-row">
             <div class="settings-header-row">
-              <label for="slider-master-volume" class="settings-label">GESAMT-LAUTSTÄRKE (MASTER)</label>
+              <label for="slider-master-volume" class="settings-label">GESAMT-LAUTSTÄRKE</label>
               <span id="val-master-volume" class="settings-value-badge">${Math.round(this.masterVolume * 100)}%</span>
             </div>
             <input type="range" id="slider-master-volume" min="0" max="100" value="${Math.round(this.masterVolume * 100)}" class="terminal-range-slider" />
@@ -155,33 +155,12 @@ export class Settings {
             <input type="range" id="slider-music-volume" min="0" max="100" value="${Math.round(this.musicVolume * 100)}" class="terminal-range-slider" />
           </div>
 
-          <!-- 2. STEUERUNG SECTION -->
+          <!-- 2. TOUCH-GRÖSSE & LAYOUT SECTION -->
           <div class="settings-section-divider">
-            <span class="settings-section-title">2. STEUERUNG</span>
+            <span class="settings-section-title">2. TOUCH-GRÖSSE & LAYOUT</span>
             <div class="info-badge-wrapper">
-              <button class="info-badge-btn" type="button" aria-label="Info">ⓘ</button>
-              <div class="info-tooltip-popover">D-Pad eignet sich für präzise 90°-Wendungen, Joystick für freie analoge Navigation.</div>
-            </div>
-            <div class="settings-section-line"></div>
-          </div>
-
-          <div class="settings-row">
-            <div class="btn-segment-group">
-              <button id="btn-ctrl-dpad" class="btn-segment ${touchConfig.controlType === 'DPAD' || !touchConfig.controlType ? 'active' : ''}">
-                🔲 STEUERKREUZ
-              </button>
-              <button id="btn-ctrl-swipe" class="btn-segment ${touchConfig.controlType === 'SWIPE' ? 'active' : ''}">
-                🕹️ JOYSTICK
-              </button>
-            </div>
-          </div>
-
-          <!-- 3. TOUCH-GRÖSSE & LAYOUT SECTION -->
-          <div class="settings-section-divider">
-            <span class="settings-section-title">3. TOUCH-GRÖSSE & LAYOUT</span>
-            <div class="info-badge-wrapper">
-              <button class="info-badge-btn" type="button" aria-label="Info">ⓘ</button>
-              <div class="info-tooltip-popover">Skaliert Steuerkreuz und Aktionsbuttons gleichmäßig für optimale Finger-Erreichbarkeit.</div>
+              <button class="info-badge-btn" type="button" aria-label="Info">i</button>
+              <div class="info-tooltip-popover">Skaliert Steuerkreuz und Aktionsbuttons gleichmäßig für optimale Erreichbarkeit.</div>
             </div>
             <div class="settings-section-line"></div>
           </div>
@@ -203,17 +182,14 @@ export class Settings {
           <div class="touch-preview-box" id="touch-live-preview-box" style="margin-top: 8px;">
             <div class="touch-preview-header">
               <span>INTERAKTIVE LIVE-VORSCHAU</span>
-              <span id="preview-mode-tag" class="preview-mode-tag">${(touchConfig.controlType || 'DPAD')} (${Math.round((touchConfig.scale || 1.0) * 100)}%)</span>
+              <span id="preview-mode-tag" class="preview-mode-tag">STEUERKREUZ (${Math.round((touchConfig.scale || 1.0) * 100)}%)</span>
             </div>
             <div class="touch-preview-viewport" id="touch-preview-viewport">
-              <div class="preview-dpad" id="preview-dpad" style="transform: scale(${touchConfig.scale || 1.0}); transform-origin: bottom left; ${touchConfig.controlType === 'SWIPE' ? 'display: none;' : ''}">
+              <div class="preview-dpad" id="preview-dpad" style="transform: scale(${touchConfig.scale || 1.0}); transform-origin: bottom left;">
                 <div class="preview-dpad-btn preview-up">▲</div>
                 <div class="preview-dpad-btn preview-down">▼</div>
                 <div class="preview-dpad-btn preview-left">◀</div>
                 <div class="preview-dpad-btn preview-right">▶</div>
-              </div>
-              <div class="preview-swipe-indicator" id="preview-swipe-indicator" style="${touchConfig.controlType === 'SWIPE' ? 'display: flex;' : 'display: none;'}">
-                <span class="preview-swipe-text">WISCH-GESTEN (SWIPE) AKTIV</span>
               </div>
               <div class="preview-actions" id="preview-actions" style="transform: scale(${touchConfig.scale || 1.0}); transform-origin: bottom right;">
                 <div class="preview-btn-sneak">
@@ -228,15 +204,15 @@ export class Settings {
           </div>
 
           <button id="btn-open-touch-editor" class="btn-full-action" style="margin-top: 8px;">
-            📐 TOUCH-LAYOUT ANPASSEN (POSITION & GRÖSSE)
+            LAYOUT ANPASSEN (POSITION & GRÖSSE)
           </button>
 
-          <!-- 4. GRAFIK & PERFORMANCE SECTION -->
+          <!-- 3. GRAFIK & PERFORMANCE SECTION -->
           <div class="settings-section-divider">
-            <span class="settings-section-title">4. GRAFIK & PERFORMANCE</span>
+            <span class="settings-section-title">3. GRAFIK & PERFORMANCE</span>
             <div class="info-badge-wrapper">
-              <button class="info-badge-btn" type="button" aria-label="Info">ⓘ</button>
-              <div class="info-tooltip-popover">Hoch: Vollständige Sonar-Echos & Partikeleffekte. Niedrig: Optimiert für ältere Mobilgeräte.</div>
+              <button class="info-badge-btn" type="button" aria-label="Info">i</button>
+              <div class="info-tooltip-popover">Voll: Vollständige Sonar-Echos & Partikeleffekte. Reduziert: Optimiert für ältere Geräte.</div>
             </div>
             <div class="settings-section-line"></div>
           </div>
@@ -244,10 +220,10 @@ export class Settings {
           <div class="settings-row">
             <div class="btn-segment-group">
               <button id="btn-particles-high" class="btn-segment ${!this.lowParticles ? 'active' : ''}">
-                ✨ PARTIKEL: HOCH
+                PARTIKEL: VOLL
               </button>
               <button id="btn-particles-low" class="btn-segment ${this.lowParticles ? 'active' : ''}">
-                ⚡ PARTIKEL: NIEDRIG
+                PARTIKEL: REDUZIERT
               </button>
             </div>
           </div>
@@ -255,7 +231,7 @@ export class Settings {
           <div class="settings-toggle-row" style="margin-top: 8px;">
             <div>
               <div class="settings-label">SCREEN-SHAKE (ERSCHÜTTERUNG)</div>
-              <div class="field-hint">Kamera-Erschütterung bei Schockwellen</div>
+              <div class="field-hint">Kamera-Erschütterung bei Kollisionen & Schockwellen</div>
             </div>
             <button id="btn-toggle-shake" class="modal-btn modal-btn-toggle ${this.screenShake ? 'active' : ''}">
               ${this.screenShake ? 'AN' : 'AUS'}
@@ -584,8 +560,8 @@ export class Settings {
     const titleText = this.modalEl.querySelector('#settings-modal-title-text');
     if (titleText) {
       titleText.textContent = this.isGameplay
-        ? 'PAUSE // SYSTEM-EINSTELLUNGEN'
-        : 'SYSTEM-EINSTELLUNGEN // AUDIO & GRAFIK';
+        ? 'PAUSE • EINSTELLUNGEN'
+        : 'EINSTELLUNGEN';
     }
 
     // 2. Sliders & Toggles

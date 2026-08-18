@@ -254,10 +254,12 @@ class StorageManager {
 
     // Cloud auto-sync
     if (!this.isGuest()) {
+      const totalStars = this.calculateTotalStars(sectorStats);
       firebaseService.savePilotProgress(this.currentPilot.callsign, {
         unlockedSector,
         maxClearedSector,
         sectorStats,
+        totalStars,
         highestLevel: maxClearedSector,
         endlessHighscore: this.currentPilot.endlessHighscore || 0
       });
@@ -381,12 +383,16 @@ class StorageManager {
   }
 
   calculateTotalStars(sectorStats = null) {
-    const stats = sectorStats || this.getCampaignProgress().sectorStats || {};
+    let stats = sectorStats;
+    if (!stats) {
+      const prog = this.getCampaignProgress();
+      stats = prog ? (prog.sectorStats || {}) : {};
+    }
     let total = 0;
-    for (let key in stats) {
-      const s = stats[key];
-      if (s) {
-        total += s.stars || (s.rank === 'S' ? 3 : (s.rank === 'A' ? 2 : 1));
+    for (let s = 1; s <= 10; s++) {
+      const entry = stats[s] || stats[String(s)] || stats[`0${s}`];
+      if (entry) {
+        total += entry.stars || (entry.rank === 'S' ? 3 : (entry.rank === 'A' ? 2 : 1));
       }
     }
     return total;

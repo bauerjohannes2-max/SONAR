@@ -434,6 +434,7 @@ export class Game {
 
     this.audioEngine.startDrone();
     this.audioEngine.playGameplayMusic(1.0);
+    this.touchControls.show();
     this.gameState = CONFIG.STATES.PLAYING;
   }
 
@@ -468,6 +469,7 @@ export class Game {
 
     this.audioEngine.startDrone();
     this.audioEngine.playGameplayMusic(1.0);
+    this.touchControls.show();
     this.gameState = CONFIG.STATES.PLAYING;
   }
 
@@ -478,6 +480,11 @@ export class Game {
   }
 
   update(dt) {
+    if (this.gameState !== CONFIG.STATES.PLAYING && this.gameState !== CONFIG.STATES.ENDLESS) {
+      if (this.touchControls && this.touchControls.isVisible) {
+        this.touchControls.hide();
+      }
+    }
     let effectiveDt = dt;
     if (this.victorySlowMoTimer > 0) {
       this.victorySlowMoTimer -= dt;

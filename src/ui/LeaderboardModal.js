@@ -35,14 +35,16 @@ export class LeaderboardModal {
             <span class="status-dot"></span>
             <span>BESTENLISTE & RIVALEN-RADAR</span>
           </div>
-          <button id="modal-lb-close-btn" class="modal-close-btn">✕</button>
+          <button id="modal-lb-close-btn" class="modal-close-btn" aria-label="Schließen">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
         </div>
 
         <div class="modal-body">
           <!-- Top Tabs -->
           <div class="lb-tab-group">
-            <button id="tab-lb-world" class="lb-tab active">🌍 WELTWEIT</button>
-            <button id="tab-lb-rivals" class="lb-tab">👥 RIVALEN / FREUNDE</button>
+            <button id="tab-lb-world" class="lb-tab active">WELTWEIT</button>
+            <button id="tab-lb-rivals" class="lb-tab">RIVALEN / FREUNDE</button>
           </div>
 
           <!-- Search & Status Bar -->
@@ -52,12 +54,12 @@ export class LeaderboardModal {
               <span id="lb-status-text">STATUS: VERBINDE...</span>
             </div>
             <button id="btn-lb-refresh" class="modal-btn modal-btn-small">
-              ⟳ AKTUALISIEREN
+              AKTUALISIEREN
             </button>
           </div>
 
           <div class="lb-search-bar">
-            <input type="text" id="lb-search-input" class="lb-search-input" placeholder="🔍 Pilot-Callsign suchen oder als Rivale markieren..." autocomplete="off">
+            <input type="text" id="lb-search-input" class="lb-search-input" placeholder="Pilot-Callsign suchen oder als Rivale markieren..." autocomplete="off">
           </div>
 
           <!-- Main Leaderboard Table -->
@@ -222,36 +224,37 @@ export class LeaderboardModal {
     }
 
     if (list.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" class="lb-empty">${this.activeTab === 'RIVALS' ? 'Keine Rivalen/Freunde markiert. Klicke auf ⭐ in der Tabelle, um Rivalen hinzuzufügen!' : 'Keine passenden Spielereinträge gefunden.'}</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" class="lb-empty">${this.activeTab === 'RIVALS' ? 'Keine Rivalen/Freunde markiert. Klicke auf den Stern in der Tabelle, um Rivalen hinzuzufügen!' : 'Keine passenden Spielereinträge gefunden.'}</td></tr>`;
       return;
     }
 
     tbody.innerHTML = list.map((entry) => {
       let rankDisplay = `#${entry.rank < 10 ? '0' + entry.rank : entry.rank}`;
-      if (entry.rank === 1) rankDisplay = '🥇 01';
-      else if (entry.rank === 2) rankDisplay = '🥈 02';
-      else if (entry.rank === 3) rankDisplay = '🥉 03';
 
       const isTop3 = entry.rank <= 3;
       const rowClass = (entry.isCurrentPlayer ? 'current-player-row ' : '') + (isTop3 ? 'top-rank-row' : '');
       const isRival = storageManager.isRival(entry.callsign);
 
+      const starSvg = isRival
+        ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="#FFD700" stroke="#FFD700" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`
+        : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+
       return `
         <tr class="${rowClass}">
           <td style="text-align: center; font-weight: 700; color: ${isTop3 ? '#FFD700' : 'var(--cyan-primary)'};">${rankDisplay}</td>
           <td>
-            <button class="btn-rival-star" data-pilot="${entry.callsign}" title="${isRival ? 'Rivalen entfernen' : 'Als Rivale/Freund markieren'}">
-              ${isRival ? '⭐' : '☆'}
+            <button class="btn-rival-star" data-pilot="${entry.callsign}" title="${isRival ? 'Rivalen entfernen' : 'Als Rivale/Freund markieren'}" style="background: none; border: none; cursor: pointer; padding: 0 4px; vertical-align: middle;">
+              ${starSvg}
             </button>
             <span class="pilot-name" style="font-weight: 700;">${entry.callsign}</span>
             ${entry.isCurrentPlayer ? '<span class="you-tag">DU</span>' : ''}
           </td>
           <td style="color: #a0c4d8; font-size: 11px;">${entry.highestLevel}</td>
-          <td style="text-align: center; font-weight: 700; color: #FFD700;">${entry.totalStars} ⭐</td>
+          <td style="text-align: center; font-weight: 700; color: #FFD700;">${entry.totalStars} ★</td>
           <td style="text-align: right; color: var(--text-dim); font-size: 11px;">${entry.bestTime}</td>
           <td style="text-align: center;">
             <button class="btn-compare-link" data-pilot="${entry.callsign}">
-              ⚔️ 1v1
+              1v1
             </button>
           </td>
         </tr>
@@ -324,25 +327,25 @@ export class LeaderboardModal {
       let verdict = '--';
       if (mySec && rivalSec) {
         if (myStars > rivalS || (myStars === rivalS && myTime <= rivalT)) {
-          verdict = `<span class="cell-winner">🏆 DU (${myStars}⭐ vs ${rivalS}⭐)</span>`;
+          verdict = `<span class="cell-winner">DU (${myStars}★ vs ${rivalS}★)</span>`;
           myWins++;
         } else {
-          verdict = `<span style="color: #ff5577;">⚡ ${rivalCallsign} (${rivalS}⭐ vs ${myStars}⭐)</span>`;
+          verdict = `<span style="color: #ff5577;">${rivalCallsign} (${rivalS}★ vs ${myStars}★)</span>`;
           rivalWins++;
         }
       } else if (mySec && !rivalSec) {
-        verdict = `<span class="cell-winner">🏆 DU (VORSPRUNG)</span>`;
+        verdict = `<span class="cell-winner">DU (VORSPRUNG)</span>`;
         myWins++;
       } else if (!mySec && rivalSec) {
-        verdict = `<span style="color: #ff5577;">⚡ ${rivalCallsign}</span>`;
+        verdict = `<span style="color: #ff5577;">${rivalCallsign}</span>`;
         rivalWins++;
       }
 
       sectorRowsHtml += `
         <tr>
           <td style="font-weight: 700;">SEKTOR 0${s}</td>
-          <td style="color: #00FF88;">${myStars > 0 ? `${myStars} ⭐ (${myTime.toFixed(1)}s)` : 'OFFEN'}</td>
-          <td style="color: #00F0FF;">${rivalS > 0 ? `${rivalS} ⭐ (${rivalT ? rivalT.toFixed(1) + 's' : ''})` : 'OFFEN'}</td>
+          <td style="color: #00FF88;">${myStars > 0 ? `${myStars} ★ (${myTime.toFixed(1)}s)` : 'OFFEN'}</td>
+          <td style="color: #00F0FF;">${rivalS > 0 ? `${rivalS} ★ (${rivalT ? rivalT.toFixed(1) + 's' : ''})` : 'OFFEN'}</td>
           <td>${verdict}</td>
         </tr>
       `;
@@ -352,13 +355,13 @@ export class LeaderboardModal {
       <div class="rival-compare-grid">
         <div class="rival-pilot-card">
           <div class="rival-pilot-name" style="color: #00FF88;">${myCallsign} (DU)</div>
-          <div class="rival-pilot-stars">${myTotalStars} / 30 ⭐</div>
+          <div class="rival-pilot-stars">${myTotalStars} / 30 ★</div>
           <div style="font-size: 11px; color: var(--text-dim); margin-top: 4px;">Siege: ${myWins} Sektoren</div>
         </div>
         <div class="rival-vs-divider">VS</div>
         <div class="rival-pilot-card">
           <div class="rival-pilot-name" style="color: #00F0FF;">${rivalCallsign}</div>
-          <div class="rival-pilot-stars">${rivalTotalStars} / 30 ⭐</div>
+          <div class="rival-pilot-stars">${rivalTotalStars} / 30 ★</div>
           <div style="font-size: 11px; color: var(--text-dim); margin-top: 4px;">Siege: ${rivalWins} Sektoren</div>
         </div>
       </div>

@@ -130,9 +130,9 @@ export class TouchControls {
 
     const moveEl = this.dpadContainer;
     const actionsCluster = document.querySelector('.touch-actions');
-    const sneakBtn = document.getElementById('touch-sneak');
-    const decoyBtn = document.getElementById('touch-decoy');
-    const pingBtn = document.getElementById('touch-ping');
+    const sneakBtn = document.getElementById('btn-sneak') || document.getElementById('touch-sneak');
+    const decoyBtn = document.getElementById('btn-bait') || document.getElementById('touch-decoy');
+    const pingBtn = document.getElementById('btn-ping') || document.getElementById('touch-ping');
 
     const positions = this.config.positions;
     if (positions) {
@@ -279,8 +279,7 @@ export class TouchControls {
 
   setVisible(visible) {
     if (!this.touchOverlay) return;
-    const isTouch = this.isTouchDevice || ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 1024);
-    const shouldShow = visible && isTouch;
+    const shouldShow = !!visible;
 
     if (this.isVisible !== shouldShow) {
       this.isVisible = shouldShow;
@@ -535,25 +534,37 @@ export class TouchControls {
     };
 
     // Action Buttons
-    bindBtn('touch-ping', () => {
+    const bindAnyBtn = (idList, onDown, onUp) => {
+      const ids = Array.isArray(idList) ? idList : [idList];
+      ids.forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) {
+          bindBtn(id, onDown, onUp);
+        }
+      });
+    };
+
+    bindAnyBtn(['btn-ping', 'touch-ping'], () => {
       this.input.pingTriggered = true;
       this.input.actionTriggered = true;
       this.triggerHaptic(15);
     });
 
-    bindBtn('touch-decoy', () => {
+    bindAnyBtn(['btn-bait', 'touch-decoy'], () => {
       this.input.decoyTriggered = true;
       this.triggerHaptic(12);
     });
 
     // Sneak Toggle Button
-    const sneakBtn = document.getElementById('touch-sneak');
+    const sneakBtn = document.getElementById('btn-sneak') || document.getElementById('touch-sneak');
     const sneakBadge = document.getElementById('touch-sneak-badge');
 
     if (sneakBtn) {
       const toggleSneak = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
         this.sneakToggled = !this.sneakToggled;
         this.triggerHaptic(8);
         if (this.sneakToggled) {
@@ -575,7 +586,7 @@ export class TouchControls {
 
   updateDecoyCount(remaining) {
     const decoyBadge = document.getElementById('touch-decoy-count');
-    const decoyBtn = document.getElementById('touch-decoy');
+    const decoyBtn = document.getElementById('btn-bait') || document.getElementById('touch-decoy');
     if (decoyBadge) {
       decoyBadge.textContent = `${remaining}/1`;
     }
@@ -586,7 +597,7 @@ export class TouchControls {
 
   update(player) {
     if (!player) return;
-    const pingBtn = document.getElementById('touch-ping');
+    const pingBtn = document.getElementById('btn-ping') || document.getElementById('touch-ping');
     const pingLabel = document.getElementById('touch-ping-label');
     if (pingBtn && pingLabel) {
       const remainingSec = typeof player.getPingRemainingSeconds === 'function' ? player.getPingRemainingSeconds() : 0;

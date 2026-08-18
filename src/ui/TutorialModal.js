@@ -572,7 +572,7 @@ export class TutorialModal {
     ctx.strokeStyle = CONFIG.COLORS.HUNTER;
     ctx.strokeRect(boxX + (boxW - 170) / 2, btnY - 17, 170, 34);
     ctx.fillStyle = CONFIG.COLORS.HUNTER;
-    ctx.fillText('✕ ZURÜCK ZUM MENÜ', boxX + boxW / 2, btnY);
+    ctx.fillText('ZURÜCK ZUM MENÜ', boxX + boxW / 2, btnY);
 
     // NÄCHSTE
     ctx.fillStyle = '#091520';

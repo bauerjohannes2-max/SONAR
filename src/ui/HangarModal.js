@@ -32,21 +32,26 @@ export class HangarModal {
             <span class="status-dot" style="background: #00F0FF; box-shadow: 0 0 10px #00F0FF;"></span>
             <span>DROHNEN-HANGAR & TAKTISCHE UPGRADES</span>
           </div>
-          <button id="modal-hangar-close-btn" class="modal-close-btn">✕</button>
+          <button id="modal-hangar-close-btn" class="modal-close-btn" aria-label="Schließen">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
         </div>
 
         <div class="modal-body">
           <!-- Star Currency Header -->
           <div class="hangar-currency-bar">
             <div class="hangar-star-badge">
-              <span class="hangar-star-icon">⭐</span>
+              <span class="hangar-star-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="#FFD700" stroke="#FFD700" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              </span>
               <span id="hangar-available-stars" class="hangar-star-val">0</span>
               <span class="hangar-star-label">VERFÜGBARE STERNE</span>
             </div>
             <div class="hangar-meta-info">
               <span id="hangar-total-stars">0 / 30 VERDIENT</span>
-              <button id="btn-hangar-reset-all" class="modal-btn modal-btn-small" style="margin-left: 12px; border-color: #883344; color: #ff8899;">
-                ↺ ZURÜCKSETZEN
+              <button id="btn-hangar-reset-all" class="modal-btn modal-btn-small" style="margin-left: 12px; border-color: #883344; color: #ff8899; display: inline-flex; align-items: center; gap: 5px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                ZURÜCKSETZEN
               </button>
             </div>
           </div>
@@ -84,7 +89,7 @@ export class HangarModal {
 
     if (resetBtn) {
       resetBtn.onclick = () => {
-        if (this.audio) this.audio.playDecoyDeploy();
+        if (this.audio) this.audio.playUIBlip();
         storageManager.resetUpgrades();
         this.renderUpgrades();
         if (this.onUpgradesChanged) this.onUpgradesChanged();
@@ -153,9 +158,9 @@ export class HangarModal {
 
           <div class="hangar-card-action">
             ${isMax
-              ? `<button class="modal-btn modal-btn-installed" disabled>✔ MAXIMAL STUFE</button>`
+              ? `<button class="modal-btn modal-btn-installed" disabled>MAXIMAL STUFE</button>`
               : `<button class="modal-btn modal-btn-upgrade ${canAfford ? 'can-buy' : 'disabled'}" data-upgrade="${key}" ${canAfford ? '' : 'disabled'}>
-                  ⭐ ${nextCost} INSTALLIEREN
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" style="display: inline-block; vertical-align: middle; margin-right: 4px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>${nextCost} INSTALLIEREN
                 </button>`
             }
           </div>
@@ -189,7 +194,7 @@ export class HangarModal {
       this.modalEl.style.display = 'flex';
       this.renderUpgrades();
     }
-    if (this.audio) this.audio.playSonarPing();
+    if (this.audio) this.audio.playUIBlip();
   }
 
   close() {
@@ -197,7 +202,7 @@ export class HangarModal {
     if (this.modalEl) {
       this.modalEl.style.display = 'none';
     }
-    if (this.audio) this.audio.playWallCrash();
+    if (this.audio) this.audio.playUIBlip();
   }
 
   handleInput(inputHandler) {

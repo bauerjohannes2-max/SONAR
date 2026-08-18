@@ -48,19 +48,20 @@ class StorageManager {
    * Login or Register Pilot. Strictly isolates each pilot's personal progress.
    */
   async login(callsign, pin) {
+    const cleanCallsign = (callsign || '').trim().toUpperCase();
+    let localPilot = null;
+    try {
+      const raw = localStorage.getItem('sonar_pilot_' + cleanCallsign);
+      if (raw) localPilot = JSON.parse(raw);
+    } catch (e) {}
+
     const res = await firebaseService.loginOrRegister(callsign, pin);
-    if (!res.success) {
+    if (!res.success && !localPilot) {
       return res;
     }
 
-    const cloudData = res.data || {};
-    const pilotCallsign = (cloudData.callsign || callsign).toUpperCase();
-
-    let localPilot = null;
-    try {
-      const raw = localStorage.getItem('sonar_pilot_' + pilotCallsign);
-      if (raw) localPilot = JSON.parse(raw);
-    } catch (e) {}
+    const cloudData = (res && res.data) ? res.data : {};
+    const pilotCallsign = (cloudData.callsign || cleanCallsign).toUpperCase();
 
     let pilotUnlocked = cloudData.unlockedSector || (localPilot ? localPilot.unlockedSector : 1) || 1;
     let pilotMaxCleared = cloudData.maxClearedSector !== undefined
@@ -76,6 +77,17 @@ class StorageManager {
 
     let pilotSectorStats = { ...(localPilot ? localPilot.sectorStats : {}), ...(cloudData.sectorStats || {}) };
     let pilotEndless = Math.max(cloudData.endlessHighscore || 0, localPilot ? (localPilot.endlessHighscore || 0) : 0);
+
+    let pilotUpgrades = { sonarBooster: 0, extraDecoy: 0, hydroDampener: 0, emergencyShield: 0 };
+    if (localPilot && localPilot.upgrades) {
+      pilotUpgrades = { ...pilotUpgrades, ...localPilot.upgrades };
+    }
+    try {
+      const upRaw = localStorage.getItem('sonar_profile_' + pilotCallsign + '_upgrades');
+      if (upRaw) {
+        pilotUpgrades = { ...pilotUpgrades, ...JSON.parse(upRaw) };
+      }
+    } catch (e) {}
 
     // Only for brand-new registrations from Guest mode: option to preserve initial guest progress
     if (res.isNew && this.isGuest()) {
@@ -96,7 +108,8 @@ class StorageManager {
       maxClearedSector: pilotMaxCleared,
       sectorStats: pilotSectorStats,
       endlessHighscore: pilotEndless,
-      highestLevel: pilotMaxCleared
+      highestLevel: pilotMaxCleared,
+      upgrades: pilotUpgrades
     };
 
     // Save session to localStorage
@@ -112,12 +125,17 @@ class StorageManager {
         bestCrystals: 0
       }));
       localStorage.setItem('sonar_pilot_' + pilotCallsign, JSON.stringify(this.currentPilot));
+      localStorage.setItem('sonar_profile_' + pilotCallsign + '_upgrades', JSON.stringify(pilotUpgrades));
+      localStorage.setItem('sonar_profile_' + pilotCallsign + '_data', JSON.stringify({
+        ...this.currentPilot,
+        upgrades: pilotUpgrades
+      }));
     } catch (e) {
       console.warn('[StorageManager] Local storage save error:', e);
     }
 
     // Sync to cloud if online
-    if (!res.offline) {
+    if (res && !res.offline) {
       firebaseService.savePilotProgress(this.currentPilot.callsign, {
         unlockedSector: pilotUnlocked,
         maxClearedSector: pilotMaxCleared,
@@ -129,9 +147,9 @@ class StorageManager {
 
     return {
       success: true,
-      isNew: res.isNew,
+      isNew: res ? res.isNew : false,
       pilot: this.currentPilot,
-      message: res.message
+      message: res ? res.message : `Willkommen zurück, Pilot ${pilotCallsign}!`
     };
   }
 
@@ -148,9 +166,16 @@ class StorageManager {
 
       // Restore guest progress (or start clean at sector 1)
       let guestProg = { unlockedSector: 1, maxClearedSector: 0, sectorStats: {} };
-      const rawGuest = localStorage.getItem('sonar_guest_progress');
+      const rawGuest = localStorage.getItem('sonar_guest_progress') || localStorage.getItem('sonar_guest_data');
       if (rawGuest) {
-        try { guestProg = JSON.parse(rawGuest); } catch (e) {}
+        try { 
+          const parsed = JSON.parse(rawGuest);
+          guestProg = {
+            unlockedSector: parsed.unlockedSector || 1,
+            maxClearedSector: parsed.maxClearedSector || 0,
+            sectorStats: parsed.sectorStats || {}
+          };
+        } catch (e) {}
       }
       localStorage.setItem(CONFIG.STORAGE.PROGRESS, JSON.stringify(guestProg));
 
@@ -344,11 +369,39 @@ class StorageManager {
   }
 
   /**
-   * Hangar Metaprogression & Upgrades
+   * Helper keys for profile context separation
+   */
+  getContextDataKey() {
+    if (this.isGuest()) {
+      return 'sonar_guest_data';
+    }
+    const callsign = (this.currentPilot && this.currentPilot.callsign) ? this.currentPilot.callsign.toUpperCase() : 'GAST';
+    return `sonar_profile_${callsign}_data`;
+  }
+
+  getUpgradesKey() {
+    if (this.isGuest()) {
+      return 'sonar_guest_upgrades';
+    }
+    const callsign = (this.currentPilot && this.currentPilot.callsign) ? this.currentPilot.callsign.toUpperCase() : 'GAST';
+    return `sonar_profile_${callsign}_upgrades`;
+  }
+
+  /**
+   * Hangar Metaprogression & Upgrades (Strictly isolated per profile)
    */
   getUpgrades() {
     try {
-      const raw = localStorage.getItem('sonar_hangar_upgrades');
+      const key = this.getUpgradesKey();
+      let raw = localStorage.getItem(key);
+      if (!raw) {
+        const ctxKey = this.getContextDataKey();
+        const ctxRaw = localStorage.getItem(ctxKey);
+        if (ctxRaw) {
+          const parsed = JSON.parse(ctxRaw);
+          if (parsed && parsed.upgrades) return parsed.upgrades;
+        }
+      }
       if (raw) {
         const parsed = JSON.parse(raw);
         return {
@@ -356,6 +409,14 @@ class StorageManager {
           extraDecoy: parsed.extraDecoy || 0,
           hydroDampener: parsed.hydroDampener || 0,
           emergencyShield: parsed.emergencyShield || 0
+        };
+      }
+      if (!this.isGuest() && this.currentPilot && this.currentPilot.upgrades) {
+        return {
+          sonarBooster: this.currentPilot.upgrades.sonarBooster || 0,
+          extraDecoy: this.currentPilot.upgrades.extraDecoy || 0,
+          hydroDampener: this.currentPilot.upgrades.hydroDampener || 0,
+          emergencyShield: this.currentPilot.upgrades.emergencyShield || 0
         };
       }
     } catch (e) {}
@@ -382,7 +443,23 @@ class StorageManager {
 
   saveUpgrades(upgrades) {
     try {
-      localStorage.setItem('sonar_hangar_upgrades', JSON.stringify(upgrades));
+      const upKey = this.getUpgradesKey();
+      localStorage.setItem(upKey, JSON.stringify(upgrades));
+
+      const ctxKey = this.getContextDataKey();
+      let ctxData = {};
+      try {
+        const raw = localStorage.getItem(ctxKey);
+        if (raw) ctxData = JSON.parse(raw);
+      } catch (e) {}
+      ctxData.upgrades = upgrades;
+      localStorage.setItem(ctxKey, JSON.stringify(ctxData));
+
+      if (!this.isGuest() && this.currentPilot) {
+        this.currentPilot.upgrades = upgrades;
+        localStorage.setItem('sonar_pilot_' + this.currentPilot.callsign, JSON.stringify(this.currentPilot));
+        localStorage.setItem(CONFIG.STORAGE.PILOT_SESSION, JSON.stringify(this.currentPilot));
+      }
     } catch (e) {}
   }
 
@@ -425,6 +502,9 @@ class StorageManager {
       localStorage.removeItem(CONFIG.STORAGE.ENDLESS);
       localStorage.removeItem(CONFIG.STORAGE.PILOT_SESSION);
       localStorage.removeItem('sonar_rivals');
+      localStorage.removeItem('sonar_guest_data');
+      localStorage.removeItem('sonar_guest_upgrades');
+      localStorage.removeItem('sonar_guest_progress');
       localStorage.removeItem('sonar_hangar_upgrades');
       this.currentPilot = { callsign: 'GAST', isGuest: true };
     } catch (e) {
@@ -438,7 +518,7 @@ export const UPGRADE_CONFIG = {
     id: 'sonarBooster',
     title: 'SONAR-VERSTÄRKER',
     desc: 'Erhöht Reichweite & Ausbreitungsgeschwindigkeit des Pings (+10% / Stufe).',
-    icon: '📡',
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 0 1 10 10"/><path d="M12 6a6 6 0 0 1 6 6"/><path d="M12 10a2 2 0 0 1 2 2"/><line x1="12" y1="12" x2="12" y2="22"/><circle cx="12" cy="12" r="1"/></svg>',
     maxLevel: 3,
     costs: [2, 4, 6]
   },
@@ -446,7 +526,7 @@ export const UPGRADE_CONFIG = {
     id: 'extraDecoy',
     title: 'ZUSATZ-KÖDER',
     desc: 'Startet jeden Sektor mit einem zusätzlichen Täuschkörper (+1 Köder).',
-    icon: '🎯',
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="7" stroke-dasharray="3 3"/><circle cx="12" cy="12" r="10" stroke-opacity="0.5"/></svg>',
     maxLevel: 1,
     costs: [4]
   },
@@ -454,7 +534,7 @@ export const UPGRADE_CONFIG = {
     id: 'hydroDampener',
     title: 'HYDRO-DÄMPFER',
     desc: 'Dämpft Drohnengeräusche bei normaler Fahrt um 15% / 30%.',
-    icon: '🔇',
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>',
     maxLevel: 2,
     costs: [3, 5]
   },
@@ -462,7 +542,7 @@ export const UPGRADE_CONFIG = {
     id: 'emergencyShield',
     title: 'NOTFALL-SCHILD',
     desc: 'Absorbiert 1x pro Sektor einen versehentlichen Wandaufprall.',
-    icon: '🛡️',
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
     maxLevel: 1,
     costs: [6]
   }

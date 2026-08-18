@@ -1134,7 +1134,9 @@ kbd {
   transition: gap 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.touch-btn {
+.touch-btn,
+#btn-ping, #btn-sneak, #btn-bait,
+#touch-ping, #touch-sneak, #touch-decoy {
   font-family: var(--font-mono);
   font-weight: bold;
   display: flex;
@@ -1146,8 +1148,19 @@ kbd {
   cursor: pointer;
   touch-action: none;
   pointer-events: auto !important;
+  opacity: 1 !important;
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
+  z-index: 92;
+}
+
+.touch-btn svg,
+.canvas-action-btn svg,
+.modal-close-btn svg {
+  display: block;
+  stroke: currentColor;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 3px currentColor);
 }
 
 .touch-btn.active, .touch-btn:active {

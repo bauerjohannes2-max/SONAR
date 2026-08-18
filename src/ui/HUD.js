@@ -52,24 +52,32 @@ export class HUD {
     const sectorTag = isEndless ? `ETAGE ${String(floor).padStart(2, '0')}` : (levelData ? `SEKTOR 0${levelData.sectorNumber || 1}` : 'MISSION');
     ctx.fillText(`${sectorTag} • DATENKERNE: ${collected} / ${totalCrystals}`, 28, 19);
 
-    // 3. Center Info: Extraction Alarm or Stealth & Decoy status
+    // 3. Center Info: Dedicated Non-Overlapping Banner Slot vs Telemetry Bar
     ctx.textAlign = 'center';
 
     if (crystalsLeft === 0) {
-      ctx.font = '700 11px "Chakra Petch", "JetBrains Mono", monospace';
+      // Dedicated High-Visibility Escape Banner (replaces telemetry without overlapping)
+      ctx.font = '700 11.5px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.fillStyle = '#00FF88';
-      ctx.shadowColor = '#00FF88';
-      ctx.shadowBlur = 8 * pulseFactor;
-      ctx.fillText('🚨 ALLE KRISTALLE GEFUNDEN! DER GRÜNE FLUCHTAUFZUG IST OFFEN — FLIEG HINEIN!', this.width / 2 - 15, 19);
+      ctx.shadowColor = 'rgba(0, 255, 136, 0.7)';
+      ctx.shadowBlur = 10 * pulseFactor;
+      ctx.fillText('FLUCHTAUFZUG OFFEN • ZUR EVAKUIERUNGS-ZONE FLIEGEN', this.width / 2 - 20, 19);
       ctx.shadowBlur = 0;
     } else {
-      ctx.font = '600 11.5px "Chakra Petch", "JetBrains Mono", monospace';
-      ctx.fillStyle = '#9cb8c8';
+      // Modern Cyber-Telemetry Bar
+      const sectorNum = levelData ? (levelData.sectorNumber || 1) : 1;
+      const depth = isEndless ? (3000 + floor * 350) : (3800 + sectorNum * 200);
+      const depthFormatted = depth.toLocaleString('de-DE');
+      const pressure = Math.round(depth / 10);
+      const statusText = (player && player.isSneaking) ? 'STEALTH' : 'NORMAL';
+
       const maxDecoys = (player && player.maxDecoys) ? player.maxDecoys : 1;
-      const decoyStr = player ? `KÖDER: ${player.decoysRemaining}/${maxDecoys}` : '';
-      const sneakStr = (player && player.isSneaking) ? '  •  🤫 LAUTLOS' : '';
-      const shieldStr = (player && player.hasShield) ? (player.shieldActive ? '  •  🛡️ SCHILD' : '  •  🛡️ ENTLEERT') : '';
-      ctx.fillText(`${decoyStr}${sneakStr}${shieldStr}`, this.width / 2 - 20, 19);
+      const decoys = player ? player.decoysRemaining : 0;
+      const shield = (player && player.hasShield) ? (player.shieldActive ? ' | SCHILD: AKTIV' : ' | SCHILD: OFF') : '';
+
+      ctx.font = '600 11px "Chakra Petch", "JetBrains Mono", monospace';
+      ctx.fillStyle = '#8da8b8';
+      ctx.fillText(`TIEFE: ${depthFormatted}m | DRUCK: ${pressure} BAR | STATUS: ${statusText} | KÖDER: ${decoys}/${maxDecoys}${shield}`, this.width / 2 - 20, 19);
     }
 
     // 4. Top Right: Animated Sonar-Frequenzbalken & Pulse Ready with Stalker Distortion
@@ -97,7 +105,7 @@ export class HUD {
     // Label Rendering (with glitch chromatic text offset when distorted)
     let labelText = isReady ? 'PULSE READY' : `PING: ${pingSec}s`;
     if (distortionFactor > 0.6 && Math.random() < 0.3) {
-      labelText = '⚡ STÖRUNG';
+      labelText = 'STÖRUNG';
     }
 
     if (distortionFactor > 0) {
@@ -203,8 +211,8 @@ export class HUD {
     ctx.rotate(-0.04);
 
     const stampText = deathCause === 'WALL_CRASH'
-      ? '☠ STATUS: WAND-CRASH'
-      : '☠ STATUS: DURCH JÄGER DESTABILISIERT';
+      ? 'STATUS: WAND-KOLLISION'
+      : 'STATUS: DURCH JÄGER DESTABILISIERT';
 
     ctx.font = '800 12.5px "Share Tech Mono", "JetBrains Mono", monospace';
     const textWidth = ctx.measureText(stampText).width;
@@ -283,7 +291,7 @@ export class HUD {
 
     // 3-Star Rating Display
     const stars = stats.stars || 1;
-    const starIcons = (stars >= 3 ? '⭐ ⭐ ⭐' : (stars === 2 ? '⭐ ⭐ ☆' : '⭐ ☆ ☆'));
+    const starIcons = (stars >= 3 ? '★ ★ ★' : (stars === 2 ? '★ ★ ☆' : '★ ☆ ☆'));
 
     ctx.font = '700 32px "JetBrains Mono", monospace';
     ctx.fillStyle = '#FFD700';
@@ -309,17 +317,17 @@ export class HUD {
 
     // Criteria 1: Evacuated
     ctx.fillStyle = '#00ff88';
-    ctx.fillText('⭐ STERN 1: BERGUNG ERFOLGREICH (EVAKUIERT)  ✓', boxX + 20, boxY + 30);
+    ctx.fillText('★ STERN 1: BERGUNG ERFOLGREICH (EVAKUIERT)  ✓', boxX + 20, boxY + 30);
 
     // Criteria 2: Speed (< 45s)
     const isSpeedy = stats.isSpeedy !== undefined ? stats.isSpeedy : stats.time <= 45;
     ctx.fillStyle = isSpeedy ? '#00ff88' : '#708898';
-    ctx.fillText(`⭐ STERN 2: TEMPO-REKORD (${stats.time.toFixed(1)}s / ZIEL: ≤ 45s)  ${isSpeedy ? '✓' : '✗'}`, boxX + 20, boxY + 60);
+    ctx.fillText(`★ STERN 2: TEMPO-REKORD (${stats.time.toFixed(1)}s / ZIEL: ≤ 45s)  ${isSpeedy ? '✓' : '✗'}`, boxX + 20, boxY + 60);
 
     // Criteria 3: Stealth (<= 3 Pings)
     const isStealthy = stats.isStealthy !== undefined ? stats.isStealthy : stats.pingsUsed <= 3;
     ctx.fillStyle = isStealthy ? '#00ff88' : '#708898';
-    ctx.fillText(`⭐ STERN 3: GHOST-MEISTERSCHAFT (${stats.pingsUsed} PINGS / MAX: 3)  ${isStealthy ? '✓' : '✗'}`, boxX + 20, boxY + 90);
+    ctx.fillText(`★ STERN 3: GHOST-MEISTERSCHAFT (${stats.pingsUsed} PINGS / MAX: 3)  ${isStealthy ? '✓' : '✗'}`, boxX + 20, boxY + 90);
 
     const nextActionLabel = isEndless
       ? '▶ NÄCHSTE ETAGE (SPACE / ENTER)'

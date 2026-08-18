@@ -14,9 +14,10 @@ export class StoryIntro {
     this.lastCharCount = 0;
 
     this.logLines = [
-      '>> PROTOKOLL: ZERO-LIGHT AKTIVIERT // STATION ABYSS TIEFSEESTATION HAVARIERT',
-      '>> EINHEIT: ECHO-7 ONLINE // PRIMÄRZIEL: RESONANZ-DATENKERNE BERGEN',
-      '>> WARNUNG: AKUSTISCHE RAUBDROHNEN DETEKTIERT // EMISSIONEN MINIMIEREN'
+      'In 4.000 Metern Tiefe ist die Forschungsstation dunkel und verlassen.',
+      'Du steuerst die Aufklärungsdrohne ECHO. Deine Sensoren sind blind.',
+      'Nutze Sonar-Pings, um Wände sichtbar zu machen & finde alle Datenkerne.',
+      'Weiche Hindernissen aus und erreiche den Fluchtaufzug. Berühre niemals eine Wand.'
     ];
   }
 
@@ -77,7 +78,7 @@ export class StoryIntro {
     ctx.fillRect(0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
 
     // 2. Glassmorphism Terminal Window Frame
-    const boxW = 680;
+    const boxW = 700;
     const boxH = 340;
     const boxX = (CONFIG.CANVAS_WIDTH - boxW) / 2;
     const boxY = (CONFIG.CANVAS_HEIGHT - boxH) / 2;
@@ -107,17 +108,17 @@ export class StoryIntro {
     ctx.fillStyle = '#00f0ff';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    ctx.fillText('TERMINAL LOG // STATION ABYSS RECOVERY PROTOCOL', boxX + 16, boxY + 18);
+    ctx.fillText('EINSATZ-BRIEFING: SEKTOR 01 (STATION ABYSS)', boxX + 16, boxY + 18);
 
-    ctx.font = '700 12px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.font = '700 11.5px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = '#00ff88';
     ctx.textAlign = 'right';
-    ctx.fillText('STATUS: LIVE FEED ★', boxX + boxW - 16, boxY + 18);
+    ctx.fillText('STATUS: BEREIT', boxX + boxW - 16, boxY + 18);
 
-    // 3. Render 3-Line Terminal Logs with Typewriter Effect
+    // 3. Render Terminal Logs with Typewriter Effect
     let charsRemaining = totalChars;
-    const startLogY = boxY + 68;
-    const lineSpacing = 38;
+    const startLogY = boxY + 56;
+    const lineSpacing = 32;
 
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
@@ -136,13 +137,15 @@ export class StoryIntro {
       }
 
       if (visibleText.length > 0) {
-        ctx.font = '600 12.5px "Chakra Petch", "JetBrains Mono", monospace';
+        ctx.font = '600 12px "Chakra Petch", "JetBrains Mono", monospace';
         if (i === 0) {
           ctx.fillStyle = '#00f0ff';
         } else if (i === 1) {
+          ctx.fillStyle = '#b8e8ff';
+        } else if (i === 2) {
           ctx.fillStyle = '#00ff88';
         } else {
-          ctx.fillStyle = '#ff3355';
+          ctx.fillStyle = '#ff8899';
         }
 
         ctx.fillText(visibleText, boxX + 24, lineY);

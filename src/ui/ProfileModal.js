@@ -34,7 +34,9 @@ export class ProfileModal {
             <span class="status-dot"></span>
             <span>SPIELER-PROFIL • CLOUD-SYNC</span>
           </div>
-          <button id="modal-profile-close-btn" class="modal-close-btn">✕</button>
+          <button id="modal-profile-close-btn" class="modal-close-btn" aria-label="Schließen">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
         </div>
 
         <div class="modal-body">
@@ -58,17 +60,17 @@ export class ProfileModal {
 
           <div class="modal-actions-row">
             <button id="btn-profile-submit" class="modal-btn modal-btn-primary">
-              ➔ ANMELDEN / REGISTRIEREN
+              ANMELDEN / REGISTRIEREN
             </button>
             <button id="btn-profile-logout" class="modal-btn modal-btn-secondary">
-              ⎋ ABMELDEN (GAST-MODUS)
+              ABMELDEN (GAST-MODUS)
             </button>
           </div>
         </div>
 
         <div class="modal-footer">
           <button id="btn-profile-back" class="modal-btn modal-btn-dim">
-            ← ZURÜCK ZUM MENÜ (ESC)
+            ZURÜCK ZUM MENÜ (ESC)
           </button>
         </div>
       </div>
@@ -145,10 +147,10 @@ export class ProfileModal {
         `;
         if (logoutBtn) logoutBtn.style.display = 'none';
       } else {
-        const cloudLabel = isFbOnline ? 'CLOUD-SYNC AKTIV ★' : 'LOKAL GESICHERT';
+        const cloudLabel = isFbOnline ? 'CLOUD-SYNC AKTIV' : 'LOKAL GESICHERT';
         banner.innerHTML = `
           <div class="status-badge logged-in">SPIELER: <strong>${pilot.callsign}</strong> • [ ${cloudLabel} ]</div>
-          <div class="status-detail">Höchster Sektor: 0${pilot.unlockedSector || 1} • Sterne: ★ ${pilot.totalStars || 0} / 30</div>
+          <div class="status-detail">Höchster Sektor: 0${pilot.unlockedSector || 1} • Sterne: ${pilot.totalStars || 0} / 30</div>
         `;
         if (logoutBtn) logoutBtn.style.display = 'inline-block';
       }

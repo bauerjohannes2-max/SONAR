@@ -232,11 +232,13 @@ export class SpriteManager {
       ctx.strokeRect(-12, -12, 24, 24);
       ctx.fillRect(-12, -12, 24, 24);
 
-      ctx.fillStyle = '#FF1E44';
-      ctx.font = '700 9px monospace';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('🔒', 0, 0);
+      // Vector locked hatch indicator
+      ctx.strokeStyle = '#FF1E44';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(-5, -2, 10, 8);
+      ctx.beginPath();
+      ctx.arc(0, -2, 4, Math.PI, 0);
+      ctx.stroke();
     }
     ctx.restore();
   }

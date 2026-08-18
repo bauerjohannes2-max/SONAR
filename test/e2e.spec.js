@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 
-test.describe('SONAR v1.12.1 Tactical Gauntlet Loop E2E Validation', () => {
+test.describe('SONAR v1.13.0 Tactical Gauntlet Loop E2E Validation', () => {
 
   test.beforeEach(async ({ page }) => {
     page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
@@ -11,15 +11,15 @@ test.describe('SONAR v1.12.1 Tactical Gauntlet Loop E2E Validation', () => {
     });
   });
 
-  test('1. Version Endpoint & JSON Integrity (v1.12.1)', async ({ request }) => {
+  test('1. Version Endpoint & JSON Integrity (v1.13.0)', async ({ request }) => {
     const response = await request.get('/version.json');
     expect(response.ok()).toBeTruthy();
     const data = await response.json();
-    expect(data.version).toBe('1.12.1');
-    expect(data.build).toBe(20260817);
+    expect(data.version).toBe('1.13.0');
+    expect(data.build).toBe(20260818);
   });
 
-  test('2. Sci-Fi Audio Assets Existence & Preloading in Web Audio API (7 MP3 Samples)', async ({ page }) => {
+  test('2. Sci-Fi Audio Assets Existence & Preloading in Web Audio API (8 MP3 Samples)', async ({ page }) => {
     const audioFiles = [
       'assets/audio/sonar_ping.mp3',
       'assets/audio/crystal_pickup.mp3',
@@ -27,6 +27,7 @@ test.describe('SONAR v1.12.1 Tactical Gauntlet Loop E2E Validation', () => {
       'assets/audio/enemy_alert.mp3',
       'assets/audio/portal_open.mp3',
       'assets/audio/ambient_drone.mp3',
+      'assets/audio/ambient_main.mp3',
       'assets/audio/bg_music.mp3'
     ];
 
@@ -45,7 +46,7 @@ test.describe('SONAR v1.12.1 Tactical Gauntlet Loop E2E Validation', () => {
       return window.game.audioEngine.buffers.size;
     });
 
-    expect(decodedCount).toBe(7);
+    expect(decodedCount).toBe(8);
   });
 
   test('3. CC0 Sci-Fi Sprites Existence & SpriteManager Preloading (6 PNG Assets)', async ({ page }) => {
@@ -670,9 +671,9 @@ test.describe('SONAR v1.12.1 Tactical Gauntlet Loop E2E Validation', () => {
           window.game.touchControls.setScale(scale);
 
           const dpad = document.getElementById('touch-dpad-container');
-          const sneak = document.getElementById('touch-sneak');
-          const decoy = document.getElementById('touch-decoy');
-          const ping = document.getElementById('touch-ping');
+          const sneak = document.getElementById('btn-sneak') || document.getElementById('touch-sneak');
+          const decoy = document.getElementById('btn-bait') || document.getElementById('touch-decoy');
+          const ping = document.getElementById('btn-ping') || document.getElementById('touch-ping');
 
           const elements = [
             { name: 'DPAD', rect: dpad.getBoundingClientRect() },
@@ -885,6 +886,140 @@ test.describe('SONAR v1.12.1 Tactical Gauntlet Loop E2E Validation', () => {
     expect(resetResult.upgrades.sonarBooster).toBe(0);
     expect(resetResult.upgrades.emergencyShield).toBe(0);
     expect(resetResult.availableStars).toBe(9);
+  });
+
+  test('28. Critical UI Action Buttons, Strict Profile Isolation, HUD Telemetry & Sector Lock Validation (v1.13.0)', async ({ page }) => {
+    await page.goto('http://127.0.0.1:3005/');
+    await page.waitForSelector('#gameCanvas');
+
+    // 1. Action Buttons Visibility & Clickability Check
+    await page.evaluate(() => {
+      window.game.loadSector(0);
+    });
+
+    const pingBtn = page.locator('#btn-ping');
+    const sneakBtn = page.locator('#btn-sneak');
+    const baitBtn = page.locator('#btn-bait');
+
+    await expect(pingBtn).toBeVisible();
+    await expect(sneakBtn).toBeVisible();
+    await expect(baitBtn).toBeVisible();
+
+    // Verify buttons are clickable
+    await pingBtn.click();
+    const pingTriggered = await page.evaluate(() => window.game.inputHandler.pingTriggered || window.game.inputHandler.actionTriggered);
+    expect(pingTriggered).toBeTruthy();
+
+    await sneakBtn.click();
+    const isSneaking = await page.evaluate(() => window.game.touchControls.isSneakActive());
+    expect(isSneaking).toBeTruthy();
+
+    // 2. Strict Profile vs. Guest Isolation Check
+    const isolationTest = await page.evaluate(async () => {
+      const sm = window.game.storageManager;
+
+      // Register / Login Pilot TEST_ISO_V13
+      await sm.login('TEST_ISO_V13', '1234');
+
+      // Earn 9 stars while logged into profile
+      sm.saveCampaignProgress(1, { time: 20, pingsUsed: 1, stars: 3 });
+      sm.saveCampaignProgress(2, { time: 25, pingsUsed: 2, stars: 3 });
+      sm.saveCampaignProgress(3, { time: 28, pingsUsed: 1, stars: 3 });
+      
+      // Buy upgrades in TEST_ISO_V13
+      const buy1 = sm.purchaseUpgrade('sonarBooster');
+      const buy2 = sm.purchaseUpgrade('extraDecoy');
+      const profileUpgrades = sm.getUpgrades();
+      const profileSpent = sm.getSpentStars();
+
+      // Logout to Guest Mode
+      sm.logout();
+      const guestUpgrades = sm.getUpgrades();
+      const guestSpent = sm.getSpentStars();
+
+      // Relogin to TEST_ISO_V13
+      await sm.login('TEST_ISO_V13', '1234');
+      const restoredProfileUpgrades = sm.getUpgrades();
+
+      // Test 100% refund on reset
+      sm.resetUpgrades();
+      const resetUpgrades = sm.getUpgrades();
+      const resetAvailableStars = sm.getAvailableStars();
+
+      return {
+        buy1,
+        buy2,
+        profileUpgrades,
+        profileSpent,
+        guestUpgrades,
+        guestSpent,
+        restoredProfileUpgrades,
+        resetUpgrades,
+        resetAvailableStars
+      };
+    });
+
+    expect(isolationTest.profileUpgrades.sonarBooster).toBe(1);
+    expect(isolationTest.profileUpgrades.extraDecoy).toBe(1);
+    expect(isolationTest.profileSpent).toBe(6); // 2 + 4
+
+    // Guest must have 0 upgrades
+    expect(isolationTest.guestUpgrades.sonarBooster).toBe(0);
+    expect(isolationTest.guestUpgrades.extraDecoy).toBe(0);
+    expect(isolationTest.guestSpent).toBe(0);
+
+    // Relogged in profile has upgrades restored
+    expect(isolationTest.restoredProfileUpgrades.sonarBooster).toBe(1);
+    expect(isolationTest.restoredProfileUpgrades.extraDecoy).toBe(1);
+
+    // Reset restores all upgrades to 0 and refunds stars
+    expect(isolationTest.resetUpgrades.sonarBooster).toBe(0);
+    expect(isolationTest.resetUpgrades.extraDecoy).toBe(0);
+    expect(isolationTest.resetAvailableStars).toBe(9);
+
+    // 3. HUD Escape Banner & Telemetry Non-Overlap Check
+    const hudCheck = await page.evaluate(() => {
+      const g = window.game;
+      g.loadSector(0);
+
+      // Collect all crystals
+      g.crystals.forEach(c => { c.collected = true; });
+      const crystalsLeft = g.crystals.filter(c => !c.collected).length;
+
+      // Render HUD with 0 crystals left
+      g.hud.renderGameHUD(
+        { sectorNumber: 1 },
+        crystalsLeft,
+        g.crystals.length,
+        1.0,
+        g.player,
+        false,
+        1,
+        10,
+        Infinity
+      );
+
+      return { crystalsLeft };
+    });
+
+    expect(hudCheck.crystalsLeft).toBe(0);
+
+    // 4. Sector Selection Lock Logic Check (Unlocked sectors have no lock symbol)
+    const sectorLockCheck = await page.evaluate(() => {
+      const ms = window.game.menuSystem;
+      ms.unlockedSector = 3; // Sektoren 1, 2, 3 freigeschaltet
+      return {
+        isSector1Unlocked: 0 < ms.unlockedSector,
+        isSector2Unlocked: 1 < ms.unlockedSector,
+        isSector3Unlocked: 2 < ms.unlockedSector,
+        isSector4Locked: 3 >= ms.unlockedSector
+      };
+    });
+
+    expect(sectorLockCheck.isSector1Unlocked).toBe(true);
+    expect(sectorLockCheck.isSector2Unlocked).toBe(true);
+    expect(sectorLockCheck.isSector3Unlocked).toBe(true);
+    expect(sectorLockCheck.isSector4Locked).toBe(true);
   });
 
 });

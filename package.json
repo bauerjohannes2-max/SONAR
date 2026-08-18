@@ -1,10 +1,11 @@
 {
   "name": "sonar-echo-chamber",
-  "version": "1.12.1",
+  "version": "1.13.0",
   "description": "SONAR: The Echo Chamber - 2D Sound-Based Stealth Arcade Thriller",
   "main": "src/main.js",
   "type": "module",
   "scripts": {
+    "test": "playwright test",
     "start": "npx -y serve . -l 3005",
     "dev": "npx -y serve . -l 3005",
     "push": "git push origin main",

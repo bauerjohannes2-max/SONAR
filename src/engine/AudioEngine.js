@@ -5,6 +5,7 @@ const AUDIO_ASSETS = {
   enemy_alert: './assets/audio/enemy_alert.mp3',
   portal_open: './assets/audio/portal_open.mp3',
   ambient_drone: './assets/audio/ambient_drone.mp3',
+  ambient_main: './assets/audio/ambient_main.mp3',
   bg_music: './assets/audio/bg_music.mp3'
 };
 
@@ -211,11 +212,19 @@ export class AudioEngine {
   }
 
   /**
-   * Starts atmospheric Sci-Fi background music loop.
+   * Starts atmospheric Sci-Fi background music loop with smooth fade-in.
    */
-  startBackgroundMusic() {
+  startBackgroundMusic(fadeInDuration = 1.5) {
     if (!this.ensureContext() || this.isMusicPlaying) return;
-    const sampleSrc = this.playSample('bg_music', this.musicGain, true);
+
+    if (this.musicGain && this.ctx) {
+      const now = this.ctx.currentTime;
+      this.musicGain.gain.cancelScheduledValues(now);
+      this.musicGain.gain.setValueAtTime(0.0001, now);
+      this.musicGain.gain.exponentialRampToValueAtTime(Math.max(0.0001, this.musicVolume), now + (fadeInDuration || 1.5));
+    }
+
+    const sampleSrc = this.playSample('ambient_main', this.musicGain, true) || this.playSample('bg_music', this.musicGain, true);
     if (sampleSrc) {
       this.musicSampleSource = sampleSrc;
       this.isMusicPlaying = true;

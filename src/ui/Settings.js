@@ -109,7 +109,9 @@ export class Settings {
             <span class="status-dot"></span>
             <span id="settings-modal-title-text">SYSTEM-EINSTELLUNGEN</span>
           </div>
-          <button id="modal-settings-close-btn" class="modal-close-btn" title="Schließen (ESC)">✕</button>
+          <button id="modal-settings-close-btn" class="modal-close-btn" title="Schließen (ESC)" aria-label="Schließen">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
         </div>
 
         <div class="modal-body">
@@ -204,7 +206,7 @@ export class Settings {
           <!-- Touch Controls Live-Preview Mini Screen -->
           <div class="touch-preview-box" id="touch-live-preview-box">
             <div class="touch-preview-header">
-              <span>🖥️ INTERAKTIVE LIVE-VORSCHAU</span>
+              <span>INTERAKTIVE LIVE-VORSCHAU</span>
               <span id="preview-mode-tag" class="preview-mode-tag">${(touchConfig.controlType || 'DPAD')} (${Math.round((touchConfig.scale || 1.0) * 100)}%)</span>
             </div>
             <div class="touch-preview-viewport" id="touch-preview-viewport">
@@ -215,20 +217,23 @@ export class Settings {
                 <div class="preview-dpad-btn preview-right">▶</div>
               </div>
               <div class="preview-swipe-indicator" id="preview-swipe-indicator" style="${touchConfig.controlType === 'SWIPE' ? 'display: flex;' : 'display: none;'}">
-                <span class="preview-swipe-icon">👆</span>
                 <span class="preview-swipe-text">WISCH-GESTEN (SWIPE) AKTIV</span>
               </div>
               <div class="preview-actions" id="preview-actions" style="transform: scale(${touchConfig.scale || 1.0}); transform-origin: bottom right;">
-                <div class="preview-btn-sneak">🤫</div>
-                <div class="preview-btn-decoy">💣</div>
-                <div class="preview-btn-ping">📡 PING</div>
+                <div class="preview-btn-sneak">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                </div>
+                <div class="preview-btn-decoy">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="7" stroke-dasharray="3 3"/></svg>
+                </div>
+                <div class="preview-btn-ping">PING</div>
               </div>
             </div>
           </div>
 
           <!-- Visual Layout Editor Action Button -->
           <button id="btn-open-touch-editor" class="btn-full-action">
-            🛠️ TOUCH-LAYOUT ANPASSEN (POSITION & GRÖSSE)
+            TOUCH-LAYOUT ANPASSEN (POSITION & GRÖSSE)
           </button>
 
           <!-- SYSTEM-VERSION & UPDATES SECTION -->
@@ -242,7 +247,7 @@ export class Settings {
               VERSION: <span id="settings-version-label">v${CONFIG.VERSION}</span> (Build ${CONFIG.BUILD})
             </div>
             <button id="btn-check-updates" class="btn-check-update">
-              🔄 AUF UPDATES PRÜFEN
+              AUF UPDATES PRÜFEN
             </button>
           </div>
           <div id="update-status-msg" style="font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); margin-top: 4px; min-height: 16px;"></div>

@@ -30,7 +30,7 @@ export class MenuSystem {
         id: 'HANGAR',
         title: 'HANGAR',
         subtitle: 'Drohnen-Upgrades',
-        icon: '🚀',
+        icon: '▲',
         desc: 'Taktische Drohnen-Upgrades mit Kampagnen-Sternen'
       },
       // 2. Leaderboard Tile
@@ -38,7 +38,7 @@ export class MenuSystem {
         id: 'LEADERBOARD',
         title: 'BESTENLISTE',
         subtitle: 'Ränge & Rivalen',
-        icon: '🏆',
+        icon: '◆',
         desc: 'Weltweite Top-Piloten & Freunde-Direktvergleich'
       },
       // 3. Profile Tile
@@ -46,7 +46,7 @@ export class MenuSystem {
         id: 'PROFILE',
         title: 'PROFIL',
         subtitle: 'Callsign & Cloud',
-        icon: '👤',
+        icon: '◈',
         desc: 'Callsign & PIN zur Cloud-Sicherung'
       },
       // 4. Settings Tile
@@ -54,7 +54,7 @@ export class MenuSystem {
         id: 'SETTINGS',
         title: 'OPTIONEN',
         subtitle: 'Audio & Touch',
-        icon: '⚙️',
+        icon: '⛭',
         desc: 'Soundtrack, Touch-Skalierung & Steuerung'
       }
     ];
@@ -298,9 +298,9 @@ export class MenuSystem {
     ctx.shadowBlur = 0;
 
     // Glowing Subtitle
-    ctx.font = '600 11px "Chakra Petch", "JetBrains Mono", monospace';
-    ctx.fillStyle = '#658296';
-    ctx.fillText('// THE ECHO CHAMBER • ZERO-LIGHT STEALTH', CONFIG.CANVAS_WIDTH / 2, 72);
+    ctx.font = '600 11.5px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.fillStyle = '#00F0FF';
+    ctx.fillText('THE ECHO CHAMBER • ZERO-LIGHT STEALTH', CONFIG.CANVAS_WIDTH / 2, 72);
 
     // 5. Sleek Glassmorphism Pilot Bar (Top)
     const barW = 560;
@@ -463,7 +463,7 @@ export class MenuSystem {
 
     ctx.font = '700 12.5px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = '#FFD700';
-    ctx.fillText(`GESAMTERFOLG: ${totalStars} / 30 ⭐ • FREIGESCHALTET: 0${Math.min(10, this.unlockedSector)}`, CONFIG.CANVAS_WIDTH / 2, 76);
+    ctx.fillText(`GESAMTERFOLG: ${totalStars} / 30 ★ • FREIGESCHALTET: 0${Math.min(10, this.unlockedSector)}`, CONFIG.CANVAS_WIDTH / 2, 76);
 
     // 2x5 Grid of Sector Cards
     const startX = 70;
@@ -514,7 +514,7 @@ export class MenuSystem {
 
         if (stats) {
           const starsEarned = stats.stars || (stats.rank === 'S' ? 3 : (stats.rank === 'A' ? 2 : 1));
-          const starStr = starsEarned >= 3 ? '⭐⭐⭐' : (starsEarned === 2 ? '⭐⭐☆' : '⭐☆☆');
+          const starStr = starsEarned >= 3 ? '★ ★ ★' : (starsEarned === 2 ? '★ ★ ☆' : '★ ☆ ☆');
 
           ctx.font = '700 13px "JetBrains Mono", monospace';
           ctx.fillStyle = '#FFD700';
@@ -528,22 +528,18 @@ export class MenuSystem {
           ctx.fillStyle = '#607b8b';
           ctx.fillText(`${stats.time.toFixed(1)}s`, x + cardW / 2, y + 106);
         } else {
-          // Newly Unlocked Sector (Level-Unlock visual sparkle)
-          const lockPulse = 0.8 + 0.2 * Math.sin(Date.now() * 0.006);
-          ctx.save();
-          ctx.font = '16px "JetBrains Mono", monospace';
-          ctx.shadowColor = '#FFD700';
-          ctx.shadowBlur = 12 * lockPulse;
-          ctx.fillText('🔓', x + cardW / 2, y + 54);
-          ctx.restore();
-
-          ctx.font = '700 11.5px "Chakra Petch", "JetBrains Mono", monospace';
+          // Newly Unlocked Sector (Clean status badge without any lock icon)
+          ctx.font = '700 12px "Chakra Petch", "JetBrains Mono", monospace';
           ctx.fillStyle = '#FFD700';
-          ctx.fillText('FREIGESCHALTET', x + cardW / 2, y + 76);
+          ctx.fillText('BEREIT', x + cardW / 2, y + 66);
+
+          ctx.font = '500 10px "Chakra Petch", "JetBrains Mono", monospace';
+          ctx.fillStyle = '#00ffaa';
+          ctx.fillText('FREIGESCHALTET', x + cardW / 2, y + 86);
 
           ctx.font = '500 9.5px "Chakra Petch", "JetBrains Mono", monospace';
           ctx.fillStyle = '#607b8b';
-          ctx.fillText('3 DATENKERNE', x + cardW / 2, y + 96);
+          ctx.fillText('3 DATENKERNE', x + cardW / 2, y + 106);
         }
       } else {
         ctx.font = '700 15px "Chakra Petch", "JetBrains Mono", monospace';
@@ -558,7 +554,7 @@ export class MenuSystem {
 
         ctx.font = '700 11.5px "Chakra Petch", "JetBrains Mono", monospace';
         ctx.fillStyle = '#883344';
-        ctx.fillText('🔒 GESPERRT', x + cardW / 2, y + 78);
+        ctx.fillText('GESPERRT', x + cardW / 2, y + 78);
       }
       ctx.restore();
     }

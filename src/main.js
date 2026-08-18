@@ -1050,8 +1050,15 @@ function initGame() {
       if (game.displayManager && !game.displayManager.isFullscreen) {
         game.displayManager.requestSilentFullscreen();
       }
-      if (game.audioEngine && game.audioEngine.ctx && game.audioEngine.ctx.state === 'suspended') {
-        game.audioEngine.ctx.resume().catch(() => {});
+      if (game.audioEngine) {
+        if (!game.audioEngine.isInitialized) {
+          game.audioEngine.init();
+        } else if (game.audioEngine.ctx && game.audioEngine.ctx.state === 'suspended') {
+          game.audioEngine.ctx.resume().catch(() => {});
+        }
+        if (!game.audioEngine.isMusicPlaying) {
+          game.audioEngine.startBackgroundMusic(1.5);
+        }
       }
       window.removeEventListener('pointerdown', handleFirstInteraction);
       window.removeEventListener('touchstart', handleFirstInteraction);

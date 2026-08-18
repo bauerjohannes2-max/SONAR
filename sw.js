@@ -3,7 +3,7 @@
  * Service Worker with Offline Cache-First Strategy for Instant Load Times
  */
 
-const CACHE_NAME = 'sonar-cache-v1.16.0';
+const CACHE_NAME = 'sonar-cache-v1.16.1';
 
 const ASSETS_TO_CACHE = [
   './',
@@ -96,12 +96,17 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// 3. Fetch: Cache-First for local assets, Network-First for external APIs & version.json
+// 3. Fetch: Cache-First for local assets, Network-First for external APIs, version.json & updated query
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Network-First for version.json and external network calls
-  if (url.origin !== self.location.origin || url.pathname.endsWith('version.json')) {
+  // Direct network for version.json, query cache busters (?updated=, ?t=), and external network calls
+  if (
+    url.origin !== self.location.origin ||
+    url.pathname.endsWith('version.json') ||
+    url.searchParams.has('updated') ||
+    url.searchParams.has('t')
+  ) {
     event.respondWith(
       fetch(event.request).catch(() => caches.match(event.request))
     );

@@ -41,42 +41,43 @@ import { spriteManager } from './engine/SpriteManager.js';
  * 3. Fallbacks to unregister + hard cache-bust reload.
  */
 export async function executeAppUpdate() {
-  // 1. Manuelle Cache-Löschung als Sicherheitsnetz
+  // 1. Immediately remove any existing update banners
+  const existingBanner = document.getElementById('auto-update-banner');
+  if (existingBanner) existingBanner.remove();
+
+  // 2. Mark update timestamp in sessionStorage to prevent instant duplicate banners
+  try {
+    sessionStorage.setItem('sonar_last_updated', String(Date.now()));
+  } catch (e) {}
+
+  // 3. Purge all CacheStorage caches
   if ('caches' in window) {
     try {
       const keys = await caches.keys();
       await Promise.all(keys.map(k => caches.delete(k)));
     } catch (e) {
-      console.warn('Cache Purge Warning:', e);
+      console.warn('[AutoUpdate] Cache Purge Warning:', e);
     }
   }
 
-  // 2. Service Worker zur Aktivierung anweisen
+  // 4. Unregister all existing Service Workers to prevent serving stale JS assets
   if ('serviceWorker' in navigator) {
     try {
-      const reg = await navigator.serviceWorker.getRegistration();
-      if (reg) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (const reg of registrations) {
         if (reg.waiting) {
-          let refreshed = false;
-          navigator.serviceWorker.addEventListener('controllerchange', () => {
-            if (!refreshed) {
-              refreshed = true;
-              window.location.reload();
-            }
-          });
           reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-          return;
         }
-        // Falls kein waiting Worker existiert, SW deregistrieren & neu laden
         await reg.unregister();
       }
     } catch (e) {
-      console.warn('ServiceWorker update warning:', e);
+      console.warn('[AutoUpdate] ServiceWorker unregister warning:', e);
     }
   }
 
-  // 3. Fallback Hard-Reload mit Cache-Busting
-  window.location.href = window.location.origin + window.location.pathname + '?t=' + Date.now();
+  // 5. Force hard reload with timestamp query param to bypass HTTP disk cache completely
+  const cleanUrl = window.location.origin + window.location.pathname;
+  window.location.replace(`${cleanUrl}?updated=${Date.now()}`);
 }
 if (typeof window !== 'undefined') {
   window.executeAppUpdate = executeAppUpdate;
@@ -317,6 +318,11 @@ export class Game {
 
       const isNewer = data && data.version && (data.version !== CONFIG.VERSION || (data.build && Number(data.build) > Number(CONFIG.BUILD)));
       if (isNewer) {
+        // If an update was executed less than 4 seconds ago, suppress duplicate prompt
+        const lastUpdated = Number(sessionStorage.getItem('sonar_last_updated') || 0);
+        if (Date.now() - lastUpdated < 4000) {
+          return;
+        }
         this.showUpdateBanner(data.version);
       } else {
         const existingBanner = document.getElementById('auto-update-banner');

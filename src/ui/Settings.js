@@ -474,71 +474,11 @@ export class Settings {
 
     // Update Checker Button
     const checkUpdateBtn = container.querySelector('#btn-check-updates');
-    const updateMsg = container.querySelector('#update-status-msg');
     if (checkUpdateBtn) {
-      const handleCheckUpdate = async (e) => {
+      const handleCheckUpdate = (e) => {
         if (e) { e.preventDefault(); e.stopPropagation(); }
-        if (this.audio) this.audio.playUIBlip();
-
-        if (updateMsg) {
-          updateMsg.style.color = 'var(--cyan-primary)';
-          updateMsg.textContent = 'Prüfe Server auf Updates...';
-        }
-
-        try {
-          // 1. Revalidate Service Worker if active
-          if ('serviceWorker' in navigator) {
-            const reg = await navigator.serviceWorker.getRegistration();
-            if (reg) await reg.update();
-          }
-
-          // 2. Fetch version.json with strict cache bust
-          const res = await fetch(`./version.json?t=${Date.now()}`, {
-            cache: 'no-store',
-            headers: { 'Cache-Control': 'no-cache' }
-          });
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const data = await res.json();
-
-          if (data && data.version) {
-            const isNewer = data.version !== CONFIG.VERSION || (data.build && Number(data.build) > Number(CONFIG.BUILD));
-            if (!isNewer) {
-              if (updateMsg) {
-                updateMsg.style.color = '#00FF88';
-                updateMsg.textContent = `✓ Du nutzt die neueste Version (v${CONFIG.VERSION}).`;
-              }
-              const banner = document.getElementById('auto-update-banner');
-              if (banner) banner.remove();
-            } else {
-              if (updateMsg) {
-                updateMsg.style.color = '#FFAA00';
-                updateMsg.innerHTML = `⚡ Neue Version v${data.version} verfügbar! <a href="#" id="link-reload-update" style="color: #00F0FF; font-weight: 700; text-decoration: underline; margin-left: 6px;">[ JETZT AKTUALISIEREN ]</a>`;
-                const reloadLink = container.querySelector('#link-reload-update');
-                if (reloadLink) {
-                  const triggerReload = async (ev) => {
-                    if (ev) ev.preventDefault();
-                    reloadLink.textContent = '[ WIRD AKTUALISIERT... ]';
-                    if (typeof window.executeAppUpdate === 'function') {
-                      await window.executeAppUpdate();
-                    } else {
-                      window.location.href = window.location.origin + window.location.pathname + '?t=' + Date.now();
-                    }
-                  };
-                  reloadLink.addEventListener('click', triggerReload);
-                  reloadLink.addEventListener('touchstart', triggerReload, { passive: false });
-                }
-              }
-            }
-          }
-        } catch (err) {
-          console.warn('Update check error:', err);
-          if (updateMsg) {
-            updateMsg.style.color = 'var(--text-dim)';
-            updateMsg.textContent = `✓ Version v${CONFIG.VERSION} ist aktuell (Offline-Modus).`;
-          }
-        }
+        this.checkForUpdates();
       };
-
       checkUpdateBtn.addEventListener('click', handleCheckUpdate);
       checkUpdateBtn.addEventListener('touchstart', handleCheckUpdate, { passive: false });
     }
@@ -728,11 +668,13 @@ export class Settings {
 
   async checkForUpdates() {
     if (!this.modalEl) return;
+    if (this.audio) this.audio.playUIBlip();
+
     const statusEl = this.modalEl.querySelector('#update-status-msg');
     const checkBtn = this.modalEl.querySelector('#btn-check-updates');
 
     if (statusEl) {
-      statusEl.innerHTML = '<span style="color: var(--cyan-primary);">⏳ PRÜFE AUF UPDATES...</span>';
+      statusEl.innerHTML = '<span style="color: var(--cyan-primary);">Prüfe Server auf Updates...</span>';
     }
     if (checkBtn) checkBtn.disabled = true;
 
@@ -750,39 +692,49 @@ export class Settings {
       const data = await res.json();
       const currentVer = CONFIG.VERSION;
 
-      if (data.version && (data.version !== currentVer || (data.build && Number(data.build) > Number(CONFIG.BUILD)))) {
+      const isNewer = data.version && (data.version !== currentVer || (data.build && Number(data.build) > Number(CONFIG.BUILD)));
+
+      if (isNewer) {
         if (statusEl) {
           statusEl.innerHTML = `
-            <div style="margin-top: 4px;">
-              <div style="color: #ffaa00; font-weight: 700; margin-bottom: 6px;">
-                ★ NEUE VERSION VERFÜGBAR: v${data.version}
+            <div style="margin-top: 8px; padding: 10px; background: rgba(0, 240, 255, 0.06); border: 1px solid rgba(0, 240, 255, 0.35); border-radius: 6px;">
+              <div style="color: #FFAA00; font-weight: 700; font-size: 11px; margin-bottom: 8px; letter-spacing: 0.5px;">
+                NEUE VERSION VERFÜGBAR: v${data.version}
               </div>
-              <button id="btn-apply-update" class="modal-btn modal-btn-primary" style="width: 100%; min-height: 38px; font-size: 11.5px; font-weight: 700;">
-                🚀 JETZT AKTUALISIEREN & NEU LADEN
+              <button id="btn-apply-update" class="modal-btn modal-btn-primary" style="width: 100%; min-height: 38px; font-size: 11px; font-weight: 700; background: #00F0FF; color: #03070D; border: none; border-radius: 4px; cursor: pointer; letter-spacing: 0.5px;">
+                JETZT AKTUALISIEREN & NEU LADEN
               </button>
             </div>
           `;
           const applyBtn = statusEl.querySelector('#btn-apply-update');
           if (applyBtn) {
-            applyBtn.addEventListener('click', async () => {
+            const handleApply = async (e) => {
+              if (e) { e.preventDefault(); e.stopPropagation(); }
               applyBtn.disabled = true;
-              applyBtn.textContent = '🚀 WIRD AKTUALISIERT...';
+              applyBtn.textContent = 'WIRD AKTUALISIERT & NEU GELADEN...';
+              const banner = document.getElementById('auto-update-banner');
+              if (banner) banner.remove();
               if (typeof window.executeAppUpdate === 'function') {
                 await window.executeAppUpdate();
               } else {
-                window.location.href = window.location.origin + window.location.pathname + '?t=' + Date.now();
+                const targetUrl = window.location.origin + window.location.pathname + '?updated=' + Date.now();
+                window.location.replace(targetUrl);
               }
-            });
+            };
+            applyBtn.addEventListener('click', handleApply);
+            applyBtn.addEventListener('touchstart', handleApply, { passive: false });
           }
         }
       } else {
         if (statusEl) {
-          statusEl.innerHTML = `<span style="color: #00ffaa; font-weight: 600;">✓ VERSION IST AKTUELL (v${currentVer})</span>`;
+          statusEl.innerHTML = `<span style="color: #00FF88; font-weight: 600;">✓ Du nutzt die neueste Version (v${currentVer}).</span>`;
         }
+        const banner = document.getElementById('auto-update-banner');
+        if (banner) banner.remove();
       }
     } catch (err) {
       if (statusEl) {
-        statusEl.innerHTML = `<span style="color: #ff5555;">Update-Prüfung offline oder fehlgeschlagen.</span>`;
+        statusEl.innerHTML = `<span style="color: var(--text-dim);">✓ Version v${CONFIG.VERSION} ist aktuell (Offline-Modus).</span>`;
       }
     } finally {
       if (checkBtn) checkBtn.disabled = false;

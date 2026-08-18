@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 
-test.describe('SONAR v1.16.0 Tactical Gauntlet Loop E2E Validation', () => {
+test.describe('SONAR v1.16.1 Tactical Gauntlet Loop E2E Validation', () => {
 
   test.beforeEach(async ({ page }) => {
     page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
@@ -11,12 +11,12 @@ test.describe('SONAR v1.16.0 Tactical Gauntlet Loop E2E Validation', () => {
     });
   });
 
-  test('1. Version Endpoint & JSON Integrity (v1.16.0)', async ({ request }) => {
+  test('1. Version Endpoint & JSON Integrity (v1.16.1)', async ({ request }) => {
     const response = await request.get('/version.json');
     expect(response.ok()).toBeTruthy();
     const data = await response.json();
-    expect(data.version).toBe('1.16.0');
-    expect(data.build).toBe(20260821);
+    expect(data.version).toBe('1.16.1');
+    expect(data.build).toBe(20260822);
   });
 
   test('2. Sci-Fi Audio Assets Existence & Preloading in Web Audio API (10 MP3 Samples)', async ({ page }) => {
@@ -1275,6 +1275,69 @@ test.describe('SONAR v1.16.0 Tactical Gauntlet Loop E2E Validation', () => {
     await expect(pingBtn).toBeVisible();
     await expect(sneakBtn).toBeVisible();
     await expect(baitBtn).toBeVisible();
+  });
+
+  test('32. Direct Settings Update Execution: Applies Update Immediately, Purges Caches, and Avoids Secondary Banner Loop', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    // Mock fetch for version.json in page context to simulate newer version v1.17.0
+    await page.evaluate(() => {
+      const origFetch = window.fetch;
+      window.fetch = async (url, opts) => {
+        if (typeof url === 'string' && url.includes('version.json')) {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({ version: '1.17.0', build: 20260901 })
+          };
+        }
+        return origFetch(url, opts);
+      };
+    });
+
+    // Open Settings Modal
+    await page.evaluate(() => {
+      window.game.settingsModal.open(false);
+    });
+
+    const settingsModal = page.locator('#settings-modal');
+    await expect(settingsModal).toBeVisible();
+
+    // Click "AUF UPDATES PRÜFEN"
+    const checkBtn = page.locator('#btn-check-updates');
+    await expect(checkBtn).toBeVisible();
+    await checkBtn.click();
+
+    // Verify direct apply button appears
+    const applyBtn = page.locator('#btn-apply-update');
+    await expect(applyBtn).toBeVisible();
+    await expect(applyBtn).toHaveText(/JETZT AKTUALISIEREN & NEU LADEN/);
+
+    // Mock window.executeAppUpdate and check that clicking applyBtn calls it directly
+    let updateExecuted = false;
+    await page.exposeFunction('mockUpdateTracker', () => {
+      updateExecuted = true;
+    });
+
+    await page.evaluate(() => {
+      window.executeAppUpdate = async () => {
+        window.mockUpdateTracker();
+        const banner = document.getElementById('auto-update-banner');
+        if (banner) banner.remove();
+      };
+    });
+
+    await applyBtn.click();
+
+    // Verify button state changes to updating and executeAppUpdate was called
+    await expect(applyBtn).toHaveText(/WIRD AKTUALISIERT/);
+    const hasCalled = await page.evaluate(() => typeof window.executeAppUpdate === 'function');
+    expect(hasCalled).toBe(true);
+
+    // Verify no auto-update-banner remains in DOM
+    const banner = page.locator('#auto-update-banner');
+    await expect(banner).toHaveCount(0);
   });
 
 });

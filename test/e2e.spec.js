@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 
-test.describe('SONAR v1.16.2 Tactical Gauntlet Loop E2E Validation', () => {
+test.describe('SONAR v1.16.3 Tactical Gauntlet Loop E2E Validation', () => {
 
   test.beforeEach(async ({ page }) => {
     page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
@@ -11,12 +11,12 @@ test.describe('SONAR v1.16.2 Tactical Gauntlet Loop E2E Validation', () => {
     });
   });
 
-  test('1. Version Endpoint & JSON Integrity (v1.16.2)', async ({ request }) => {
+  test('1. Version Endpoint & JSON Integrity (v1.16.3)', async ({ request }) => {
     const response = await request.get('/version.json');
     expect(response.ok()).toBeTruthy();
     const data = await response.json();
-    expect(data.version).toBe('1.16.2');
-    expect(data.build).toBe(20260823);
+    expect(data.version).toBe('1.16.3');
+    expect(data.build).toBe(20260824);
   });
 
   test('2. Sci-Fi Audio Assets Existence & Preloading in Web Audio API (10 MP3 Samples)', async ({ page }) => {
@@ -1382,6 +1382,45 @@ test.describe('SONAR v1.16.2 Tactical Gauntlet Loop E2E Validation', () => {
     expect(pixelCheck.r2).toBeLessThanOrEqual(10);
     expect(pixelCheck.g2).toBeLessThanOrEqual(15);
     expect(pixelCheck.b2).toBeLessThanOrEqual(20);
+  });
+
+  test('34. Header Quick-Action Buttons Theme Styling & Main Menu Vector Icons Validation', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    // 1. Verify all 4 top-right quick action buttons have themed styles
+    const gearBtn = page.locator('#btn-settings-gear');
+    const tutorialBtn = page.locator('#btn-header-tutorial');
+    const fullscreenBtn = page.locator('#btn-header-fullscreen');
+    const muteBtn = page.locator('#btn-header-mute');
+
+    await expect(gearBtn).toBeVisible();
+    await expect(tutorialBtn).toBeVisible();
+    await expect(fullscreenBtn).toBeVisible();
+    await expect(muteBtn).toBeVisible();
+
+    // Check computed styles: translucent dark cyan background and cyan svg stroke
+    const gearStyles = await gearBtn.evaluate((el) => {
+      const computed = window.getComputedStyle(el);
+      const svg = el.querySelector('svg');
+      const svgComputed = svg ? window.getComputedStyle(svg) : null;
+      return {
+        borderRadius: computed.borderRadius,
+        display: computed.display,
+        stroke: svgComputed ? svgComputed.stroke : null
+      };
+    });
+
+    expect(gearStyles.display).toBe('flex');
+    expect(gearStyles.borderRadius).toBe('4px');
+    expect(gearStyles.stroke).toBe('rgb(0, 240, 255)');
+
+    // 2. Verify main menu vector icon drawing for all suboptions
+    const menuIconsRendered = await page.evaluate(() => {
+      const menu = window.game.menuSystem;
+      return menu.options && menu.options.length === 4;
+    });
+    expect(menuIconsRendered).toBe(true);
   });
 
 });

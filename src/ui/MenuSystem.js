@@ -428,59 +428,73 @@ export class MenuSystem {
     ctx.lineWidth = isSelected ? 1.8 : 1.4;
     ctx.shadowColor = '#00f0ff';
     ctx.shadowBlur = isSelected ? 10 : 4;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
 
     if (type === 'HANGAR') {
-      // Lucide-style Wrench / Drone Tool Icon
+      // Lucide-style Sci-Fi Drone Craft / Hangar Vessel
       ctx.beginPath();
-      ctx.moveTo(cx - 7, cy - 7);
-      ctx.lineTo(cx + 7, cy + 7);
-      ctx.lineWidth = isSelected ? 2.8 : 2.2;
+      // Main stealth drone fuselage
+      ctx.moveTo(cx, cy - 9);          // Top nose
+      ctx.lineTo(cx + 8, cy + 4);      // Right wingtip
+      ctx.lineTo(cx + 3.5, cy + 5.5);  // Right thruster step
+      ctx.lineTo(cx, cy + 2.5);        // Center rear notch
+      ctx.lineTo(cx - 3.5, cy + 5.5);  // Left thruster step
+      ctx.lineTo(cx - 8, cy + 4);      // Left wingtip
+      ctx.closePath();
       ctx.stroke();
-      ctx.lineWidth = isSelected ? 1.8 : 1.4;
-      // Wrench Head
+
+      // Glowing Cockpit Core
       ctx.beginPath();
-      ctx.arc(cx - 6, cy - 6, 5, 0.3 * Math.PI, 1.4 * Math.PI);
-      ctx.stroke();
-      // Handle base dot
-      ctx.beginPath();
-      ctx.arc(cx + 7, cy + 7, 2, 0, Math.PI * 2);
+      ctx.arc(cx, cy - 1, 2, 0, Math.PI * 2);
       ctx.fill();
+
+      // Dual Propulsion Thruster Vectors
+      ctx.beginPath();
+      ctx.moveTo(cx - 4, cy + 6); ctx.lineTo(cx - 4, cy + 9);
+      ctx.moveTo(cx + 4, cy + 6); ctx.lineTo(cx + 4, cy + 9);
+      ctx.stroke();
     } else if (type === 'LEADERBOARD') {
       // Lucide-style Trophy Cup
       ctx.beginPath();
-      ctx.moveTo(cx - 8, cy - 8);
-      ctx.lineTo(cx + 8, cy - 8);
-      ctx.lineTo(cx + 6, cy + 1);
-      ctx.quadraticCurveTo(cx, cy + 5, cx - 6, cy + 1);
+      ctx.moveTo(cx - 7, cy - 8);
+      ctx.lineTo(cx + 7, cy - 8);
+      ctx.lineTo(cx + 5.5, cy);
+      ctx.quadraticCurveTo(cx, cy + 4.5, cx - 5.5, cy);
       ctx.closePath();
       ctx.stroke();
-      // Handles
+
+      // Dual Handles
       ctx.beginPath();
-      ctx.arc(cx - 7.5, cy - 3.5, 3.5, 0.5 * Math.PI, 1.5 * Math.PI);
-      ctx.moveTo(cx + 7.5, cy - 7);
-      ctx.arc(cx + 7.5, cy - 3.5, 3.5, -0.5 * Math.PI, 0.5 * Math.PI);
+      ctx.arc(cx - 6.5, cy - 4, 3, 0.5 * Math.PI, 1.5 * Math.PI);
       ctx.stroke();
-      // Base
+      ctx.beginPath();
+      ctx.arc(cx + 6.5, cy - 4, 3, -0.5 * Math.PI, 0.5 * Math.PI);
+      ctx.stroke();
+
+      // Stem & Pedestal
       ctx.beginPath();
       ctx.moveTo(cx, cy + 4);
-      ctx.lineTo(cx, cy + 8);
-      ctx.moveTo(cx - 6, cy + 8);
-      ctx.lineTo(cx + 6, cy + 8);
+      ctx.lineTo(cx, cy + 7);
+      ctx.moveTo(cx - 6, cy + 7.5);
+      ctx.lineTo(cx + 6, cy + 7.5);
       ctx.stroke();
     } else if (type === 'PROFILE') {
-      // Lucide-style Pilot Helmet & Visor
+      // Standard Lucide-style User / Pilot Identity
+      // Head
       ctx.beginPath();
-      ctx.arc(cx, cy - 2, 7.5, Math.PI, 0);
-      ctx.lineTo(cx + 7.5, cy + 4);
-      ctx.quadraticCurveTo(cx, cy + 9, cx - 7.5, cy + 4);
-      ctx.closePath();
+      ctx.arc(cx, cy - 4, 4.5, 0, Math.PI * 2);
       ctx.stroke();
-      // Visor Bar
+
+      // Torso / Shoulders Arc
       ctx.beginPath();
-      ctx.moveTo(cx - 6, cy + 1);
-      ctx.lineTo(cx + 6, cy + 1);
-      ctx.lineWidth = isSelected ? 2.5 : 2;
+      ctx.arc(cx, cy + 12, 10.5, 1.25 * Math.PI, 1.75 * Math.PI);
       ctx.stroke();
+
+      // Pilot Badge Core
+      ctx.beginPath();
+      ctx.arc(cx, cy - 4, 1.6, 0, Math.PI * 2);
+      ctx.fill();
     }
 
     ctx.restore();

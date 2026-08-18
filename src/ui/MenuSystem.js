@@ -137,22 +137,22 @@ export class MenuSystem {
     // Direct mouse / touch click handling
     const click = inputHandler.consumeMouseClick();
     if (click) {
-      // 0. Pilot Status Badge Click: x 120..680, y 96..142
-      if (click.x >= 120 && click.x <= 680 && click.y >= 96 && click.y <= 142) {
+      // 0. Top-Left Pilot Profile Chip: x 8..230, y 6..44
+      if (click.x >= 8 && click.x <= 230 && click.y >= 6 && click.y <= 44) {
         this.selectedIndex = 3;
         if (this.audio) this.audio.playUIBlip();
         return 'PROFILE';
       }
 
-      // 1. Hero Campaign Card: x 120..680, y 160..270
-      if (click.x >= 120 && click.x <= 680 && click.y >= 160 && click.y <= 270) {
+      // 1. Hero Campaign Card: x 120..680, y 115..255
+      if (click.x >= 120 && click.x <= 680 && click.y >= 115 && click.y <= 255) {
         this.selectedIndex = 0;
         if (this.audio) this.audio.playUIBlip();
         return 'SECTOR_SELECT';
       }
 
-      // 2. Sub-Tiles Row (y: 295..405) - Symmetrical 3-Tile Grid (w: 176, gap: 16)
-      if (click.y >= 295 && click.y <= 405) {
+      // 2. Sub-Tiles Row (y: 265..415) - Symmetrical 3-Tile Grid (w: 176, gap: 16)
+      if (click.y >= 265 && click.y <= 415) {
         // Tile 1: Hangar (x: 120..296)
         if (click.x >= 120 && click.x <= 296) {
           this.selectedIndex = 1;
@@ -247,7 +247,7 @@ export class MenuSystem {
     ctx.fillStyle = '#05070a';
     ctx.fillRect(0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
 
-    // 2. Calm Ambient Sci-Fi Starfield & Phosphor Dust (No Distracting Pulsing Radar Circle)
+    // 2. Calm Ambient Sci-Fi Starfield & Phosphor Dust
     for (let p of this.particles) {
       p.x += p.vx;
       p.y += p.vy;
@@ -262,51 +262,69 @@ export class MenuSystem {
       ctx.fill();
     }
 
-    // 3. Game Logo Banner with Subtle Scanline & Glowing Subtitle
+    // 3. Top-Left Pilot Profile Chip (Industry Best Practice Standard)
+    const chipX = 10;
+    const chipY = 8;
+    const chipW = 200;
+    const chipH = 34;
+
+    ctx.save();
+    ctx.fillStyle = isGuest ? 'rgba(255, 200, 0, 0.08)' : 'rgba(0, 255, 136, 0.08)';
+    ctx.fillRect(chipX, chipY, chipW, chipH);
+    ctx.strokeStyle = isGuest ? 'rgba(255, 200, 0, 0.35)' : 'rgba(0, 255, 136, 0.4)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(chipX, chipY, chipW, chipH);
+
+    // Online / Sync status indicator dot
+    const dotX = chipX + 14;
+    const dotY = chipY + chipH / 2;
+    const dotColor = isGuest ? '#f0c040' : '#00ffaa';
+    ctx.fillStyle = dotColor;
+    ctx.shadowColor = dotColor;
+    ctx.shadowBlur = 6;
+    ctx.beginPath();
+    ctx.arc(dotX, dotY, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Pilot Callsign & Status
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.font = '700 11.5px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.fillStyle = '#ffffff';
+    const pilotName = isGuest ? 'PILOT: GAST' : `PILOT: ${pilot.callsign.toUpperCase()}`;
+    ctx.fillText(pilotName, chipX + 26, chipY + 11);
+
+    ctx.font = '600 9.5px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.fillStyle = dotColor;
+    const pilotSub = isGuest ? 'LOKAL • [ ANMELDEN ]' : 'CLOUD-SYNC AKTIV';
+    ctx.fillText(pilotSub, chipX + 26, chipY + 24);
+    ctx.restore();
+
+    // 4. Game Logo Banner with Subtle Scanline & Glowing Subtitle
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
     // Sci-Fi Header SONAR
-    ctx.font = '800 40px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.font = '800 42px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = '#00f0ff';
     ctx.shadowColor = 'rgba(0, 240, 255, 0.6)';
     ctx.shadowBlur = 16;
-    ctx.fillText('S O N A R', CONFIG.CANVAS_WIDTH / 2, 44);
+    ctx.fillText('S O N A R', CONFIG.CANVAS_WIDTH / 2, 46);
     ctx.shadowBlur = 0;
 
     // Glowing Subtitle
     ctx.font = '600 11.5px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = '#00F0FF';
-    ctx.fillText('THE ECHO CHAMBER • ZERO-LIGHT STEALTH', CONFIG.CANVAS_WIDTH / 2, 72);
+    ctx.fillText('THE ECHO CHAMBER • ZERO-LIGHT STEALTH', CONFIG.CANVAS_WIDTH / 2, 76);
 
-    // 5. Sleek Glassmorphism Pilot Bar (Top)
+    // 5. Large Hero Element: Campaign (Option 0)
     const barW = 560;
-    const barH = 40;
     const barX = CONFIG.CANVAS_WIDTH / 2 - barW / 2;
-    const barY = 96;
-
-    ctx.fillStyle = isGuest ? 'rgba(255, 200, 0, 0.04)' : 'rgba(0, 255, 136, 0.05)';
-    ctx.fillRect(barX, barY, barW, barH);
-    ctx.strokeStyle = isGuest ? 'rgba(255, 200, 0, 0.22)' : 'rgba(0, 255, 136, 0.25)';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(barX, barY, barW, barH);
-
-    if (isGuest) {
-      ctx.font = '600 11.5px "Chakra Petch", "JetBrains Mono", monospace';
-      ctx.fillStyle = '#f0c040';
-      ctx.fillText('PILOT: GAST (LOKAL)  •  [ CLOUD-SYNC AKTIVIEREN ]', CONFIG.CANVAS_WIDTH / 2, barY + barH / 2);
-    } else {
-      const maxCleared = this.maxClearedSector !== undefined ? this.maxClearedSector : (this.unlockedSector > 1 ? this.unlockedSector - 1 : 0);
-      ctx.font = '600 11.5px "Chakra Petch", "JetBrains Mono", monospace';
-      ctx.fillStyle = '#00ffaa';
-      ctx.fillText(`PILOT: ${pilot.callsign.toUpperCase()}  •  CLOUD-SYNC AKTIV  •  ${maxCleared} / 10 SEKTOREN`, CONFIG.CANVAS_WIDTH / 2, barY + barH / 2);
-    }
-
-    // 6. Large Hero Element: Campaign (Option 0)
     const heroX = barX;
-    const heroY = 160;
+    const heroY = 118;
     const heroW = barW;
-    const heroH = 106;
+    const heroH = 126;
     const isHeroSelected = this.selectedIndex === 0;
 
     ctx.save();
@@ -326,7 +344,7 @@ export class MenuSystem {
     ctx.fillRect(heroX, heroY, 6, heroH);
 
     // Glowing Sonar Radar Waves Icon
-    const iconX = heroX + 38;
+    const iconX = heroX + 44;
     const iconY = heroY + heroH / 2;
     ctx.save();
     ctx.strokeStyle = '#00f0ff';
@@ -334,10 +352,10 @@ export class MenuSystem {
     ctx.shadowColor = '#00f0ff';
     ctx.shadowBlur = isHeroSelected ? 12 : 6;
     ctx.beginPath();
-    ctx.arc(iconX, iconY, 14, 0, Math.PI * 2);
+    ctx.arc(iconX, iconY, 15, 0, Math.PI * 2);
     ctx.stroke();
     ctx.beginPath();
-    ctx.arc(iconX, iconY, 8, 0, Math.PI * 2);
+    ctx.arc(iconX, iconY, 8.5, 0, Math.PI * 2);
     ctx.stroke();
     ctx.fillStyle = '#00f0ff';
     ctx.beginPath();
@@ -347,36 +365,39 @@ export class MenuSystem {
 
     // Hero Title
     ctx.textAlign = 'left';
-    ctx.font = '800 20px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.font = '800 21px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = '#ffffff';
-    ctx.fillText('KAMPAGNE (SEKTOREN 01–10)', heroX + 68, heroY + 36);
+    ctx.fillText('KAMPAGNE (SEKTOREN 01–10)', heroX + 78, heroY + 44);
 
     // Hero Subtitle
-    ctx.font = '600 12.5px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.font = '600 13px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = '#00f0ff';
-    ctx.fillText('Operation Zero-Light • Station ABYSS', heroX + 68, heroY + 68);
+    ctx.fillText('Operation Zero-Light • Station ABYSS', heroX + 78, heroY + 78);
 
     // Right Action Badge
     ctx.textAlign = 'right';
-    ctx.font = '700 13px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.font = '700 13.5px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = '#00f0ff';
     ctx.fillText('[ STARTEN ▶ ]', heroX + heroW - 24, heroY + heroH / 2);
     ctx.restore();
 
-    // 7. Sub-Tiles Row: 3 Symmetrical Tiles (Hangar, Leaderboard, Profile)
-    const tileY = 295;
-    const tileH = 106;
+    // 6. Sub-Tiles Row: 3 Symmetrical Tiles (Hangar, Leaderboard, Profile)
+    const tileY = 270;
+    const tileH = 132;
     const tileW = 176;
     const tileGap = 16;
 
+    const maxCleared = this.maxClearedSector !== undefined ? this.maxClearedSector : (this.unlockedSector > 1 ? this.unlockedSector - 1 : 0);
+    const profileSub = isGuest ? 'Gast (Lokal)' : `${pilot.callsign.toUpperCase()} • ${maxCleared}/10`;
+
     const subOptions = [
-      { idx: 1, opt: this.options[1], id: 'HANGAR' },
-      { idx: 2, opt: this.options[2], id: 'LEADERBOARD' },
-      { idx: 3, opt: this.options[3], id: 'PROFILE' }
+      { idx: 1, opt: this.options[1], id: 'HANGAR', sub: 'Drohnen-Upgrades' },
+      { idx: 2, opt: this.options[2], id: 'LEADERBOARD', sub: 'Ränge & Rivalen' },
+      { idx: 3, opt: this.options[3], id: 'PROFILE', sub: profileSub }
     ];
 
     for (let i = 0; i < subOptions.length; i++) {
-      const { idx, opt, id } = subOptions[i];
+      const { idx, opt, id, sub } = subOptions[i];
       const x = barX + i * (tileW + tileGap);
       const isSelected = this.selectedIndex === idx;
 
@@ -398,21 +419,21 @@ export class MenuSystem {
       }
 
       // Draw Glowing Sci-Fi Vector Icon
-      this.drawMenuTileIcon(ctx, id, x + tileW / 2, tileY + 28, isSelected);
+      this.drawMenuTileIcon(ctx, id, x + tileW / 2, tileY + 34, isSelected);
 
       // Title & Subtitle
       ctx.textAlign = 'center';
-      ctx.font = isSelected ? '700 13px "Chakra Petch", "JetBrains Mono", monospace' : '700 12.5px "Chakra Petch", "JetBrains Mono", monospace';
+      ctx.font = isSelected ? '700 14px "Chakra Petch", "JetBrains Mono", monospace' : '700 13px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.fillStyle = isSelected ? '#ffffff' : '#00f0ff';
-      ctx.fillText(opt.title, x + tileW / 2, tileY + 66);
+      ctx.fillText(opt.title, x + tileW / 2, tileY + 76);
 
-      ctx.font = '500 10px "Chakra Petch", "JetBrains Mono", monospace';
+      ctx.font = '500 10.5px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.fillStyle = isSelected ? '#00f0ff' : '#5c788a';
-      ctx.fillText(opt.subtitle, x + tileW / 2, tileY + 86);
+      ctx.fillText(sub, x + tileW / 2, tileY + 100);
       ctx.restore();
     }
 
-    // 8. Clean Minimal Footer Status
+    // 7. Clean Minimal Footer Status
     ctx.textAlign = 'center';
     ctx.font = '500 10.5px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = '#425866';

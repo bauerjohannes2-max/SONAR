@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 
-test.describe('SONAR v1.16.3 Tactical Gauntlet Loop E2E Validation', () => {
+test.describe('SONAR v1.16.4 Tactical Gauntlet Loop E2E Validation', () => {
 
   test.beforeEach(async ({ page }) => {
     page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
@@ -11,12 +11,12 @@ test.describe('SONAR v1.16.3 Tactical Gauntlet Loop E2E Validation', () => {
     });
   });
 
-  test('1. Version Endpoint & JSON Integrity (v1.16.3)', async ({ request }) => {
+  test('1. Version Endpoint & JSON Integrity (v1.16.4)', async ({ request }) => {
     const response = await request.get('/version.json');
     expect(response.ok()).toBeTruthy();
     const data = await response.json();
-    expect(data.version).toBe('1.16.3');
-    expect(data.build).toBe(20260824);
+    expect(data.version).toBe('1.16.4');
+    expect(data.build).toBe(20260825);
   });
 
   test('2. Sci-Fi Audio Assets Existence & Preloading in Web Audio API (10 MP3 Samples)', async ({ page }) => {
@@ -1421,6 +1421,37 @@ test.describe('SONAR v1.16.3 Tactical Gauntlet Loop E2E Validation', () => {
       return menu.options && menu.options.length === 4;
     });
     expect(menuIconsRendered).toBe(true);
+  });
+
+  test('35. Top-Left Pilot Profile Chip & Clean Uncluttered Main Menu Layout Validation', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    // 1. Click top-left corner pilot chip (x: 50, y: 20)
+    await page.evaluate(() => {
+      window.game.inputHandler.mouseClick = { x: 50, y: 20 };
+      window.game.update(0.016);
+    });
+
+    // Verify Profile Modal opens
+    const profileModal = page.locator('#pilot-profile-modal');
+    await expect(profileModal).toBeVisible();
+
+    // Close Profile Modal
+    await page.evaluate(() => {
+      window.game.profileModal.close();
+    });
+    await expect(profileModal).not.toBeVisible();
+
+    // 2. Click Large Hero Campaign Card (x: 400, y: 180)
+    await page.evaluate(() => {
+      window.game.inputHandler.mouseClick = { x: 400, y: 180 };
+      window.game.update(0.016);
+    });
+
+    // Verify Game State transitions to SECTOR_SELECT
+    const gameState = await page.evaluate(() => window.game.gameState);
+    expect(gameState).toBe('SECTOR_SELECT');
   });
 
 });

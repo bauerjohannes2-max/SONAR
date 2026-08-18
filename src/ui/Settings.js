@@ -643,6 +643,19 @@ export class Settings {
       this.updateDOMValues();
       this.updateLivePreview();
       this.modalEl.style.display = 'flex';
+
+      // Always reset scroll position to the very top upon opening
+      this.modalEl.scrollTop = 0;
+      const modalBox = this.modalEl.querySelector('.settings-modal-box') || this.modalEl.querySelector('.terminal-modal-box');
+      if (modalBox) modalBox.scrollTop = 0;
+      const modalBody = this.modalEl.querySelector('.modal-body');
+      if (modalBody) modalBody.scrollTop = 0;
+
+      requestAnimationFrame(() => {
+        if (this.modalEl) this.modalEl.scrollTop = 0;
+        if (modalBox) modalBox.scrollTop = 0;
+        if (modalBody) modalBody.scrollTop = 0;
+      });
     }
     if (this.audio) this.audio.playUIBlip();
   }
@@ -651,6 +664,11 @@ export class Settings {
     this.isOpen = false;
     if (this.modalEl) {
       this.modalEl.style.display = 'none';
+      this.modalEl.scrollTop = 0;
+      const modalBox = this.modalEl.querySelector('.settings-modal-box') || this.modalEl.querySelector('.terminal-modal-box');
+      if (modalBox) modalBox.scrollTop = 0;
+      const modalBody = this.modalEl.querySelector('.modal-body');
+      if (modalBody) modalBody.scrollTop = 0;
     }
     if (this.audio) this.audio.playUIBlip();
   }

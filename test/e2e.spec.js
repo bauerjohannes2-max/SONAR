@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 
-test.describe('SONAR v1.16.4 Tactical Gauntlet Loop E2E Validation', () => {
+test.describe('SONAR v1.16.5 Tactical Gauntlet Loop E2E Validation', () => {
 
   test.beforeEach(async ({ page }) => {
     page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
@@ -11,12 +11,12 @@ test.describe('SONAR v1.16.4 Tactical Gauntlet Loop E2E Validation', () => {
     });
   });
 
-  test('1. Version Endpoint & JSON Integrity (v1.16.4)', async ({ request }) => {
+  test('1. Version Endpoint & JSON Integrity (v1.16.5)', async ({ request }) => {
     const response = await request.get('/version.json');
     expect(response.ok()).toBeTruthy();
     const data = await response.json();
-    expect(data.version).toBe('1.16.4');
-    expect(data.build).toBe(20260825);
+    expect(data.version).toBe('1.16.5');
+    expect(data.build).toBe(20260826);
   });
 
   test('2. Sci-Fi Audio Assets Existence & Preloading in Web Audio API (10 MP3 Samples)', async ({ page }) => {
@@ -1452,6 +1452,58 @@ test.describe('SONAR v1.16.4 Tactical Gauntlet Loop E2E Validation', () => {
     // Verify Game State transitions to SECTOR_SELECT
     const gameState = await page.evaluate(() => window.game.gameState);
     expect(gameState).toBe('SECTOR_SELECT');
+  });
+
+  test('36. Settings Modal Scroll Reset: Always Starts at Top Upon Opening After Scrolling', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    // 1. Open Settings Modal
+    await page.evaluate(() => {
+      window.game.settingsModal.open(false);
+    });
+
+    const settingsModal = page.locator('#settings-modal');
+    await expect(settingsModal).toBeVisible();
+
+    // 2. Scroll the settings body down
+    await page.evaluate(() => {
+      const modalBody = document.querySelector('#settings-modal .modal-body') || document.querySelector('#settings-modal .settings-modal-box');
+      if (modalBody) {
+        modalBody.scrollTop = 300;
+      }
+    });
+
+    const scrolledPos = await page.evaluate(() => {
+      const modalBody = document.querySelector('#settings-modal .modal-body') || document.querySelector('#settings-modal .settings-modal-box');
+      return modalBody ? modalBody.scrollTop : 0;
+    });
+    expect(scrolledPos).toBeGreaterThanOrEqual(100);
+
+    // 3. Close Settings Modal
+    await page.evaluate(() => {
+      window.game.settingsModal.close();
+    });
+    await expect(settingsModal).not.toBeVisible();
+
+    // 4. Re-open Settings Modal
+    await page.evaluate(() => {
+      window.game.settingsModal.open(false);
+    });
+    await expect(settingsModal).toBeVisible();
+
+    // 5. Verify scrollTop was completely reset to 0 (top-most position)
+    const resetPos = await page.evaluate(() => {
+      const modalBody = document.querySelector('#settings-modal .modal-body');
+      const modalBox = document.querySelector('#settings-modal .settings-modal-box');
+      return {
+        bodyScroll: modalBody ? modalBody.scrollTop : 0,
+        boxScroll: modalBox ? modalBox.scrollTop : 0
+      };
+    });
+
+    expect(resetPos.bodyScroll).toBe(0);
+    expect(resetPos.boxScroll).toBe(0);
   });
 
 });

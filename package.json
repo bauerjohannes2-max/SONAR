@@ -1,6 +1,6 @@
 {
   "name": "sonar-the-echo-chamber",
-  "version": "1.16.4",
+  "version": "1.16.5",
   "description": "Tactical Sci-Fi Acoustic Stealth Exploration Game in 100% Zero-Light, 2D Sound-Based Stealth Arcade Thriller",
   "main": "src/main.js",
   "type": "module",

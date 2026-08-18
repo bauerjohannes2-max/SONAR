@@ -245,6 +245,11 @@ export class ProfileModal {
       this.clearMessage();
       this.updateStatusBanner();
       this.modalEl.style.display = 'flex';
+      this.modalEl.scrollTop = 0;
+      const modalBox = this.modalEl.querySelector('.terminal-modal-box');
+      if (modalBox) modalBox.scrollTop = 0;
+      const modalBody = this.modalEl.querySelector('.modal-body');
+      if (modalBody) modalBody.scrollTop = 0;
 
       const callsignInput = this.modalEl.querySelector('#input-pilot-callsign');
       if (callsignInput) {
@@ -258,6 +263,11 @@ export class ProfileModal {
     this.isOpen = false;
     if (this.modalEl) {
       this.modalEl.style.display = 'none';
+      this.modalEl.scrollTop = 0;
+      const modalBox = this.modalEl.querySelector('.terminal-modal-box');
+      if (modalBox) modalBox.scrollTop = 0;
+      const modalBody = this.modalEl.querySelector('.modal-body');
+      if (modalBody) modalBody.scrollTop = 0;
     }
     if (this.audio) this.audio.playUIBlip();
   }

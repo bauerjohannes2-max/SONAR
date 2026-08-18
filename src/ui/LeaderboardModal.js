@@ -452,6 +452,11 @@ export class LeaderboardModal {
     this.isOpen = true;
     if (this.modalEl) {
       this.modalEl.style.display = 'flex';
+      this.modalEl.scrollTop = 0;
+      const modalBox = this.modalEl.querySelector('.terminal-modal-box');
+      if (modalBox) modalBox.scrollTop = 0;
+      const modalBody = this.modalEl.querySelector('.modal-body');
+      if (modalBody) modalBody.scrollTop = 0;
       this.loadData();
     }
     if (this.audio) this.audio.playUIBlip();
@@ -461,6 +466,11 @@ export class LeaderboardModal {
     this.isOpen = false;
     if (this.modalEl) {
       this.modalEl.style.display = 'none';
+      this.modalEl.scrollTop = 0;
+      const modalBox = this.modalEl.querySelector('.terminal-modal-box');
+      if (modalBox) modalBox.scrollTop = 0;
+      const modalBody = this.modalEl.querySelector('.modal-body');
+      if (modalBody) modalBody.scrollTop = 0;
       const rivalModal = this.modalEl.querySelector('#rival-compare-modal');
       if (rivalModal) rivalModal.style.display = 'none';
     }

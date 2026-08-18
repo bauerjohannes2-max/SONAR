@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 
-test.describe('SONAR v1.16.8 Tactical Gauntlet Loop E2E Validation', () => {
+test.describe('SONAR v1.16.9 Tactical Gauntlet Loop E2E Validation', () => {
 
   test.beforeEach(async ({ page }) => {
     page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
@@ -11,12 +11,12 @@ test.describe('SONAR v1.16.8 Tactical Gauntlet Loop E2E Validation', () => {
     });
   });
 
-  test('1. Version Endpoint & JSON Integrity (v1.16.8)', async ({ request }) => {
+  test('1. Version Endpoint & JSON Integrity (v1.16.9)', async ({ request }) => {
     const response = await request.get('/version.json');
     expect(response.ok()).toBeTruthy();
     const data = await response.json();
-    expect(data.version).toBe('1.16.8');
-    expect(data.build).toBe(20260829);
+    expect(data.version).toBe('1.16.9');
+    expect(data.build).toBe(20260830);
   });
 
   test('2. Sci-Fi Audio Assets Existence & Preloading in Web Audio API (10 MP3 Samples)', async ({ page }) => {
@@ -1625,6 +1625,26 @@ test.describe('SONAR v1.16.8 Tactical Gauntlet Loop E2E Validation', () => {
     // 3. Verify it navigated back to MENU
     const backState = await page.evaluate(() => window.game.gameState);
     expect(backState).toBe('MENU');
+  });
+
+  test('40. Multi-Layered Sci-Fi Hull Impact Wall Crash Sound Synthesis Validation', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    // Trigger AudioEngine initialization and playWallCrash
+    const soundSynthesized = await page.evaluate(() => {
+      const audio = window.game.audioEngine;
+      audio.init();
+      try {
+        audio.playWallCrash();
+        return true;
+      } catch (err) {
+        console.error('Crash audio error:', err);
+        return false;
+      }
+    });
+
+    expect(soundSynthesized).toBe(true);
   });
 
 });

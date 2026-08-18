@@ -966,43 +966,95 @@ export class AudioEngine {
     this.triggerHaptic('collision');
     if (!this.ensureContext() || this.isMuted) return;
 
-    if (this.playSample('death_explosion')) return;
-
     const now = this.ctx.currentTime;
 
-    // 1. Low Impact Thud (Sine 120Hz -> 30Hz, 0.8s decay)
+    // 1. Sharp Metallic Hull Impact Crack (Noise burst through bandpass filter)
+    try {
+      const bufferSize = Math.floor(this.ctx.sampleRate * 0.18);
+      const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.25));
+      }
+
+      const noiseSource = this.ctx.createBufferSource();
+      noiseSource.buffer = noiseBuffer;
+
+      const metalFilter = this.ctx.createBiquadFilter();
+      metalFilter.type = 'bandpass';
+      metalFilter.frequency.setValueAtTime(1400, now);
+      metalFilter.frequency.exponentialRampToValueAtTime(320, now + 0.18);
+      metalFilter.Q.setValueAtTime(4.0, now);
+
+      const noiseGain = this.ctx.createGain();
+      noiseGain.gain.setValueAtTime(0.65, now);
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+      noiseSource.connect(metalFilter);
+      metalFilter.connect(noiseGain);
+      noiseGain.connect(this.sfxGain);
+
+      noiseSource.start(now);
+    } catch (e) {
+      // Fallback if buffer creation not available
+    }
+
+    // 2. Underwater Metallic Bulkhead Clang (Triangle 260Hz -> 65Hz)
+    const clangOsc = this.ctx.createOscillator();
+    const clangGain = this.ctx.createGain();
+    const clangFilter = this.ctx.createBiquadFilter();
+
+    clangOsc.type = 'triangle';
+    clangOsc.frequency.setValueAtTime(260, now);
+    clangOsc.frequency.exponentialRampToValueAtTime(65, now + 0.35);
+
+    clangFilter.type = 'lowpass';
+    clangFilter.frequency.setValueAtTime(1200, now);
+    clangFilter.frequency.exponentialRampToValueAtTime(200, now + 0.4);
+
+    clangGain.gain.setValueAtTime(0.55, now);
+    clangGain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+
+    clangOsc.connect(clangFilter);
+    clangFilter.connect(clangGain);
+    clangGain.connect(this.sfxGain);
+
+    clangOsc.start(now);
+    clangOsc.stop(now + 0.45);
+
+    // 3. Heavy Sub-Bass Kinetic Shockwave (Sine 150Hz -> 28Hz punch)
     const impactOsc = this.ctx.createOscillator();
     const impactGain = this.ctx.createGain();
 
     impactOsc.type = 'sine';
-    impactOsc.frequency.setValueAtTime(120, now);
-    impactOsc.frequency.exponentialRampToValueAtTime(30, now + 0.8);
+    impactOsc.frequency.setValueAtTime(150, now);
+    impactOsc.frequency.exponentialRampToValueAtTime(28, now + 0.65);
 
-    impactGain.gain.setValueAtTime(0.5, now);
-    impactGain.gain.exponentialRampToValueAtTime(0.001, now + 0.85);
+    impactGain.gain.setValueAtTime(0.7, now);
+    impactGain.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
 
     impactOsc.connect(impactGain);
     impactGain.connect(this.sfxGain);
 
     impactOsc.start(now);
-    impactOsc.stop(now + 0.9);
+    impactOsc.stop(now + 0.75);
 
-    // 2. Cinematic Sub-Bass Resonance (Sine 50Hz -> 25Hz, 1.2s decay)
+    // 4. Low Sub-Bass Decompression Rumble Tail (Sine 45Hz -> 20Hz)
     const subOsc = this.ctx.createOscillator();
     const subGain = this.ctx.createGain();
 
     subOsc.type = 'sine';
-    subOsc.frequency.setValueAtTime(50, now);
-    subOsc.frequency.exponentialRampToValueAtTime(25, now + 1.2);
+    subOsc.frequency.setValueAtTime(45, now);
+    subOsc.frequency.exponentialRampToValueAtTime(20, now + 0.95);
 
-    subGain.gain.setValueAtTime(0.42, now);
-    subGain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+    subGain.gain.setValueAtTime(0.4, now);
+    subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.95);
 
     subOsc.connect(subGain);
     subGain.connect(this.sfxGain);
 
     subOsc.start(now);
-    subOsc.stop(now + 1.25);
+    subOsc.stop(now + 1.0);
   }
 
   playUIBlip() {

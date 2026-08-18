@@ -77,9 +77,6 @@ export class StoryIntro {
     }
 
     if (click) {
-      const elapsed = performance.now() - this.startTime;
-      if (elapsed < 80) return null;
-
       if (!this.isTextFullyRevealed) {
         // First click anywhere: finish text instantly
         this.isTextFullyRevealed = true;

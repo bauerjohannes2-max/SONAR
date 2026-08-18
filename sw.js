@@ -3,7 +3,7 @@
  * Service Worker with Offline Cache-First Strategy for Instant Load Times
  */
 
-const CACHE_NAME = 'sonar-cache-v1.16.8';
+const CACHE_NAME = 'sonar-cache-v1.16.9';
 
 const ASSETS_TO_CACHE = [
   './',

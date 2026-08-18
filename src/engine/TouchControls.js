@@ -109,8 +109,13 @@ export class TouchControls {
   }
 
   updateControlVisibility() {
-    if (!this.dpadContainer) return;
-    this.dpadContainer.style.display = this.isVisible ? 'block' : 'none';
+    if (this.dpadContainer) {
+      this.dpadContainer.style.display = this.isVisible ? 'block' : 'none';
+    }
+    const actionsCluster = document.getElementById('touch-action-cluster') || document.querySelector('.touch-actions');
+    if (actionsCluster) {
+      actionsCluster.style.display = this.isVisible ? 'flex' : 'none';
+    }
   }
 
   show() {
@@ -319,6 +324,7 @@ export class TouchControls {
         this.applyScaleAndPositions();
       } else {
         document.body.classList.remove('has-touch-controls');
+        this.updateControlVisibility();
         this.clearDpad();
         this.clearSwipe();
         this.input.clearTouchDirection();

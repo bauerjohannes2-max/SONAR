@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 
-test.describe('SONAR v1.16.5 Tactical Gauntlet Loop E2E Validation', () => {
+test.describe('SONAR v1.16.6 Tactical Gauntlet Loop E2E Validation', () => {
 
   test.beforeEach(async ({ page }) => {
     page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
@@ -11,12 +11,12 @@ test.describe('SONAR v1.16.5 Tactical Gauntlet Loop E2E Validation', () => {
     });
   });
 
-  test('1. Version Endpoint & JSON Integrity (v1.16.5)', async ({ request }) => {
+  test('1. Version Endpoint & JSON Integrity (v1.16.6)', async ({ request }) => {
     const response = await request.get('/version.json');
     expect(response.ok()).toBeTruthy();
     const data = await response.json();
-    expect(data.version).toBe('1.16.5');
-    expect(data.build).toBe(20260826);
+    expect(data.version).toBe('1.16.6');
+    expect(data.build).toBe(20260827);
   });
 
   test('2. Sci-Fi Audio Assets Existence & Preloading in Web Audio API (10 MP3 Samples)', async ({ page }) => {
@@ -1504,6 +1504,55 @@ test.describe('SONAR v1.16.5 Tactical Gauntlet Loop E2E Validation', () => {
 
     expect(resetPos.bodyScroll).toBe(0);
     expect(resetPos.boxScroll).toBe(0);
+  });
+
+  test('37. Mobile Touch Action Buttons Cluster Visibility in Gameplay & Crisp Symmetrical Settings Gear Icon', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    // 1. Verify Crisp Symmetrical Settings Gear Icon
+    const gearBtn = page.locator('#btn-settings-gear');
+    await expect(gearBtn).toBeVisible();
+    const gearSvgD = await page.evaluate(() => {
+      const btn = document.getElementById('btn-settings-gear');
+      const path = btn ? btn.querySelector('svg path') : null;
+      return path ? path.getAttribute('d') : null;
+    });
+    expect(gearSvgD).toContain('M12.22 2h-.44');
+
+    // 2. Start Gameplay (Sector 0)
+    await page.evaluate(() => {
+      window.game.loadSector(0);
+    });
+
+    // Verify touch controls layer and action buttons cluster are visible in gameplay
+    const touchOverlay = page.locator('#touch-controls');
+    const actionCluster = page.locator('#touch-action-cluster');
+    const pingBtn = page.locator('#btn-ping');
+    const sneakBtn = page.locator('#btn-sneak');
+    const decoyBtn = page.locator('#btn-bait');
+
+    await expect(touchOverlay).toBeVisible();
+    await expect(actionCluster).toBeVisible();
+    await expect(pingBtn).toBeVisible();
+    await expect(sneakBtn).toBeVisible();
+    await expect(decoyBtn).toBeVisible();
+
+    // Check action cluster styles: display flex, opacity 1, pointer-events auto
+    const clusterStyles = await actionCluster.evaluate((el) => {
+      const computed = window.getComputedStyle(el);
+      return {
+        display: computed.display,
+        opacity: computed.opacity,
+        pointerEvents: computed.pointerEvents,
+        zIndex: computed.zIndex
+      };
+    });
+
+    expect(clusterStyles.display).toBe('flex');
+    expect(clusterStyles.opacity).toBe('1');
+    expect(clusterStyles.pointerEvents).toBe('auto');
+    expect(parseInt(clusterStyles.zIndex)).toBeGreaterThanOrEqual(50);
   });
 
 });

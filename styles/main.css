@@ -1154,7 +1154,7 @@ kbd {
 
 .touch-actions,
 #touch-action-cluster {
-  display: none;
+  display: flex !important;
   position: fixed !important;
   right: max(20px, env(safe-area-inset-right, 20px)) !important;
   bottom: max(20px, env(safe-area-inset-bottom, 20px)) !important;

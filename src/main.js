@@ -371,6 +371,7 @@ export class Game {
     }
 
     this.audioEngine.startDrone();
+    this.audioEngine.playGameplayMusic(1.0);
     this.gameState = CONFIG.STATES.PLAYING;
   }
 
@@ -404,6 +405,7 @@ export class Game {
     }
 
     this.audioEngine.startDrone();
+    this.audioEngine.playGameplayMusic(1.0);
     this.gameState = CONFIG.STATES.PLAYING;
   }
 
@@ -1057,7 +1059,7 @@ function initGame() {
           game.audioEngine.ctx.resume().catch(() => {});
         }
         if (!game.audioEngine.isMusicPlaying) {
-          game.audioEngine.startBackgroundMusic(1.5);
+          game.audioEngine.playMenuMusic(1.5);
         }
       }
       window.removeEventListener('pointerdown', handleFirstInteraction);

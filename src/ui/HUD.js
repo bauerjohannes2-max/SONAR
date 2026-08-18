@@ -38,115 +38,65 @@ export class HUD {
     ctx.textBaseline = 'middle';
     ctx.shadowBlur = 0;
 
-    // 2. Top Left: Missionsziel with Pulsing Datenkern Symbol
+    // 2. Top Left: Clean Sector Identifier
+    const sectorTag = isEndless ? `ETAGE ${String(floor).padStart(2, '0')}` : (levelData ? `SEKTOR 0${levelData.sectorNumber || 1}` : 'SEKTOR 01');
+    ctx.textAlign = 'left';
+    ctx.font = '700 12px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.fillStyle = '#00f0ff';
+    ctx.fillText(sectorTag, 18, 19);
+
+    // 3. Center: Core Objective / Escape Banner (Pulsing glowing Cyan)
     const pulseFactor = 0.75 + 0.25 * Math.sin((time || performance.now() * 0.001) * 6);
     const collected = totalCrystals - crystalsLeft;
-
-    ctx.textAlign = 'left';
-    ctx.font = '700 12.5px "Chakra Petch", "JetBrains Mono", monospace';
-    ctx.fillStyle = crystalsLeft === 0 ? '#00FF88' : `rgba(0, 255, 136, ${pulseFactor})`;
-    ctx.fillText('◆', 14, 19);
-
-    ctx.font = '700 11.5px "Chakra Petch", "JetBrains Mono", monospace';
-    ctx.fillStyle = crystalsLeft === 0 ? '#00FF88' : '#e0f8ff';
-    const sectorTag = isEndless ? `ETAGE ${String(floor).padStart(2, '0')}` : (levelData ? `SEKTOR 0${levelData.sectorNumber || 1}` : 'MISSION');
-    ctx.fillText(`${sectorTag} • DATENKERNE: ${collected} / ${totalCrystals}`, 28, 19);
-
-    // 3. Center Info: Dedicated Non-Overlapping Banner Slot vs Telemetry Bar
     ctx.textAlign = 'center';
 
     if (crystalsLeft === 0) {
-      // Dedicated High-Visibility Escape Banner (replaces telemetry without overlapping)
-      ctx.font = '700 11.5px "Chakra Petch", "JetBrains Mono", monospace';
+      // Escape state: High visibility green
+      ctx.font = '700 12px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.fillStyle = '#00FF88';
-      ctx.shadowColor = 'rgba(0, 255, 136, 0.7)';
+      ctx.shadowColor = 'rgba(0, 255, 136, 0.8)';
       ctx.shadowBlur = 10 * pulseFactor;
-      ctx.fillText('FLUCHTAUFZUG OFFEN • ZUR EVAKUIERUNGS-ZONE FLIEGEN', this.width / 2 - 20, 19);
+      ctx.fillText('FLUCHTAUFZUG OFFEN • ZUR EVAKUIERUNGS-ZONE', this.width / 2, 19);
       ctx.shadowBlur = 0;
     } else {
-      // Modern Cyber-Telemetry Bar
-      const sectorNum = levelData ? (levelData.sectorNumber || 1) : 1;
-      const depth = isEndless ? (3000 + floor * 350) : (3800 + sectorNum * 200);
-      const depthFormatted = depth.toLocaleString('de-DE');
-      const pressure = Math.round(depth / 10);
-      const statusText = (player && player.isSneaking) ? 'STEALTH' : 'NORMAL';
-
-      const maxDecoys = (player && player.maxDecoys) ? player.maxDecoys : 1;
-      const decoys = player ? player.decoysRemaining : 0;
-      const shield = (player && player.hasShield) ? (player.shieldActive ? ' | SCHILD: AKTIV' : ' | SCHILD: OFF') : '';
-
-      ctx.font = '600 11px "Chakra Petch", "JetBrains Mono", monospace';
-      ctx.fillStyle = '#8da8b8';
-      ctx.fillText(`TIEFE: ${depthFormatted}m | DRUCK: ${pressure} BAR | STATUS: ${statusText} | KÖDER: ${decoys}/${maxDecoys}${shield}`, this.width / 2 - 20, 19);
+      ctx.font = '700 12px "Chakra Petch", "JetBrains Mono", monospace';
+      ctx.fillStyle = '#00f0ff';
+      ctx.shadowColor = 'rgba(0, 240, 255, 0.6)';
+      ctx.shadowBlur = 6 * pulseFactor;
+      ctx.fillText(`◆ DATENKERNE: ${collected} / ${totalCrystals}`, this.width / 2, 19);
+      ctx.shadowBlur = 0;
     }
 
-    // 4. Top Right: Animated Sonar-Frequenzbalken & Pulse Ready with Stalker Distortion
+    // 4. Right: Compact Status Badges with fixed safe columns (Zero-Overlap Guarantee)
     const pingSec = player ? player.getPingRemainingSeconds() : 0;
     const isReady = pingCooldownRatio >= 1.0;
-    const barW = 60;
-    const barH = 8;
-    let barX = this.width - 150 - barW; // Leaves 150px safe margin for HTML quick-action buttons
-    let barY = 15;
+    const isSneaking = !!(player && player.isSneaking);
+    const decoys = player ? player.decoysRemaining : 1;
 
-    // Calculate Stalker Electromagnetic Distortion Factor (0.0 to 1.0)
+    // Leave 110px safe margin for HTML quick-action header buttons on the far right
+    const rightMargin = this.width - 120;
+    ctx.font = '700 10.5px "Chakra Petch", "JetBrains Mono", monospace';
+
+    // Stalker distortion factor
     const isDistorted = stalkerDist < 220;
     const distortionFactor = isDistorted ? Math.max(0, Math.min(1, (220 - stalkerDist) / 180)) : 0;
 
-    let jitterX = 0;
-    let jitterY = 0;
-    if (distortionFactor > 0) {
-      jitterX = (Math.random() - 0.5) * 7 * distortionFactor;
-      jitterY = (Math.random() - 0.5) * 3 * distortionFactor;
-    }
-
+    // Slot 1 (far right of badges): Köder
     ctx.textAlign = 'right';
-    ctx.font = '700 11px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.fillStyle = decoys > 0 ? '#ffaa00' : 'rgba(255, 170, 0, 0.4)';
+    ctx.fillText(`KÖDER [${decoys}x]`, rightMargin, 19);
 
-    // Label Rendering (with glitch chromatic text offset when distorted)
-    let labelText = isReady ? 'PULSE READY' : `PING: ${pingSec}s`;
+    // Slot 2: Schleichen
+    ctx.fillStyle = isSneaking ? '#00ffaa' : 'rgba(160, 190, 210, 0.6)';
+    ctx.fillText(`SCHLEICHEN [${isSneaking ? 'EIN' : 'AUS'}]`, rightMargin - 76, 19);
+
+    // Slot 3: Sonar
+    let sonarText = isReady ? 'SONAR [BEREIT]' : `SONAR [${pingSec}s]`;
     if (distortionFactor > 0.6 && Math.random() < 0.3) {
-      labelText = 'STÖRUNG';
+      sonarText = 'SONAR [STÖRUNG]';
     }
-
-    if (distortionFactor > 0) {
-      // Chromatic text aberration (Magenta / Cyan split)
-      ctx.fillStyle = `rgba(255, 0, 180, ${0.7 * distortionFactor})`;
-      ctx.fillText(labelText, barX - 8 + jitterX + 2, 19 + jitterY);
-      ctx.fillStyle = `rgba(0, 240, 255, ${0.7 * distortionFactor})`;
-      ctx.fillText(labelText, barX - 8 + jitterX - 2, 19 + jitterY);
-    }
-
-    if (isReady) {
-      ctx.fillStyle = distortionFactor > 0 ? '#ff88ff' : `rgba(0, 240, 255, ${pulseFactor})`;
-      ctx.fillText(labelText, barX - 8 + jitterX, 19 + jitterY);
-    } else {
-      ctx.fillStyle = '#ff7788';
-      ctx.fillText(labelText, barX - 8 + jitterX, 19 + jitterY);
-    }
-
-    // VHS Scanline Glitch Chromatic Bars
-    if (distortionFactor > 0) {
-      // Magenta Ghost Bar
-      ctx.fillStyle = `rgba(255, 0, 160, ${0.45 * distortionFactor})`;
-      ctx.fillRect(barX + jitterX - 2, barY + jitterY - 1, barW * Math.min(1.0, pingCooldownRatio), barH);
-
-      // Cyan Ghost Bar
-      ctx.fillStyle = `rgba(0, 240, 255, ${0.45 * distortionFactor})`;
-      ctx.fillRect(barX + jitterX + 2, barY + jitterY + 1, barW * Math.min(1.0, pingCooldownRatio), barH);
-    }
-
-    // Frequency Meter Background
-    ctx.fillStyle = 'rgba(0, 240, 255, 0.12)';
-    ctx.fillRect(barX + jitterX, barY + jitterY, barW, barH);
-
-    // Frequency Meter Fill
-    ctx.fillStyle = distortionFactor > 0.4 ? '#ff00ff' : (isReady ? '#00FF88' : '#00F0FF');
-    ctx.fillRect(barX + jitterX, barY + jitterY, barW * Math.min(1.0, pingCooldownRatio), barH);
-
-    // Frequency Meter Border
-    ctx.strokeStyle = distortionFactor > 0.3 ? '#ff00bb' : 'rgba(0, 240, 255, 0.4)';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(barX + jitterX, barY + jitterY, barW, barH);
+    ctx.fillStyle = isReady ? '#00f0ff' : '#ff7788';
+    ctx.fillText(sonarText, rightMargin - 192, 19);
 
     ctx.restore();
   }

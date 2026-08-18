@@ -248,11 +248,23 @@ class FirebaseService {
         ? progressData.maxClearedSector
         : (progressData.unlockedSector > 1 ? progressData.unlockedSector - 1 : 0);
 
+      const stats = progressData.sectorStats || {};
+      let totalStars = 0;
+      let totalTime = 0;
+      for (let k in stats) {
+        if (stats[k]) {
+          totalStars += stats[k].stars || 0;
+          if (stats[k].time) totalTime += stats[k].time;
+        }
+      }
+
       const payload = {
         callsign,
         unlockedSector: progressData.unlockedSector || 1,
         maxClearedSector: maxClearedSector,
-        sectorStats: progressData.sectorStats || {},
+        totalStars: totalStars,
+        bestTime: totalTime,
+        sectorStats: stats,
         endlessHighscore: progressData.endlessHighscore || 0,
         highestLevel: maxClearedSector,
         lastUpdated: serverTimestamp()
@@ -294,18 +306,34 @@ class FirebaseService {
           ? d.maxClearedSector
           : (d.highestLevel !== undefined ? (d.highestLevel >= 1 && d.highestLevel <= 10 && d.highestLevel === d.unlockedSector ? (d.highestLevel > 1 ? d.highestLevel - 1 : 0) : d.highestLevel) : (d.unlockedSector > 1 ? d.unlockedSector - 1 : 0));
 
+        const stats = d.sectorStats || {};
+        let tStars = d.totalStars !== undefined ? d.totalStars : 0;
+        let tTime = d.bestTime !== undefined ? d.bestTime : 0;
+        if (tStars === 0 && stats) {
+          for (let k in stats) {
+            if (stats[k]) {
+              tStars += stats[k].stars || 0;
+              if (stats[k].time) tTime += stats[k].time;
+            }
+          }
+        }
+
         rawList.push({
           callsign: d.callsign || docSnap.id.toUpperCase(),
           maxClearedSector: maxCleared,
           highestLevel: maxCleared,
+          totalStars: tStars,
+          bestTime: tTime,
+          sectorStats: stats,
           endlessHighscore: d.endlessHighscore || 0,
           date: dateStr
         });
       });
 
       rawList.sort((a, b) => {
+        if (b.totalStars !== a.totalStars) return b.totalStars - a.totalStars;
         if (b.maxClearedSector !== a.maxClearedSector) return b.maxClearedSector - a.maxClearedSector;
-        return b.endlessHighscore - a.endlessHighscore;
+        return (a.bestTime || 9999) - (b.bestTime || 9999);
       });
 
       return rawList.slice(0, limitCount).map((item, idx) => ({

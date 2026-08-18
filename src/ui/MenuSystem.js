@@ -348,16 +348,36 @@ export class MenuSystem {
     ctx.fillStyle = '#00f0ff';
     ctx.fillRect(heroX, heroY, 6, heroH);
 
+    // Glowing Sonar Radar Waves Icon
+    const iconX = heroX + 38;
+    const iconY = heroY + heroH / 2;
+    ctx.save();
+    ctx.strokeStyle = '#00f0ff';
+    ctx.lineWidth = 1.5;
+    ctx.shadowColor = '#00f0ff';
+    ctx.shadowBlur = isHeroSelected ? 12 : 6;
+    ctx.beginPath();
+    ctx.arc(iconX, iconY, 14, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(iconX, iconY, 8, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = '#00f0ff';
+    ctx.beginPath();
+    ctx.arc(iconX, iconY, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
     // Hero Title
     ctx.textAlign = 'left';
-    ctx.font = '800 21px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.font = '800 20px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = '#ffffff';
-    ctx.fillText('KAMPAGNE (SEKTOREN 01–10)', heroX + 26, heroY + 36);
+    ctx.fillText('KAMPAGNE (SEKTOREN 01–10)', heroX + 68, heroY + 36);
 
     // Hero Subtitle
-    ctx.font = '600 13px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.font = '600 12.5px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = '#00f0ff';
-    ctx.fillText('Operation Zero-Light • Station ABYSS', heroX + 26, heroY + 68);
+    ctx.fillText('Operation Zero-Light • Station ABYSS', heroX + 68, heroY + 68);
 
     // Right Action Badge
     ctx.textAlign = 'right';
@@ -373,14 +393,14 @@ export class MenuSystem {
     const tileGap = 17;
 
     const subOptions = [
-      { idx: 1, opt: this.options[1] },
-      { idx: 2, opt: this.options[2] },
-      { idx: 3, opt: this.options[3] },
-      { idx: 4, opt: this.options[4] }
+      { idx: 1, opt: this.options[1], id: 'HANGAR' },
+      { idx: 2, opt: this.options[2], id: 'LEADERBOARD' },
+      { idx: 3, opt: this.options[3], id: 'PROFILE' },
+      { idx: 4, opt: this.options[4], id: 'SETTINGS' }
     ];
 
     for (let i = 0; i < subOptions.length; i++) {
-      const { idx, opt } = subOptions[i];
+      const { idx, opt, id } = subOptions[i];
       const x = barX + i * (tileW + tileGap);
       const isSelected = this.selectedIndex === idx;
 
@@ -393,37 +413,26 @@ export class MenuSystem {
         ctx.shadowColor = '#00f0ff';
         ctx.shadowBlur = 10;
         ctx.strokeRect(x, tileY, tileW, tileH);
-
-        ctx.textAlign = 'center';
-        ctx.font = '22px sans-serif';
-        ctx.fillText(opt.icon, x + tileW / 2, tileY + 32);
-
-        ctx.font = '700 12.5px "Chakra Petch", "JetBrains Mono", monospace';
-        ctx.fillStyle = '#ffffff';
-        ctx.fillText(opt.title, x + tileW / 2, tileY + 65);
-
-        ctx.font = '500 9.5px "Chakra Petch", "JetBrains Mono", monospace';
-        ctx.fillStyle = '#00f0ff';
-        ctx.fillText(opt.subtitle, x + tileW / 2, tileY + 86);
       } else {
         ctx.fillStyle = 'rgba(5, 14, 22, 0.75)';
         ctx.fillRect(x, tileY, tileW, tileH);
         ctx.strokeStyle = 'rgba(0, 240, 255, 0.22)';
         ctx.lineWidth = 1;
         ctx.strokeRect(x, tileY, tileW, tileH);
-
-        ctx.textAlign = 'center';
-        ctx.font = '20px sans-serif';
-        ctx.fillText(opt.icon, x + tileW / 2, tileY + 32);
-
-        ctx.font = '700 12px "Chakra Petch", "JetBrains Mono", monospace';
-        ctx.fillStyle = '#00f0ff';
-        ctx.fillText(opt.title, x + tileW / 2, tileY + 65);
-
-        ctx.font = '500 9.5px "Chakra Petch", "JetBrains Mono", monospace';
-        ctx.fillStyle = '#5c788a';
-        ctx.fillText(opt.subtitle, x + tileW / 2, tileY + 86);
       }
+
+      // Draw Glowing Sci-Fi Vector Icon
+      this.drawMenuTileIcon(ctx, id, x + tileW / 2, tileY + 30, isSelected);
+
+      // Title & Subtitle
+      ctx.textAlign = 'center';
+      ctx.font = isSelected ? '700 12.5px "Chakra Petch", "JetBrains Mono", monospace' : '700 12px "Chakra Petch", "JetBrains Mono", monospace';
+      ctx.fillStyle = isSelected ? '#ffffff' : '#00f0ff';
+      ctx.fillText(opt.title, x + tileW / 2, tileY + 66);
+
+      ctx.font = '500 9.5px "Chakra Petch", "JetBrains Mono", monospace';
+      ctx.fillStyle = isSelected ? '#00f0ff' : '#5c788a';
+      ctx.fillText(opt.subtitle, x + tileW / 2, tileY + 86);
       ctx.restore();
     }
 
@@ -432,6 +441,79 @@ export class MenuSystem {
     ctx.font = '500 10.5px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = '#425866';
     ctx.fillText(`SONAR TACTICAL OS • v${CONFIG.VERSION} • SYSTEM BEREIT`, CONFIG.CANVAS_WIDTH / 2, 532);
+
+    ctx.restore();
+  }
+
+  drawMenuTileIcon(ctx, type, cx, cy, isSelected) {
+    ctx.save();
+    ctx.strokeStyle = isSelected ? '#ffffff' : '#00f0ff';
+    ctx.fillStyle = isSelected ? '#00f0ff' : 'rgba(0, 240, 255, 0.4)';
+    ctx.lineWidth = isSelected ? 1.8 : 1.4;
+    ctx.shadowColor = '#00f0ff';
+    ctx.shadowBlur = isSelected ? 10 : 4;
+
+    if (type === 'HANGAR') {
+      // Submarine / Drone Frame Hexagon
+      const r = 11;
+      ctx.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const a = (i * Math.PI) / 3 - Math.PI / 6;
+        const px = cx + r * Math.cos(a);
+        const py = cy + r * Math.sin(a);
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (type === 'LEADERBOARD') {
+      // Cyber Trophy & Star
+      ctx.beginPath();
+      ctx.moveTo(cx - 9, cy - 8);
+      ctx.lineTo(cx + 9, cy - 8);
+      ctx.lineTo(cx + 6, cy + 2);
+      ctx.lineTo(cx - 6, cy + 2);
+      ctx.closePath();
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(cx, cy + 2);
+      ctx.lineTo(cx, cy + 8);
+      ctx.moveTo(cx - 7, cy + 8);
+      ctx.lineTo(cx + 7, cy + 8);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(cx, cy - 3, 2, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (type === 'PROFILE') {
+      // Pilot ID & Helmet
+      ctx.beginPath();
+      ctx.arc(cx, cy - 4, 5.5, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(cx, cy + 9, 9, Math.PI * 1.25, Math.PI * 1.75);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(cx, cy - 4, 2, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (type === 'SETTINGS') {
+      // Tactical Gear
+      ctx.beginPath();
+      ctx.arc(cx, cy, 7, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(cx, cy, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+      for (let i = 0; i < 4; i++) {
+        const a = (i * Math.PI) / 2;
+        ctx.beginPath();
+        ctx.moveTo(cx + 6.5 * Math.cos(a), cy + 6.5 * Math.sin(a));
+        ctx.lineTo(cx + 10.5 * Math.cos(a), cy + 10.5 * Math.sin(a));
+        ctx.stroke();
+      }
+    }
 
     ctx.restore();
   }

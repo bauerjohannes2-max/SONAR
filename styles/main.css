@@ -1110,17 +1110,20 @@ kbd {
   --touch-scale: 1;
 }
 
-.touch-actions {
-  position: absolute;
-  right: max(16px, env(safe-area-inset-right, 16px));
-  bottom: max(16px, env(safe-area-inset-bottom, 16px));
-  display: flex;
+.touch-actions,
+#touch-action-cluster {
+  position: fixed !important;
+  right: max(20px, env(safe-area-inset-right, 20px)) !important;
+  bottom: max(20px, env(safe-area-inset-bottom, 20px)) !important;
+  display: flex !important;
   flex-direction: column;
   align-items: flex-end;
   gap: calc(14px * var(--touch-scale, 1));
-  pointer-events: none;
+  pointer-events: auto !important;
   touch-action: none;
   transform-origin: bottom right;
+  z-index: 120 !important;
+  opacity: 1 !important;
   transition: gap 0.15s cubic-bezier(0.4, 0, 0.2, 1), transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -1129,7 +1132,7 @@ kbd {
   align-items: flex-end;
   justify-content: flex-end;
   gap: calc(12px * var(--touch-scale, 1));
-  pointer-events: none;
+  pointer-events: auto !important;
   transform-origin: bottom right;
   transition: gap 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -1151,7 +1154,7 @@ kbd {
   opacity: 1 !important;
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-  z-index: 92;
+  z-index: 120 !important;
 }
 
 .touch-btn svg,
@@ -1511,6 +1514,72 @@ kbd {
   flex: 1;
   height: 1px;
   background: rgba(0, 240, 255, 0.2);
+}
+
+/* Interactive [i] Info Badges & Tooltips */
+.info-badge-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.info-badge-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgba(0, 240, 255, 0.12);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  color: var(--cyan-primary);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-left: 6px;
+  padding: 0;
+  line-height: 1;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.info-badge-btn:hover,
+.info-badge-btn:focus {
+  background: rgba(0, 240, 255, 0.35);
+  border-color: var(--cyan-primary);
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.5);
+  transform: scale(1.1);
+}
+
+.info-tooltip-popover {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 230px;
+  padding: 8px 10px;
+  background: rgba(4, 10, 18, 0.96);
+  border: 1px solid var(--cyan-primary);
+  border-radius: 6px;
+  color: #c0d8e8;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.4;
+  text-align: left;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.8), 0 0 10px rgba(0, 240, 255, 0.25);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
+  z-index: 1200;
+}
+
+.info-badge-wrapper:hover .info-tooltip-popover,
+.info-badge-wrapper.show-tooltip .info-tooltip-popover {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 .btn-segment-group {

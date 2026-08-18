@@ -337,10 +337,34 @@ class StorageManager {
     return rivals.some((r) => r.toUpperCase() === callsign.toUpperCase());
   }
 
+  addRival(callsign) {
+    if (!callsign) return false;
+    let rivals = this.getRivals();
+    const upper = callsign.trim().toUpperCase();
+    if (!rivals.some((r) => r.toUpperCase() === upper)) {
+      rivals.push(upper);
+      try {
+        localStorage.setItem('sonar_rivals', JSON.stringify(rivals));
+      } catch (e) {}
+    }
+    return true;
+  }
+
+  removeRival(callsign) {
+    if (!callsign) return false;
+    let rivals = this.getRivals();
+    const upper = callsign.trim().toUpperCase();
+    rivals = rivals.filter((r) => r.toUpperCase() !== upper);
+    try {
+      localStorage.setItem('sonar_rivals', JSON.stringify(rivals));
+    } catch (e) {}
+    return true;
+  }
+
   toggleRival(callsign) {
     if (!callsign) return false;
     let rivals = this.getRivals();
-    const upper = callsign.toUpperCase();
+    const upper = callsign.trim().toUpperCase();
     const exists = rivals.some((r) => r.toUpperCase() === upper);
 
     if (exists) {

@@ -6,6 +6,8 @@ const AUDIO_ASSETS = {
   portal_open: './assets/audio/portal_open.mp3',
   ambient_drone: './assets/audio/ambient_drone.mp3',
   ambient_main: './assets/audio/ambient_main.mp3',
+  music_menu: './assets/audio/music_menu.mp3',
+  music_gameplay: './assets/audio/music_gameplay.mp3',
   bg_music: './assets/audio/bg_music.mp3'
 };
 
@@ -212,23 +214,67 @@ export class AudioEngine {
   }
 
   /**
-   * Starts atmospheric Sci-Fi background music loop with smooth fade-in.
+   * Dual-Soundtrack System: Menu vs. In-Game Gameplay
    */
-  startBackgroundMusic(fadeInDuration = 1.5) {
-    if (!this.ensureContext() || this.isMusicPlaying) return;
+  playMenuMusic(fadeDuration = 1.0) {
+    this.crossfadeMusic('music_menu', ['ambient_main', 'bg_music'], fadeDuration);
+    this.currentMusicTrack = 'menu';
+  }
 
-    if (this.musicGain && this.ctx) {
-      const now = this.ctx.currentTime;
-      this.musicGain.gain.cancelScheduledValues(now);
-      this.musicGain.gain.setValueAtTime(0.0001, now);
-      this.musicGain.gain.exponentialRampToValueAtTime(Math.max(0.0001, this.musicVolume), now + (fadeInDuration || 1.5));
+  playGameplayMusic(fadeDuration = 1.0) {
+    this.crossfadeMusic('music_gameplay', ['bg_music', 'ambient_main'], fadeDuration);
+    this.currentMusicTrack = 'gameplay';
+  }
+
+  crossfadeMusic(preferredKey, fallbackKeys, fadeDuration = 1.0) {
+    if (!this.ensureContext()) return;
+
+    if (this.currentMusicTrackKey === preferredKey && this.isMusicPlaying) {
+      return; // Already playing this track
     }
 
-    const sampleSrc = this.playSample('ambient_main', this.musicGain, true) || this.playSample('bg_music', this.musicGain, true);
-    if (sampleSrc) {
-      this.musicSampleSource = sampleSrc;
+    const now = this.ctx.currentTime;
+    const oldSource = this.musicSampleSource;
+
+    // Fade out previous track smoothly
+    if (oldSource && this.musicGain) {
+      try {
+        this.musicGain.gain.cancelScheduledValues(now);
+        this.musicGain.gain.setValueAtTime(this.musicGain.gain.value, now);
+        this.musicGain.gain.exponentialRampToValueAtTime(0.0001, now + fadeDuration * 0.5);
+        setTimeout(() => {
+          try { oldSource.stop(); } catch (e) {}
+        }, fadeDuration * 500);
+      } catch (e) {}
+    }
+
+    // Start new track with fade in
+    let newSource = this.playSample(preferredKey, this.musicGain, true);
+    let chosenKey = preferredKey;
+
+    if (!newSource && fallbackKeys) {
+      for (const fb of fallbackKeys) {
+        newSource = this.playSample(fb, this.musicGain, true);
+        if (newSource) {
+          chosenKey = fb;
+          break;
+        }
+      }
+    }
+
+    if (newSource && this.musicGain) {
+      this.musicSampleSource = newSource;
       this.isMusicPlaying = true;
+      this.currentMusicTrackKey = preferredKey;
+
+      this.musicGain.gain.cancelScheduledValues(now + fadeDuration * 0.5);
+      this.musicGain.gain.setValueAtTime(0.0001, now + fadeDuration * 0.5);
+      this.musicGain.gain.exponentialRampToValueAtTime(Math.max(0.0001, this.musicVolume), now + fadeDuration);
     }
+  }
+
+  startBackgroundMusic(fadeInDuration = 1.5) {
+    this.playMenuMusic(fadeInDuration);
   }
 
   stopBackgroundMusic() {
@@ -237,6 +283,8 @@ export class AudioEngine {
       this.musicSampleSource = null;
     }
     this.isMusicPlaying = false;
+    this.currentMusicTrack = null;
+    this.currentMusicTrackKey = null;
   }
 
   /**

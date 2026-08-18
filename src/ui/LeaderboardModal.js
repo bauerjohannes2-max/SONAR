@@ -29,11 +29,11 @@ export class LeaderboardModal {
     container.style.display = 'none';
 
     container.innerHTML = `
-      <div class="terminal-modal-box leaderboard-box" style="width: 680px; max-width: 95vw;">
+      <div class="terminal-modal-box leaderboard-box" style="width: 700px; max-width: 95vw;">
         <div class="modal-header">
           <div class="modal-title">
             <span class="status-dot"></span>
-            <span>BESTENLISTE & RIVALEN-RADAR</span>
+            <span>BESTENLISTE & FREUNDE-RADAR</span>
           </div>
           <button id="modal-lb-close-btn" class="modal-close-btn" aria-label="Schließen">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -43,8 +43,19 @@ export class LeaderboardModal {
         <div class="modal-body">
           <!-- Top Tabs -->
           <div class="lb-tab-group">
-            <button id="tab-lb-world" class="lb-tab active">WELTWEIT</button>
-            <button id="tab-lb-rivals" class="lb-tab">RIVALEN / FREUNDE</button>
+            <button id="tab-lb-world" class="lb-tab active">🌍 WELTWEIT</button>
+            <button id="tab-lb-rivals" class="lb-tab">👥 MEINE FREUNDE</button>
+          </div>
+
+          <!-- Add Friend Input Row (Visible in Friends Tab) -->
+          <div id="lb-friend-add-container" style="display: none; margin-bottom: 10px;">
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <input type="text" id="input-friend-callsign" class="lb-search-input" placeholder="Callsign des Freundes eingeben..." style="flex: 1; height: 34px;" autocomplete="off" />
+              <button id="btn-submit-add-friend" class="modal-btn modal-btn-primary" style="height: 34px; white-space: nowrap; font-size: 11px;">
+                + FREUND HINZUFÜGEN
+              </button>
+            </div>
+            <div id="friend-add-feedback" style="font-family: var(--font-mono); font-size: 11px; margin-top: 4px; display: none;"></div>
           </div>
 
           <!-- Search & Status Bar -->
@@ -58,8 +69,8 @@ export class LeaderboardModal {
             </button>
           </div>
 
-          <div class="lb-search-bar">
-            <input type="text" id="lb-search-input" class="lb-search-input" placeholder="Pilot-Callsign suchen oder als Rivale markieren..." autocomplete="off">
+          <div class="lb-search-bar" id="lb-search-wrapper">
+            <input type="text" id="lb-search-input" class="lb-search-input" placeholder="Pilot-Callsign suchen..." autocomplete="off">
           </div>
 
           <!-- Main Leaderboard Table -->
@@ -69,10 +80,10 @@ export class LeaderboardModal {
                 <tr>
                   <th style="width: 10%; text-align: center;">RANG</th>
                   <th style="width: 25%;">PILOT</th>
-                  <th style="width: 22%;">SEKTOREN</th>
-                  <th style="width: 15%; text-align: center;">STERNE</th>
-                  <th style="width: 14%; text-align: right;">ZEIT</th>
-                  <th style="width: 14%; text-align: center;">1v1</th>
+                  <th style="width: 20%;">SEKTOREN</th>
+                  <th style="width: 14%; text-align: center;">STERNE</th>
+                  <th style="width: 15%; text-align: right;">GESAMTZEIT</th>
+                  <th style="width: 16%; text-align: center;">VERGLEICH</th>
                 </tr>
               </thead>
               <tbody id="lb-table-body">
@@ -86,20 +97,22 @@ export class LeaderboardModal {
 
         <div class="modal-footer">
           <button id="btn-lb-back" class="modal-btn modal-btn-dim">
-            ← ZURÜCK ZUM MENÜ (ESC)
+            ZURÜCK ZUM MENÜ (ESC)
           </button>
         </div>
       </div>
 
       <!-- 1v1 Rival Direct Comparison Sub-Modal -->
       <div id="rival-compare-modal" class="terminal-modal-backdrop" style="display: none; z-index: 1100;">
-        <div class="terminal-modal-box rival-modal-box">
+        <div class="terminal-modal-box rival-modal-box" style="width: 640px; max-width: 95vw;">
           <div class="modal-header">
             <div class="modal-title">
               <span class="status-dot"></span>
-              <span id="rival-compare-title">1v1 DIREKTVERGLEICH</span>
+              <span id="rival-compare-title">SPIELER-VERGLEICH</span>
             </div>
-            <button id="modal-rival-close-btn" class="modal-close-btn">✕</button>
+            <button id="modal-rival-close-btn" class="modal-close-btn" aria-label="Schließen">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
           </div>
 
           <div class="modal-body" id="rival-compare-body">
@@ -108,7 +121,7 @@ export class LeaderboardModal {
 
           <div class="modal-footer">
             <button id="btn-rival-compare-back" class="modal-btn modal-btn-dim">
-              ← ZURÜCK ZUR BESTENLISTE
+              ZURÜCK ZUR BESTENLISTE
             </button>
           </div>
         </div>
@@ -126,6 +139,10 @@ export class LeaderboardModal {
     const tabWorld = container.querySelector('#tab-lb-world');
     const tabRivals = container.querySelector('#tab-lb-rivals');
     const searchInput = container.querySelector('#lb-search-input');
+    const friendContainer = container.querySelector('#lb-friend-add-container');
+    const friendInput = container.querySelector('#input-friend-callsign');
+    const addFriendBtn = container.querySelector('#btn-submit-add-friend');
+    const friendFeedback = container.querySelector('#friend-add-feedback');
 
     const handleClose = () => this.close();
 
@@ -140,6 +157,7 @@ export class LeaderboardModal {
         this.activeTab = 'WORLD';
         tabWorld.classList.add('active');
         tabRivals.classList.remove('active');
+        if (friendContainer) friendContainer.style.display = 'none';
         this.renderTable();
         if (this.audio) this.audio.playUIBlip();
       });
@@ -148,8 +166,42 @@ export class LeaderboardModal {
         this.activeTab = 'RIVALS';
         tabRivals.classList.add('active');
         tabWorld.classList.remove('active');
+        if (friendContainer) friendContainer.style.display = 'block';
         this.renderTable();
         if (this.audio) this.audio.playUIBlip();
+      });
+    }
+
+    // Add Friend Button Handler
+    if (addFriendBtn && friendInput) {
+      const handleAddFriend = () => {
+        const val = friendInput.value.trim().toUpperCase();
+        if (!val || val.length < 3) {
+          if (friendFeedback) {
+            friendFeedback.textContent = 'Callsign muss mindestens 3 Zeichen lang sein.';
+            friendFeedback.style.color = '#ff5577';
+            friendFeedback.style.display = 'block';
+          }
+          return;
+        }
+
+        storageManager.addRival(val);
+        friendInput.value = '';
+        if (friendFeedback) {
+          friendFeedback.textContent = `✓ ${val} zu deinen Freunden hinzugefügt!`;
+          friendFeedback.style.color = '#00ff88';
+          friendFeedback.style.display = 'block';
+          setTimeout(() => {
+            if (friendFeedback) friendFeedback.style.display = 'none';
+          }, 3500);
+        }
+        if (this.audio) this.audio.playUIBlip();
+        this.renderTable();
+      };
+
+      addFriendBtn.addEventListener('click', handleAddFriend);
+      friendInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') handleAddFriend();
       });
     }
 
@@ -213,9 +265,9 @@ export class LeaderboardModal {
 
     let list = this.cachedEntries;
 
-    // Filter by Rivals Tab
+    // Filter by Rivals/Friends Tab
     if (this.activeTab === 'RIVALS') {
-      list = list.filter((e) => e.isRival || e.isCurrentPlayer);
+      list = list.filter((e) => e.isRival || storageManager.isRival(e.callsign) || e.isCurrentPlayer);
     }
 
     // Filter by Search Query
@@ -224,7 +276,7 @@ export class LeaderboardModal {
     }
 
     if (list.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" class="lb-empty">${this.activeTab === 'RIVALS' ? 'Keine Rivalen/Freunde markiert. Klicke auf den Stern in der Tabelle, um Rivalen hinzuzufügen!' : 'Keine passenden Spielereinträge gefunden.'}</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" class="lb-empty">${this.activeTab === 'RIVALS' ? 'Keine Freunde markiert. Gib oben das Callsign deines Freundes ein!' : 'Keine passenden Spielereinträge gefunden.'}</td></tr>`;
       return;
     }
 
@@ -243,7 +295,7 @@ export class LeaderboardModal {
         <tr class="${rowClass}">
           <td style="text-align: center; font-weight: 700; color: ${isTop3 ? '#FFD700' : 'var(--cyan-primary)'};">${rankDisplay}</td>
           <td>
-            <button class="btn-rival-star" data-pilot="${entry.callsign}" title="${isRival ? 'Rivalen entfernen' : 'Als Rivale/Freund markieren'}" style="background: none; border: none; cursor: pointer; padding: 0 4px; vertical-align: middle;">
+            <button class="btn-rival-star" data-pilot="${entry.callsign}" title="${isRival ? 'Freund entfernen' : 'Als Freund markieren'}" style="background: none; border: none; cursor: pointer; padding: 0 4px; vertical-align: middle;">
               ${starSvg}
             </button>
             <span class="pilot-name" style="font-weight: 700;">${entry.callsign}</span>
@@ -253,8 +305,8 @@ export class LeaderboardModal {
           <td style="text-align: center; font-weight: 700; color: #FFD700;">${entry.totalStars} ★</td>
           <td style="text-align: right; color: var(--text-dim); font-size: 11px;">${entry.bestTime}</td>
           <td style="text-align: center;">
-            <button class="btn-compare-link" data-pilot="${entry.callsign}">
-              1v1
+            <button class="btn-compare-link modal-btn modal-btn-small" data-pilot="${entry.callsign}" style="padding: 3px 8px; font-size: 10px;">
+              ⚔️ VERGLEICHEN
             </button>
           </td>
         </tr>
@@ -295,18 +347,21 @@ export class LeaderboardModal {
     const myProgress = storageManager.getCampaignProgress();
     const myStats = myProgress.sectorStats || {};
     const myTotalStars = storageManager.calculateTotalStars(myStats);
+    const myCleared = myProgress.maxClearedSector || (myProgress.unlockedSector > 1 ? myProgress.unlockedSector - 1 : 0);
 
     const rivalEntry = this.cachedEntries.find((e) => e.callsign.toUpperCase() === rivalCallsign.toUpperCase()) || {
       callsign: rivalCallsign,
       totalStars: 15,
+      maxClearedSector: 5,
       highestLevel: '05 / 10 SEKTOREN',
       sectorStats: leaderboardService.generateMockSectorStats(5, 1.0)
     };
     const rivalStats = rivalEntry.sectorStats || {};
     const rivalTotalStars = rivalEntry.totalStars || 0;
+    const rivalCleared = rivalEntry.maxClearedSector || 5;
 
     if (titleEl) {
-      titleEl.textContent = `1v1 DIREKTVERGLEICH: ${myCallsign} vs. ${rivalCallsign}`;
+      titleEl.textContent = `SPIELER-VERGLEICH: ${myCallsign} vs. ${rivalCallsign}`;
     }
 
     let sectorRowsHtml = '';
@@ -327,54 +382,59 @@ export class LeaderboardModal {
       let verdict = '--';
       if (mySec && rivalSec) {
         if (myStars > rivalS || (myStars === rivalS && myTime <= rivalT)) {
-          verdict = `<span class="cell-winner">DU (${myStars}★ vs ${rivalS}★)</span>`;
+          verdict = `<span class="cell-winner" style="color: #00ff88; font-weight: 700;">DU (BESSER)</span>`;
           myWins++;
         } else {
-          verdict = `<span style="color: #ff5577;">${rivalCallsign} (${rivalS}★ vs ${myStars}★)</span>`;
+          verdict = `<span style="color: #ff5577; font-weight: 700;">${rivalCallsign}</span>`;
           rivalWins++;
         }
       } else if (mySec && !rivalSec) {
-        verdict = `<span class="cell-winner">DU (VORSPRUNG)</span>`;
+        verdict = `<span class="cell-winner" style="color: #00ff88; font-weight: 700;">DU (VORSPRUNG)</span>`;
         myWins++;
       } else if (!mySec && rivalSec) {
-        verdict = `<span style="color: #ff5577;">${rivalCallsign}</span>`;
+        verdict = `<span style="color: #ff5577; font-weight: 700;">${rivalCallsign}</span>`;
         rivalWins++;
       }
 
+      const myTimeFormatted = myTime ? (myTime < 60 ? `${myTime.toFixed(1)}s` : `${Math.floor(myTime/60)}:${String(Math.floor(myTime%60)).padStart(2, '0')}`) : '';
+      const rivalTimeFormatted = rivalT ? (rivalT < 60 ? `${rivalT.toFixed(1)}s` : `${Math.floor(rivalT/60)}:${String(Math.floor(rivalT%60)).padStart(2, '0')}`) : '';
+
       sectorRowsHtml += `
         <tr>
-          <td style="font-weight: 700;">SEKTOR 0${s}</td>
-          <td style="color: #00FF88;">${myStars > 0 ? `${myStars} ★ (${myTime.toFixed(1)}s)` : 'OFFEN'}</td>
-          <td style="color: #00F0FF;">${rivalS > 0 ? `${rivalS} ★ (${rivalT ? rivalT.toFixed(1) + 's' : ''})` : 'OFFEN'}</td>
+          <td style="font-weight: 700; color: var(--cyan-primary);">SEKTOR 0${s}</td>
+          <td style="color: #00FF88;">${myStars > 0 ? `${myStars} ★ (${myTimeFormatted})` : 'OFFEN'}</td>
+          <td style="color: #00F0FF;">${rivalS > 0 ? `${rivalS} ★ (${rivalTimeFormatted})` : 'OFFEN'}</td>
           <td>${verdict}</td>
         </tr>
       `;
     }
 
     compareBody.innerHTML = `
-      <div class="rival-compare-grid">
-        <div class="rival-pilot-card">
-          <div class="rival-pilot-name" style="color: #00FF88;">${myCallsign} (DU)</div>
-          <div class="rival-pilot-stars">${myTotalStars} / 30 ★</div>
-          <div style="font-size: 11px; color: var(--text-dim); margin-top: 4px;">Siege: ${myWins} Sektoren</div>
+      <div class="rival-compare-grid" style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; margin-bottom: 12px;">
+        <div class="rival-pilot-card" style="background: rgba(0, 255, 136, 0.08); border: 1px solid rgba(0, 255, 136, 0.3); border-radius: 6px; padding: 10px; text-align: center;">
+          <div class="rival-pilot-name" style="color: #00FF88; font-weight: 700; font-size: 13px;">${myCallsign} (DU)</div>
+          <div class="rival-pilot-stars" style="color: #FFD700; font-weight: 700; font-size: 13px; margin: 4px 0;">${myTotalStars} / 30 ★</div>
+          <div style="font-size: 11px; color: #a0c4d8;">Erreicht: 0${myCleared} / 10</div>
+          <div style="font-size: 11px; color: #00FF88; margin-top: 2px;">Siege: ${myWins} Sektoren</div>
         </div>
-        <div class="rival-vs-divider">VS</div>
-        <div class="rival-pilot-card">
-          <div class="rival-pilot-name" style="color: #00F0FF;">${rivalCallsign}</div>
-          <div class="rival-pilot-stars">${rivalTotalStars} / 30 ★</div>
-          <div style="font-size: 11px; color: var(--text-dim); margin-top: 4px;">Siege: ${rivalWins} Sektoren</div>
+        <div class="rival-vs-divider" style="font-weight: 800; color: var(--text-dim); font-size: 14px;">VS</div>
+        <div class="rival-pilot-card" style="background: rgba(0, 240, 255, 0.08); border: 1px solid rgba(0, 240, 255, 0.3); border-radius: 6px; padding: 10px; text-align: center;">
+          <div class="rival-pilot-name" style="color: #00F0FF; font-weight: 700; font-size: 13px;">${rivalCallsign}</div>
+          <div class="rival-pilot-stars" style="color: #FFD700; font-weight: 700; font-size: 13px; margin: 4px 0;">${rivalTotalStars} / 30 ★</div>
+          <div style="font-size: 11px; color: #a0c4d8;">Erreicht: 0${rivalCleared} / 10</div>
+          <div style="font-size: 11px; color: #00F0FF; margin-top: 2px;">Siege: ${rivalWins} Sektoren</div>
         </div>
       </div>
 
       <div style="font-size: 11px; font-weight: 700; color: var(--cyan-primary); margin: 6px 0;">SEKTOR-FÜR-SEKTOR VERGLEICH:</div>
-      <div style="max-height: 220px; overflow-y: auto; border: 1px solid rgba(0, 240, 255, 0.2);">
-        <table class="rival-sectors-table">
+      <div style="max-height: 220px; overflow-y: auto; border: 1px solid rgba(0, 240, 255, 0.2); border-radius: 4px;">
+        <table class="rival-sectors-table" style="width: 100%; border-collapse: collapse; font-size: 11px;">
           <thead>
-            <tr>
-              <th>SEKTOR</th>
-              <th>DEINE LEISTUNG</th>
-              <th>${rivalCallsign}</th>
-              <th>SEKTOR-DUELL</th>
+            <tr style="background: rgba(0, 240, 255, 0.1); border-bottom: 1px solid rgba(0, 240, 255, 0.2);">
+              <th style="padding: 6px 8px; text-align: left;">SEKTOR</th>
+              <th style="padding: 6px 8px; text-align: left;">DEINE ZEIT</th>
+              <th style="padding: 6px 8px; text-align: left;">${rivalCallsign}</th>
+              <th style="padding: 6px 8px; text-align: left;">DUELL</th>
             </tr>
           </thead>
           <tbody>

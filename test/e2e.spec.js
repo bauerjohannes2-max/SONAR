@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 
-test.describe('SONAR v1.13.0 Tactical Gauntlet Loop E2E Validation', () => {
+test.describe('SONAR v1.14.0 Tactical Gauntlet Loop E2E Validation', () => {
 
   test.beforeEach(async ({ page }) => {
     page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
@@ -11,15 +11,15 @@ test.describe('SONAR v1.13.0 Tactical Gauntlet Loop E2E Validation', () => {
     });
   });
 
-  test('1. Version Endpoint & JSON Integrity (v1.13.0)', async ({ request }) => {
+  test('1. Version Endpoint & JSON Integrity (v1.14.0)', async ({ request }) => {
     const response = await request.get('/version.json');
     expect(response.ok()).toBeTruthy();
     const data = await response.json();
-    expect(data.version).toBe('1.13.0');
-    expect(data.build).toBe(20260818);
+    expect(data.version).toBe('1.14.0');
+    expect(data.build).toBe(20260819);
   });
 
-  test('2. Sci-Fi Audio Assets Existence & Preloading in Web Audio API (8 MP3 Samples)', async ({ page }) => {
+  test('2. Sci-Fi Audio Assets Existence & Preloading in Web Audio API (10 MP3 Samples)', async ({ page }) => {
     const audioFiles = [
       'assets/audio/sonar_ping.mp3',
       'assets/audio/crystal_pickup.mp3',
@@ -28,6 +28,8 @@ test.describe('SONAR v1.13.0 Tactical Gauntlet Loop E2E Validation', () => {
       'assets/audio/portal_open.mp3',
       'assets/audio/ambient_drone.mp3',
       'assets/audio/ambient_main.mp3',
+      'assets/audio/music_menu.mp3',
+      'assets/audio/music_gameplay.mp3',
       'assets/audio/bg_music.mp3'
     ];
 
@@ -46,7 +48,7 @@ test.describe('SONAR v1.13.0 Tactical Gauntlet Loop E2E Validation', () => {
       return window.game.audioEngine.buffers.size;
     });
 
-    expect(decodedCount).toBe(8);
+    expect(decodedCount).toBe(10);
   });
 
   test('3. CC0 Sci-Fi Sprites Existence & SpriteManager Preloading (6 PNG Assets)', async ({ page }) => {
@@ -1020,6 +1022,103 @@ test.describe('SONAR v1.13.0 Tactical Gauntlet Loop E2E Validation', () => {
     expect(sectorLockCheck.isSector2Unlocked).toBe(true);
     expect(sectorLockCheck.isSector3Unlocked).toBe(true);
     expect(sectorLockCheck.isSector4Locked).toBe(true);
+  });
+
+  test('24. Permanent Action Buttons Visibility in Gameplay (Sektor 01 & Sektor 04)', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    // Start Sektor 01
+    await page.evaluate(() => {
+      window.game.loadSector(0);
+    });
+
+    const pingBtn = page.locator('#btn-ping');
+    const sneakBtn = page.locator('#btn-sneak');
+    const baitBtn = page.locator('#btn-bait');
+
+    await expect(pingBtn).toBeVisible();
+    await expect(sneakBtn).toBeVisible();
+    await expect(baitBtn).toBeVisible();
+
+    // Start Sektor 04
+    await page.evaluate(() => {
+      window.game.loadSector(3);
+    });
+
+    await expect(pingBtn).toBeVisible();
+    await expect(sneakBtn).toBeVisible();
+    await expect(baitBtn).toBeVisible();
+  });
+
+  test('25. Leaderboard Friends System, Add Friend & Side-by-Side Comparison Modal', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    // Open Leaderboard Modal
+    await page.evaluate(() => {
+      window.game.leaderboardModal.open();
+    });
+
+    const modal = page.locator('#leaderboard-modal');
+    await expect(modal).toBeVisible();
+
+    // Click Friends Tab
+    const friendsTab = page.locator('#tab-lb-rivals');
+    await friendsTab.click();
+
+    // Check add friend input bar
+    const addFriendInput = page.locator('#input-friend-callsign');
+    const addFriendBtn = page.locator('#btn-submit-add-friend');
+    await expect(addFriendInput).toBeVisible();
+    await expect(addFriendBtn).toBeVisible();
+
+    // Add a new friend
+    await addFriendInput.fill('CYBER_NEXUS');
+    await addFriendBtn.click();
+
+    // Check confirmation feedback
+    const feedback = page.locator('#friend-add-feedback');
+    await expect(feedback).toBeVisible();
+    await expect(feedback).toContainText('CYBER_NEXUS zu deinen Freunden hinzugefügt');
+
+    // Check compare modal
+    await page.evaluate(() => {
+      window.game.leaderboardModal.openRivalComparison('CYBER_NEXUS');
+    });
+
+    const compareModal = page.locator('#rival-compare-modal');
+    await expect(compareModal).toBeVisible();
+    const compareTitle = page.locator('#rival-compare-title');
+    await expect(compareTitle).toContainText('SPIELER-VERGLEICH');
+  });
+
+  test('26. Dual-Soundtrack System & Crossfade Verification', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    // Start menu music
+    const menuMusicCheck = await page.evaluate(() => {
+      window.game.audioEngine.init();
+      window.game.audioEngine.playMenuMusic(0.1);
+      return {
+        track: window.game.audioEngine.currentMusicTrack,
+        isMusicPlaying: window.game.audioEngine.isMusicPlaying
+      };
+    });
+
+    expect(menuMusicCheck.track).toBe('menu');
+
+    // Start gameplay sector
+    const gameplayMusicCheck = await page.evaluate(() => {
+      window.game.loadSector(0);
+      return {
+        track: window.game.audioEngine.currentMusicTrack,
+        isMusicPlaying: window.game.audioEngine.isMusicPlaying
+      };
+    });
+
+    expect(gameplayMusicCheck.track).toBe('gameplay');
   });
 
 });

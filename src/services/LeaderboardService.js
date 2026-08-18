@@ -7,6 +7,14 @@
 import { firebaseService } from './FirebaseService.js';
 import { storageManager } from './StorageManager.js';
 
+export function formatTime(seconds) {
+  if (seconds === undefined || seconds === null || seconds <= 0 || isNaN(seconds)) return '--:--';
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  const ms = Math.floor((seconds % 1) * 100);
+  return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${String(ms).padStart(2, '0')}`;
+}
+
 class LeaderboardService {
   constructor() {
     this.cachedList = null;
@@ -31,7 +39,7 @@ class LeaderboardService {
       const stars = (time <= 45 && pings <= 3) ? 3 : (time <= 45 || pings <= 3 ? 2 : 1);
       stats[s] = {
         stars,
-        time: parseFloat(time.toFixed(1)),
+        time: parseFloat(time.toFixed(2)),
         pingsUsed: pings,
         rank: stars === 3 ? 'S' : (stars === 2 ? 'A' : 'B')
       };
@@ -80,7 +88,7 @@ class LeaderboardService {
         callsign: playerName,
         maxClearedSector: playerCleared,
         totalStars: playerStars,
-        bestTime: parseFloat(playerTotalTime.toFixed(1)) || 0,
+        bestTime: parseFloat(playerTotalTime.toFixed(2)) || 0,
         date: dateStr,
         sectorStats: playerStats,
         isCurrentPlayer: true
@@ -104,7 +112,8 @@ class LeaderboardService {
       maxClearedSector: entry.maxClearedSector,
       highestLevel: this.formatClearedSector(entry.maxClearedSector),
       totalStars: entry.totalStars || 0,
-      bestTime: entry.bestTime ? `${entry.bestTime}s` : '--',
+      bestTime: formatTime(entry.bestTime),
+      rawTime: entry.bestTime || 0,
       sectorStats: entry.sectorStats || {},
       date: entry.date,
       isCurrentPlayer: !!entry.isCurrentPlayer,
@@ -121,19 +130,22 @@ class LeaderboardService {
       return this.cachedList;
     }
 
-    const cloudData = await firebaseService.fetchTopPilots(15);
+    const cloudData = await firebaseService.fetchTopPilots(25);
     const pilot = storageManager.getCurrentPilot();
     const currentCallsign = pilot ? pilot.callsign : 'GAST';
 
     if (cloudData && cloudData.length > 0) {
       const formatted = cloudData.map((d, idx) => {
         const stats = d.sectorStats || {};
-        let tStars = 0;
-        let tTime = 0;
-        for (let k in stats) {
-          if (stats[k]) {
-            tStars += stats[k].stars || (stats[k].rank === 'S' ? 3 : (stats[k].rank === 'A' ? 2 : 1));
-            if (stats[k].time) tTime += stats[k].time;
+        let tStars = d.totalStars !== undefined ? d.totalStars : 0;
+        let tTime = d.bestTime !== undefined ? d.bestTime : 0;
+
+        if (tStars === 0 && stats) {
+          for (let k in stats) {
+            if (stats[k]) {
+              tStars += stats[k].stars || (stats[k].rank === 'S' ? 3 : (stats[k].rank === 'A' ? 2 : 1));
+              if (stats[k].time) tTime += stats[k].time;
+            }
           }
         }
 
@@ -143,7 +155,8 @@ class LeaderboardService {
           maxClearedSector: d.maxClearedSector || 0,
           highestLevel: this.formatClearedSector(d.maxClearedSector || 0),
           totalStars: tStars,
-          bestTime: tTime > 0 ? `${tTime.toFixed(1)}s` : '--',
+          bestTime: formatTime(tTime),
+          rawTime: tTime,
           sectorStats: stats,
           date: d.date || 'ONLINE',
           isCurrentPlayer: d.callsign.toUpperCase() === currentCallsign.toUpperCase(),

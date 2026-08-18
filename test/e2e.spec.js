@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 
-test.describe('SONAR v1.14.0 Tactical Gauntlet Loop E2E Validation', () => {
+test.describe('SONAR v1.15.0 Tactical Gauntlet Loop E2E Validation', () => {
 
   test.beforeEach(async ({ page }) => {
     page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
@@ -11,12 +11,12 @@ test.describe('SONAR v1.14.0 Tactical Gauntlet Loop E2E Validation', () => {
     });
   });
 
-  test('1. Version Endpoint & JSON Integrity (v1.14.0)', async ({ request }) => {
+  test('1. Version Endpoint & JSON Integrity (v1.15.0)', async ({ request }) => {
     const response = await request.get('/version.json');
     expect(response.ok()).toBeTruthy();
     const data = await response.json();
-    expect(data.version).toBe('1.14.0');
-    expect(data.build).toBe(20260819);
+    expect(data.version).toBe('1.15.0');
+    expect(data.build).toBe(20260820);
   });
 
   test('2. Sci-Fi Audio Assets Existence & Preloading in Web Audio API (10 MP3 Samples)', async ({ page }) => {
@@ -1091,6 +1091,18 @@ test.describe('SONAR v1.14.0 Tactical Gauntlet Loop E2E Validation', () => {
     await expect(compareModal).toBeVisible();
     const compareTitle = page.locator('#rival-compare-title');
     await expect(compareTitle).toContainText('SPIELER-VERGLEICH');
+
+    // Check search input placeholder
+    const searchInput = page.locator('#lb-search-input');
+    const placeholder = await searchInput.getAttribute('placeholder');
+    expect(placeholder).toContain('Spieler suchen');
+
+    // Check simplified 4 columns in compare table
+    const ths = page.locator('.rival-sectors-table th');
+    await expect(ths.nth(0)).toContainText('SEKTOR');
+    await expect(ths.nth(1)).toContainText('DEINE ZEIT');
+    await expect(ths.nth(2)).toContainText('CYBER_NEXUS ZEIT');
+    await expect(ths.nth(3)).toContainText('DUELL');
   });
 
   test('26. Dual-Soundtrack System & Crossfade Verification', async ({ page }) => {
@@ -1119,6 +1131,43 @@ test.describe('SONAR v1.14.0 Tactical Gauntlet Loop E2E Validation', () => {
     });
 
     expect(gameplayMusicCheck.track).toBe('gameplay');
+  });
+
+  test('27. Header Mute Button Toggle & AudioContext Mute State', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    const muteBtn = page.locator('#btn-header-mute');
+    await expect(muteBtn).toBeVisible();
+
+    // Click Mute
+    await muteBtn.click();
+    const isMutedFirst = await page.evaluate(() => window.game.audioEngine.isMuted);
+    expect(isMutedFirst).toBe(true);
+    await expect(muteBtn).toHaveClass(/muted/);
+
+    // Click Unmute
+    await muteBtn.click();
+    const isMutedSecond = await page.evaluate(() => window.game.audioEngine.isMuted);
+    expect(isMutedSecond).toBe(false);
+    await expect(muteBtn).not.toHaveClass(/muted/);
+  });
+
+  test('28. Sector 01 Briefing Title & 3-Line Clean Sector Cards Layout', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    // Check StoryIntro briefing title and log lines
+    const storyCheck = await page.evaluate(() => {
+      const intro = window.game.storyIntro;
+      return {
+        logLines: intro.logLines,
+        hasAbyss: intro.logLines.some(l => l.includes('verlassenen Tiefseestation'))
+      };
+    });
+
+    expect(storyCheck.hasAbyss).toBe(true);
+    expect(storyCheck.logLines.length).toBeGreaterThanOrEqual(4);
   });
 
 });

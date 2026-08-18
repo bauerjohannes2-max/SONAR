@@ -261,16 +261,7 @@ export class MenuSystem {
     ctx.fillStyle = '#05070a';
     ctx.fillRect(0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
 
-    // 2. Animated Ambient Radar Ring
-    const radarRadius = Math.max(0, (time * 55) % 480);
-    const radarAlpha = Math.max(0, 1 - radarRadius / 480) * 0.18;
-    ctx.beginPath();
-    ctx.arc(CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT / 2, Math.max(0, radarRadius), 0, Math.PI * 2);
-    ctx.strokeStyle = `rgba(0, 240, 255, ${radarAlpha})`;
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    // 3. Floating Phosphor Dust
+    // 2. Calm Ambient Sci-Fi Starfield & Phosphor Dust (No Distracting Pulsing Radar Circle)
     for (let p of this.particles) {
       p.x += p.vx;
       p.y += p.vy;
@@ -281,11 +272,11 @@ export class MenuSystem {
 
       ctx.beginPath();
       ctx.arc(p.x, p.y, Math.max(0, p.radius), 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(0, 240, 255, ${p.alpha * 0.35})`;
+      ctx.fillStyle = `rgba(0, 240, 255, ${p.alpha * 0.28})`;
       ctx.fill();
     }
 
-    // 4. Game Logo Banner with Subtle Scanline & Glowing Subtitle
+    // 3. Game Logo Banner with Subtle Scanline & Glowing Subtitle
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
@@ -454,63 +445,72 @@ export class MenuSystem {
     ctx.shadowBlur = isSelected ? 10 : 4;
 
     if (type === 'HANGAR') {
-      // Submarine / Drone Frame Hexagon
-      const r = 11;
+      // Wrench / Drone Tool Icon
       ctx.beginPath();
-      for (let i = 0; i < 6; i++) {
-        const a = (i * Math.PI) / 3 - Math.PI / 6;
-        const px = cx + r * Math.cos(a);
-        const py = cy + r * Math.sin(a);
-        if (i === 0) ctx.moveTo(px, py);
-        else ctx.lineTo(px, py);
-      }
-      ctx.closePath();
+      ctx.moveTo(cx - 7, cy - 7);
+      ctx.lineTo(cx + 7, cy + 7);
+      ctx.lineWidth = isSelected ? 3 : 2.4;
       ctx.stroke();
+      ctx.lineWidth = isSelected ? 1.8 : 1.4;
+      // Wrench Jaws
       ctx.beginPath();
-      ctx.arc(cx, cy, 3, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.arc(cx - 6, cy - 6, 4.5, 0.3 * Math.PI, 1.4 * Math.PI);
+      ctx.stroke();
+      // Glider Wing Accent
+      ctx.beginPath();
+      ctx.moveTo(cx - 8, cy + 2);
+      ctx.lineTo(cx + 2, cy - 8);
+      ctx.stroke();
     } else if (type === 'LEADERBOARD') {
-      // Cyber Trophy & Star
+      // Clear Trophy Cup Symbol
       ctx.beginPath();
-      ctx.moveTo(cx - 9, cy - 8);
-      ctx.lineTo(cx + 9, cy - 8);
-      ctx.lineTo(cx + 6, cy + 2);
-      ctx.lineTo(cx - 6, cy + 2);
+      ctx.moveTo(cx - 8, cy - 8);
+      ctx.lineTo(cx + 8, cy - 8);
+      ctx.lineTo(cx + 6, cy + 1);
+      ctx.quadraticCurveTo(cx, cy + 5, cx - 6, cy + 1);
       ctx.closePath();
       ctx.stroke();
+      // Handles
       ctx.beginPath();
-      ctx.moveTo(cx, cy + 2);
+      ctx.arc(cx - 7.5, cy - 3.5, 3.5, 0.5 * Math.PI, 1.5 * Math.PI);
+      ctx.moveTo(cx + 7.5, cy - 7);
+      ctx.arc(cx + 7.5, cy - 3.5, 3.5, -0.5 * Math.PI, 0.5 * Math.PI);
+      ctx.stroke();
+      // Stem & Base
+      ctx.beginPath();
+      ctx.moveTo(cx, cy + 4);
       ctx.lineTo(cx, cy + 8);
-      ctx.moveTo(cx - 7, cy + 8);
-      ctx.lineTo(cx + 7, cy + 8);
+      ctx.moveTo(cx - 6, cy + 8);
+      ctx.lineTo(cx + 6, cy + 8);
       ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(cx, cy - 3, 2, 0, Math.PI * 2);
-      ctx.fill();
     } else if (type === 'PROFILE') {
-      // Pilot ID & Helmet
+      // Pilot ID & Helmet with Visor
       ctx.beginPath();
-      ctx.arc(cx, cy - 4, 5.5, 0, Math.PI * 2);
+      ctx.arc(cx, cy - 2, 7.5, Math.PI, 0);
+      ctx.lineTo(cx + 7.5, cy + 4);
+      ctx.quadraticCurveTo(cx, cy + 9, cx - 7.5, cy + 4);
+      ctx.closePath();
       ctx.stroke();
+      // Visor Bar
       ctx.beginPath();
-      ctx.arc(cx, cy + 9, 9, Math.PI * 1.25, Math.PI * 1.75);
+      ctx.moveTo(cx - 6, cy + 1);
+      ctx.lineTo(cx + 6, cy + 1);
+      ctx.lineWidth = isSelected ? 2.5 : 2;
       ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(cx, cy - 4, 2, 0, Math.PI * 2);
-      ctx.fill();
     } else if (type === 'SETTINGS') {
-      // Tactical Gear
+      // Precision Gear
       ctx.beginPath();
-      ctx.arc(cx, cy, 7, 0, Math.PI * 2);
+      ctx.arc(cx, cy, 5.5, 0, Math.PI * 2);
       ctx.stroke();
       ctx.beginPath();
       ctx.arc(cx, cy, 2.5, 0, Math.PI * 2);
-      ctx.fill();
-      for (let i = 0; i < 4; i++) {
-        const a = (i * Math.PI) / 2;
+      ctx.stroke();
+      for (let i = 0; i < 6; i++) {
+        const a = (i * Math.PI) / 3;
         ctx.beginPath();
-        ctx.moveTo(cx + 6.5 * Math.cos(a), cy + 6.5 * Math.sin(a));
-        ctx.lineTo(cx + 10.5 * Math.cos(a), cy + 10.5 * Math.sin(a));
+        ctx.moveTo(cx + 5.5 * Math.cos(a), cy + 5.5 * Math.sin(a));
+        ctx.lineTo(cx + 9.5 * Math.cos(a), cy + 9.5 * Math.sin(a));
+        ctx.lineWidth = isSelected ? 2.2 : 1.8;
         ctx.stroke();
       }
     }
@@ -547,7 +547,7 @@ export class MenuSystem {
     ctx.fillStyle = '#FFD700';
     ctx.fillText(`GESAMTERFOLG: ${totalStars} / 30 ★ • FREIGESCHALTET: 0${Math.min(10, this.unlockedSector)}`, CONFIG.CANVAS_WIDTH / 2, 76);
 
-    // 2x5 Grid of Sector Cards
+    // 2x5 Grid of Sector Cards (Simplified 3-line Layout)
     const startX = 70;
     const startY = 110;
     const cardW = 120;
@@ -580,63 +580,53 @@ export class MenuSystem {
       ctx.strokeRect(x, y, cardW, cardH);
 
       const numStr = i + 1 < 10 ? `0${i + 1}` : `${i + 1}`;
-      const lvl = LEVELS[i];
       ctx.textAlign = 'center';
 
       if (isUnlocked) {
-        ctx.font = '700 14.5px "Chakra Petch", "JetBrains Mono", monospace';
+        // Line 1: SEKTOR XX (Bold)
+        ctx.font = '700 15px "Chakra Petch", "JetBrains Mono", monospace';
         ctx.fillStyle = isSelected ? '#FFFFFF' : '#00f0ff';
-        ctx.fillText(`SEKTOR ${numStr}`, x + cardW / 2, y + 22);
-
-        if (lvl && lvl.subtitle) {
-          ctx.font = '600 9.5px "Chakra Petch", "JetBrains Mono", monospace';
-          ctx.fillStyle = isSelected ? '#a0f0ff' : '#00c8d8';
-          ctx.fillText(lvl.subtitle, x + cardW / 2, y + 38);
-        }
+        ctx.fillText(`SEKTOR ${numStr}`, x + cardW / 2, y + 36);
 
         if (stats) {
+          // Line 2: ★ ★ ★ (Gold)
           const starsEarned = stats.stars || (stats.rank === 'S' ? 3 : (stats.rank === 'A' ? 2 : 1));
           const starStr = starsEarned >= 3 ? '★ ★ ★' : (starsEarned === 2 ? '★ ★ ☆' : '★ ☆ ☆');
 
-          ctx.font = '700 13px "JetBrains Mono", monospace';
+          ctx.font = '700 14px "JetBrains Mono", monospace';
           ctx.fillStyle = '#FFD700';
-          ctx.fillText(starStr, x + cardW / 2, y + 64);
+          ctx.fillText(starStr, x + cardW / 2, y + 68);
 
-          ctx.font = '600 11px "Chakra Petch", "JetBrains Mono", monospace';
+          // Line 3: 36.0s (Green / Cyan)
+          ctx.font = '600 12px "Chakra Petch", "JetBrains Mono", monospace';
           ctx.fillStyle = '#00ff88';
-          ctx.fillText('GESICHERT', x + cardW / 2, y + 86);
-
-          ctx.font = '500 10.5px "Chakra Petch", "JetBrains Mono", monospace';
-          ctx.fillStyle = '#607b8b';
-          ctx.fillText(`${stats.time.toFixed(1)}s`, x + cardW / 2, y + 106);
+          ctx.fillText(`${stats.time.toFixed(1)}s`, x + cardW / 2, y + 98);
         } else {
-          // Newly Unlocked Sector (Clean status badge without any lock icon)
+          // Line 2: ☆ ☆ ☆ (Dim / Outline)
+          ctx.font = '700 14px "JetBrains Mono", monospace';
+          ctx.fillStyle = 'rgba(255, 215, 0, 0.4)';
+          ctx.fillText('☆ ☆ ☆', x + cardW / 2, y + 68);
+
+          // Line 3: BEREIT (Gold / Cyan)
           ctx.font = '700 12px "Chakra Petch", "JetBrains Mono", monospace';
           ctx.fillStyle = '#FFD700';
-          ctx.fillText('BEREIT', x + cardW / 2, y + 66);
-
-          ctx.font = '500 10px "Chakra Petch", "JetBrains Mono", monospace';
-          ctx.fillStyle = '#00ffaa';
-          ctx.fillText('FREIGESCHALTET', x + cardW / 2, y + 86);
-
-          ctx.font = '500 9.5px "Chakra Petch", "JetBrains Mono", monospace';
-          ctx.fillStyle = '#607b8b';
-          ctx.fillText('3 DATENKERNE', x + cardW / 2, y + 106);
+          ctx.fillText('BEREIT', x + cardW / 2, y + 98);
         }
       } else {
+        // Line 1: SEKTOR XX (Dim)
         ctx.font = '700 15px "Chakra Petch", "JetBrains Mono", monospace';
         ctx.fillStyle = '#4a5760';
-        ctx.fillText(`SEKTOR ${numStr}`, x + cardW / 2, y + 30);
+        ctx.fillText(`SEKTOR ${numStr}`, x + cardW / 2, y + 36);
 
-        if (lvl && lvl.subtitle) {
-          ctx.font = '500 9px "Chakra Petch", "JetBrains Mono", monospace';
-          ctx.fillStyle = '#3a4750';
-          ctx.fillText(lvl.subtitle, x + cardW / 2, y + 48);
-        }
+        // Line 2: ☆ ☆ ☆ (Locked / Dim)
+        ctx.font = '700 14px "JetBrains Mono", monospace';
+        ctx.fillStyle = '#3a4750';
+        ctx.fillText('☆ ☆ ☆', x + cardW / 2, y + 68);
 
-        ctx.font = '700 11.5px "Chakra Petch", "JetBrains Mono", monospace';
+        // Line 3: GESPERRT (Red)
+        ctx.font = '700 12px "Chakra Petch", "JetBrains Mono", monospace';
         ctx.fillStyle = '#883344';
-        ctx.fillText('GESPERRT', x + cardW / 2, y + 78);
+        ctx.fillText('GESPERRT', x + cardW / 2, y + 98);
       }
       ctx.restore();
     }

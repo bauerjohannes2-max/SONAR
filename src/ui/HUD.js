@@ -120,10 +120,10 @@ export class HUD {
     ctx.fillText('PAUSE • SYSTEM BEREIT', this.width / 2, 120);
 
     const buttons = [
-      { text: '▶ WEITERSPIELEN (ESC / SPACE)', y: 200, color: CONFIG.COLORS.PLAYER },
-      { text: '➔ LEVEL-ÜBERSICHT (L)', y: 255, color: CONFIG.COLORS.CRYSTAL },
-      { text: '↺ SEKTOR-NEUSTART (R)', y: 310, color: CONFIG.COLORS.TEXT_MAIN },
-      { text: '⎋ HAUPTMENÜ (M)', y: 365, color: CONFIG.COLORS.TEXT_DIM }
+      { text: '▶ WEITERSPIELEN', badge: 'ESC', y: 200, color: CONFIG.COLORS.PLAYER },
+      { text: '⊞ LEVELAUSWAHL', badge: 'L', y: 255, color: CONFIG.COLORS.CRYSTAL },
+      { text: '↺ NEUSTART', badge: 'R', y: 310, color: CONFIG.COLORS.TEXT_MAIN },
+      { text: '⌂ HAUPTMENÜ', badge: 'M', y: 365, color: CONFIG.COLORS.TEXT_DIM }
     ];
 
     buttons.forEach((b) => {
@@ -133,9 +133,16 @@ export class HUD {
       ctx.lineWidth = 1.5;
       ctx.strokeRect(this.width / 2 - 190, b.y - 22, 380, 44);
 
-      ctx.font = '700 13.5px "Chakra Petch", "JetBrains Mono", monospace';
+      ctx.font = '700 14px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.fillStyle = b.color;
       ctx.fillText(b.text, this.width / 2, b.y);
+
+      // Subtle desktop shortcut tag on right edge
+      if (b.badge) {
+        ctx.font = '600 10.5px "JetBrains Mono", monospace';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+        ctx.fillText(`[${b.badge}]`, this.width / 2 + 160, b.y);
+      }
     });
 
     ctx.restore();
@@ -198,9 +205,9 @@ export class HUD {
     ctx.fillText(subText, this.width / 2, 162);
 
     const buttons = [
-      { text: '↺ SEKTOR-NEUSTART (R / SPACE)', y: 240, color: CONFIG.COLORS.HUNTER },
-      { text: '➔ LEVEL-ÜBERSICHT (L)', y: 300, color: CONFIG.COLORS.CRYSTAL },
-      { text: '⎋ HAUPTMENÜ (M)', y: 360, color: CONFIG.COLORS.TEXT_DIM }
+      { text: '↺ NEUSTART', badge: 'R', y: 240, color: CONFIG.COLORS.HUNTER },
+      { text: '⊞ LEVELAUSWAHL', badge: 'L', y: 300, color: CONFIG.COLORS.CRYSTAL },
+      { text: '⌂ HAUPTMENÜ', badge: 'M', y: 360, color: CONFIG.COLORS.TEXT_DIM }
     ];
 
     buttons.forEach((b) => {
@@ -210,9 +217,15 @@ export class HUD {
       ctx.lineWidth = 1.5;
       ctx.strokeRect(this.width / 2 - 190, b.y - 22, 380, 44);
 
-      ctx.font = '700 13.5px "Chakra Petch", "JetBrains Mono", monospace';
+      ctx.font = '700 14px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.fillStyle = b.color;
       ctx.fillText(b.text, this.width / 2, b.y);
+
+      if (b.badge) {
+        ctx.font = '600 10.5px "JetBrains Mono", monospace';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+        ctx.fillText(`[${b.badge}]`, this.width / 2 + 160, b.y);
+      }
     });
 
     ctx.restore();
@@ -280,15 +293,15 @@ export class HUD {
     ctx.fillText(`★ STERN 3: GHOST-MEISTERSCHAFT (${stats.pingsUsed} PINGS / MAX: 3)  ${isStealthy ? '✓' : '✗'}`, boxX + 20, boxY + 90);
 
     const nextActionLabel = isEndless
-      ? '▶ NÄCHSTE ETAGE (SPACE / ENTER)'
+      ? '▶ NÄCHSTE ETAGE'
       : (currentSectorIndex + 1 < totalSectors
-        ? '▶ NÄCHSTER SEKTOR (SPACE / ENTER)'
-        : '★ KAMPAGNE BEENDET (SPACE) ★');
+        ? '▶ NÄCHSTER SEKTOR'
+        : '★ KAMPAGNE BEENDET ★');
 
     const buttons = [
-      { text: nextActionLabel, y: 325, color: CONFIG.COLORS.CRYSTAL },
-      { text: '➔ LEVEL-ÜBERSICHT (L)', y: 380, color: CONFIG.COLORS.PLAYER },
-      { text: '⎋ HAUPTMENÜ (M)', y: 435, color: CONFIG.COLORS.TEXT_DIM }
+      { text: nextActionLabel, badge: 'SPACE', y: 325, color: CONFIG.COLORS.CRYSTAL },
+      { text: '⊞ LEVELAUSWAHL', badge: 'L', y: 380, color: CONFIG.COLORS.PLAYER },
+      { text: '⌂ HAUPTMENÜ', badge: 'M', y: 435, color: CONFIG.COLORS.TEXT_DIM }
     ];
 
     buttons.forEach((b) => {
@@ -298,10 +311,16 @@ export class HUD {
       ctx.lineWidth = 1.5;
       ctx.strokeRect(this.width / 2 - 190, b.y - 22, 380, 44);
 
-      ctx.font = '700 13.5px "Chakra Petch", "JetBrains Mono", monospace';
+      ctx.font = '700 14px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.textAlign = 'center';
       ctx.fillStyle = b.color;
       ctx.fillText(b.text, this.width / 2, b.y);
+
+      if (b.badge) {
+        ctx.font = '600 10.5px "JetBrains Mono", monospace';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+        ctx.fillText(`[${b.badge}]`, this.width / 2 + 160, b.y);
+      }
     });
 
     ctx.restore();
@@ -334,8 +353,8 @@ export class HUD {
     ctx.fillText('Sammle alle Sterne und werde zum ultimativen Piloten!', this.width / 2, 210);
 
     const buttons = [
-      { text: '➔ LEVEL-ÜBERSICHT (L)', y: 300, color: CONFIG.COLORS.CRYSTAL },
-      { text: '⎋ HAUPTMENÜ (M / SPACE)', y: 360, color: CONFIG.COLORS.PLAYER }
+      { text: '⊞ LEVELAUSWAHL', badge: 'L', y: 300, color: CONFIG.COLORS.CRYSTAL },
+      { text: '⌂ HAUPTMENÜ', badge: 'M', y: 360, color: CONFIG.COLORS.PLAYER }
     ];
 
     buttons.forEach((b) => {
@@ -345,9 +364,15 @@ export class HUD {
       ctx.lineWidth = 1.5;
       ctx.strokeRect(this.width / 2 - 190, b.y - 22, 380, 44);
 
-      ctx.font = '700 13.5px "Chakra Petch", "JetBrains Mono", monospace';
+      ctx.font = '700 14px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.fillStyle = b.color;
       ctx.fillText(b.text, this.width / 2, b.y);
+
+      if (b.badge) {
+        ctx.font = '600 10.5px "JetBrains Mono", monospace';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+        ctx.fillText(`[${b.badge}]`, this.width / 2 + 160, b.y);
+      }
     });
 
     ctx.restore();

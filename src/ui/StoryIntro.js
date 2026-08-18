@@ -14,10 +14,12 @@ export class StoryIntro {
     this.lastCharCount = 0;
 
     this.logLines = [
-      'In 4.000 Metern Tiefe ist die Forschungsstation dunkel und verlassen.',
-      'Du steuerst die Aufklärungsdrohne ECHO. Deine Sensoren sind blind.',
-      'Nutze Sonar-Pings, um Wände sichtbar zu machen & finde alle Datenkerne.',
-      'Weiche Hindernissen aus und erreiche den Fluchtaufzug. Berühre niemals eine Wand.'
+      'In der verlassenen Tiefseestation ist der Strom ausgefallen.',
+      'Du steuerst die Aufklärungsdrohne ECHO.',
+      '',
+      '• Sende Sonar-Pings aus, um Wände im Dunkeln aufzudecken.',
+      '• Sammle alle Datenkerne ein, um den Fluchtaufzug zu öffnen.',
+      '• Vorsicht: Jede Wandberührung zerstört die Drohne sofort.'
     ];
   }
 
@@ -108,23 +110,25 @@ export class StoryIntro {
     ctx.fillStyle = '#00f0ff';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    ctx.fillText('EINSATZ-BRIEFING: SEKTOR 01 (STATION ABYSS)', boxX + 16, boxY + 18);
+    ctx.fillText('SEKTOR 01: STATION ABYSS', boxX + 16, boxY + 18);
 
     ctx.font = '700 11.5px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = '#00ff88';
     ctx.textAlign = 'right';
     ctx.fillText('STATUS: BEREIT', boxX + boxW - 16, boxY + 18);
 
-    // 3. Render Terminal Logs with Typewriter Effect
+    // 3. Render Terminal Logs with Typewriter Effect (Clean Elegant Monochrome & Cyan Accents)
     let charsRemaining = totalChars;
-    const startLogY = boxY + 56;
-    const lineSpacing = 32;
+    const startLogY = boxY + 52;
+    const lineSpacing = 28;
 
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
 
     for (let i = 0; i < this.logLines.length; i++) {
       const fullLine = this.logLines[i];
+      if (!fullLine) continue; // blank line spacer
+
       const lineY = startLogY + i * lineSpacing;
 
       let visibleText = '';
@@ -137,18 +141,15 @@ export class StoryIntro {
       }
 
       if (visibleText.length > 0) {
-        ctx.font = '600 12px "Chakra Petch", "JetBrains Mono", monospace';
-        if (i === 0) {
-          ctx.fillStyle = '#00f0ff';
-        } else if (i === 1) {
-          ctx.fillStyle = '#b8e8ff';
-        } else if (i === 2) {
-          ctx.fillStyle = '#00ff88';
-        } else {
-          ctx.fillStyle = '#ff8899';
-        }
+        ctx.font = '500 12.5px "Chakra Petch", "JetBrains Mono", monospace';
 
-        ctx.fillText(visibleText, boxX + 24, lineY);
+        if (fullLine.startsWith('•')) {
+          ctx.fillStyle = '#e2f4ff';
+          ctx.fillText(visibleText, boxX + 24, lineY);
+        } else {
+          ctx.fillStyle = '#c8e2f0';
+          ctx.fillText(visibleText, boxX + 24, lineY);
+        }
 
         // Blinking terminal cursor on active line
         if (visibleText.length < fullLine.length || (i === this.logLines.length - 1 && Math.floor(time * 4) % 2 === 0)) {

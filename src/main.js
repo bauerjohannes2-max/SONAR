@@ -213,6 +213,68 @@ export class Game {
       tutBtn.addEventListener('click', handleOpenTut);
       tutBtn.addEventListener('touchstart', handleOpenTut, { passive: false });
     }
+
+    const muteBtn = document.getElementById('btn-header-mute');
+    if (muteBtn) {
+      const updateMuteIcon = (isMuted) => {
+        if (isMuted) {
+          muteBtn.classList.add('muted');
+          muteBtn.title = 'Ton einschalten (M)';
+          muteBtn.innerHTML = `
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+              <line x1="23" y1="9" x2="17" y2="15"/>
+              <line x1="17" y1="9" x2="23" y2="15"/>
+            </svg>
+          `;
+        } else {
+          muteBtn.classList.remove('muted');
+          muteBtn.title = 'Ton stummschalten (M)';
+          muteBtn.innerHTML = `
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+            </svg>
+          `;
+        }
+      };
+
+      const handleToggleMute = (e) => {
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+        if (this.audioEngine) {
+          if (!this.audioEngine.isInitialized) {
+            this.audioEngine.init();
+          }
+          const isMuted = this.audioEngine.toggleMute();
+          updateMuteIcon(isMuted);
+          if (!isMuted) this.audioEngine.playUIBlip();
+        }
+      };
+      muteBtn.addEventListener('click', handleToggleMute);
+      muteBtn.addEventListener('touchstart', handleToggleMute, { passive: false });
+    }
+
+    const fsBtn = document.getElementById('btn-header-fullscreen');
+    if (fsBtn) {
+      const handleToggleFs = (e) => {
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+        if (this.audioEngine) this.audioEngine.playUIBlip();
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        } else {
+          if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+        }
+      };
+      fsBtn.addEventListener('click', handleToggleFs);
+      fsBtn.addEventListener('touchstart', handleToggleFs, { passive: false });
+    }
   }
 
   onProfileChanged(pilot) {

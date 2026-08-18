@@ -168,10 +168,10 @@ export class Settings {
           <div class="settings-row">
             <div class="btn-segment-group">
               <button id="btn-ctrl-dpad" class="btn-segment ${touchConfig.controlType === 'DPAD' || !touchConfig.controlType ? 'active' : ''}">
-                🔲 D-PAD (STEUERKREUZ)
+                🔲 STEUERKREUZ
               </button>
               <button id="btn-ctrl-swipe" class="btn-segment ${touchConfig.controlType === 'SWIPE' ? 'active' : ''}">
-                🕹️ JOYSTICK / SWIPE
+                🕹️ JOYSTICK
               </button>
             </div>
           </div>

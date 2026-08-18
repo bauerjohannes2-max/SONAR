@@ -70,7 +70,7 @@ export class LeaderboardModal {
           </div>
 
           <div class="lb-search-bar" id="lb-search-wrapper">
-            <input type="text" id="lb-search-input" class="lb-search-input" placeholder="Pilot-Callsign suchen..." autocomplete="off">
+            <input type="text" id="lb-search-input" class="lb-search-input" placeholder="🔍 Spieler suchen..." autocomplete="off">
           </div>
 
           <!-- Main Leaderboard Table -->
@@ -373,38 +373,38 @@ export class LeaderboardModal {
       const mySec = myStats[s];
       const rivalSec = rivalStats[s];
 
-      const myStars = mySec ? (mySec.stars || 1) : 0;
-      const myTime = mySec ? mySec.time : null;
+      const myTime = mySec && mySec.time ? mySec.time : null;
+      const rivalT = rivalSec && rivalSec.time ? rivalSec.time : null;
 
-      const rivalS = rivalSec ? (rivalSec.stars || 1) : 0;
-      const rivalT = rivalSec ? rivalSec.time : null;
-
-      let verdict = '--';
-      if (mySec && rivalSec) {
-        if (myStars > rivalS || (myStars === rivalS && myTime <= rivalT)) {
-          verdict = `<span class="cell-winner" style="color: #00ff88; font-weight: 700;">DU (BESSER)</span>`;
+      let verdict = '<span style="color: #8da8b8;">Nicht gespielt</span>';
+      if (myTime !== null && rivalT !== null) {
+        const diff = rivalT - myTime;
+        if (diff > 0.05) {
+          verdict = `<span style="color: #00ff88; font-weight: 700;">+${diff.toFixed(1)}s (Gewonnen)</span>`;
           myWins++;
-        } else {
-          verdict = `<span style="color: #ff5577; font-weight: 700;">${rivalCallsign}</span>`;
+        } else if (diff < -0.05) {
+          verdict = `<span style="color: #ff5577; font-weight: 700;">${diff.toFixed(1)}s (Rückstand)</span>`;
           rivalWins++;
+        } else {
+          verdict = `<span style="color: #ffaa00; font-weight: 700;">0.0s (Gleichstand)</span>`;
         }
-      } else if (mySec && !rivalSec) {
-        verdict = `<span class="cell-winner" style="color: #00ff88; font-weight: 700;">DU (VORSPRUNG)</span>`;
+      } else if (myTime !== null && rivalT === null) {
+        verdict = `<span style="color: #00ff88; font-weight: 700;">+ (Gewonnen)</span>`;
         myWins++;
-      } else if (!mySec && rivalSec) {
-        verdict = `<span style="color: #ff5577; font-weight: 700;">${rivalCallsign}</span>`;
+      } else if (myTime === null && rivalT !== null) {
+        verdict = `<span style="color: #ff5577; font-weight: 700;">- (Rückstand)</span>`;
         rivalWins++;
       }
 
-      const myTimeFormatted = myTime ? (myTime < 60 ? `${myTime.toFixed(1)}s` : `${Math.floor(myTime/60)}:${String(Math.floor(myTime%60)).padStart(2, '0')}`) : '';
-      const rivalTimeFormatted = rivalT ? (rivalT < 60 ? `${rivalT.toFixed(1)}s` : `${Math.floor(rivalT/60)}:${String(Math.floor(rivalT%60)).padStart(2, '0')}`) : '';
+      const myTimeStr = myTime !== null ? `${myTime.toFixed(1)}s` : '--';
+      const rivalTimeStr = rivalT !== null ? `${rivalT.toFixed(1)}s` : '--';
 
       sectorRowsHtml += `
-        <tr>
-          <td style="font-weight: 700; color: var(--cyan-primary);">SEKTOR 0${s}</td>
-          <td style="color: #00FF88;">${myStars > 0 ? `${myStars} ★ (${myTimeFormatted})` : 'OFFEN'}</td>
-          <td style="color: #00F0FF;">${rivalS > 0 ? `${rivalS} ★ (${rivalTimeFormatted})` : 'OFFEN'}</td>
-          <td>${verdict}</td>
+        <tr style="border-bottom: 1px solid rgba(0, 240, 255, 0.08);">
+          <td style="padding: 6px 8px; font-weight: 700; color: var(--cyan-primary);">SEKTOR 0${s}</td>
+          <td style="padding: 6px 8px; color: ${myTime !== null ? '#00FF88' : '#8da8b8'}; font-weight: 600;">${myTimeStr}</td>
+          <td style="padding: 6px 8px; color: ${rivalT !== null ? '#00F0FF' : '#8da8b8'}; font-weight: 600;">${rivalTimeStr}</td>
+          <td style="padding: 6px 8px;">${verdict}</td>
         </tr>
       `;
     }
@@ -433,7 +433,7 @@ export class LeaderboardModal {
             <tr style="background: rgba(0, 240, 255, 0.1); border-bottom: 1px solid rgba(0, 240, 255, 0.2);">
               <th style="padding: 6px 8px; text-align: left;">SEKTOR</th>
               <th style="padding: 6px 8px; text-align: left;">DEINE ZEIT</th>
-              <th style="padding: 6px 8px; text-align: left;">${rivalCallsign}</th>
+              <th style="padding: 6px 8px; text-align: left;">${rivalCallsign} ZEIT</th>
               <th style="padding: 6px 8px; text-align: left;">DUELL</th>
             </tr>
           </thead>

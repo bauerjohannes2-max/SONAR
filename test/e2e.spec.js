@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 
-test.describe('SONAR v1.16.1 Tactical Gauntlet Loop E2E Validation', () => {
+test.describe('SONAR v1.16.2 Tactical Gauntlet Loop E2E Validation', () => {
 
   test.beforeEach(async ({ page }) => {
     page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
@@ -11,12 +11,12 @@ test.describe('SONAR v1.16.1 Tactical Gauntlet Loop E2E Validation', () => {
     });
   });
 
-  test('1. Version Endpoint & JSON Integrity (v1.16.1)', async ({ request }) => {
+  test('1. Version Endpoint & JSON Integrity (v1.16.2)', async ({ request }) => {
     const response = await request.get('/version.json');
     expect(response.ok()).toBeTruthy();
     const data = await response.json();
-    expect(data.version).toBe('1.16.1');
-    expect(data.build).toBe(20260822);
+    expect(data.version).toBe('1.16.2');
+    expect(data.build).toBe(20260823);
   });
 
   test('2. Sci-Fi Audio Assets Existence & Preloading in Web Audio API (10 MP3 Samples)', async ({ page }) => {
@@ -1338,6 +1338,50 @@ test.describe('SONAR v1.16.1 Tactical Gauntlet Loop E2E Validation', () => {
     // Verify no auto-update-banner remains in DOM
     const banner = page.locator('#auto-update-banner');
     await expect(banner).toHaveCount(0);
+  });
+
+  test('33. Clean Background Transition to Sector Select Screen (Zero Ghosting / 0% Artifact Bleed)', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    // 1. Simulate Death / Game Over state with custom text
+    await page.evaluate(() => {
+      window.game.gameState = 'GAME_OVER';
+      window.game.deathCause = 'WALL_CRASH';
+      window.game.render();
+    });
+
+    // 2. Transition directly to SECTOR_SELECT
+    await page.evaluate(() => {
+      window.game.gameState = 'SECTOR_SELECT';
+      window.game.render();
+    });
+
+    // 3. Inspect canvas background pixels in corner and verify solid dark background (#05070a / #03070d)
+    const pixelCheck = await page.evaluate(() => {
+      const canvas = document.getElementById('gameCanvas');
+      const ctx = canvas.getContext('2d');
+      // Read top corner pixel (x: 10, y: 10)
+      const p1 = ctx.getImageData(10, 10, 1, 1).data;
+      // Read bottom corner pixel (x: 10, y: 560)
+      const p2 = ctx.getImageData(10, 560, 1, 1).data;
+
+      return {
+        r1: p1[0], g1: p1[1], b1: p1[2], a1: p1[3],
+        r2: p2[0], g2: p2[1], b2: p2[2], a2: p2[3]
+      };
+    });
+
+    // Verify background is opaque and dark zero-light (no bright red death text bleeding into corners)
+    expect(pixelCheck.a1).toBe(255);
+    expect(pixelCheck.r1).toBeLessThanOrEqual(10);
+    expect(pixelCheck.g1).toBeLessThanOrEqual(15);
+    expect(pixelCheck.b1).toBeLessThanOrEqual(20);
+
+    expect(pixelCheck.a2).toBe(255);
+    expect(pixelCheck.r2).toBeLessThanOrEqual(10);
+    expect(pixelCheck.g2).toBeLessThanOrEqual(15);
+    expect(pixelCheck.b2).toBeLessThanOrEqual(20);
   });
 
 });

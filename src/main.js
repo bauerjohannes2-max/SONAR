@@ -960,6 +960,10 @@ export class Game {
     const ctx = this.ctx;
     const time = this.gameTime;
 
+    // Base background clear (0% ghost artifacts across any state changes)
+    ctx.fillStyle = '#03070d';
+    ctx.fillRect(0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
+
     switch (this.gameState) {
       case CONFIG.STATES.MENU:
         this.menuSystem.renderMenu(ctx, time, this.endlessMode);

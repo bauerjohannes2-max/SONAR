@@ -494,6 +494,21 @@ export class MenuSystem {
     const totalStars = storageManager.calculateTotalStars();
 
     ctx.save();
+
+    // 1. Deep Zero-Light Background (Guarantees zero ghost bleed from Main Menu or Game Over)
+    ctx.fillStyle = '#05070a';
+    ctx.fillRect(0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
+
+    // 2. Calm Ambient Starfield Particles
+    if (this.particles) {
+      for (let p of this.particles) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, Math.max(0, p.radius), 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(0, 240, 255, ${p.alpha * 0.22})`;
+        ctx.fill();
+      }
+    }
+
     ctx.textAlign = 'center';
 
     // Header

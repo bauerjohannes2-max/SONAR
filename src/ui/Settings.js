@@ -204,7 +204,7 @@ export class Settings {
           </div>
 
           <button id="btn-open-touch-editor" class="btn-full-action" style="margin-top: 8px;">
-            LAYOUT ANPASSEN (POSITION & GRÖSSE)
+            LAYOUT ANPASSEN
           </button>
 
           <!-- 3. GRAFIK & PERFORMANCE SECTION -->

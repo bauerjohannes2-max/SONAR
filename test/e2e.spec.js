@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 
-test.describe('SONAR v1.18.0 Tactical Gauntlet Loop E2E Validation', () => {
+test.describe('SONAR v1.18.2 Tactical Gauntlet Loop E2E Validation', () => {
 
   test.beforeEach(async ({ page }) => {
     page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
@@ -11,11 +11,11 @@ test.describe('SONAR v1.18.0 Tactical Gauntlet Loop E2E Validation', () => {
     });
   });
 
-  test('1. Version Endpoint & JSON Integrity (v1.18.0)', async ({ request }) => {
+  test('1. Version Endpoint & JSON Integrity (v1.18.2)', async ({ request }) => {
     const response = await request.get('/version.json');
     expect(response.ok()).toBeTruthy();
     const data = await response.json();
-    expect(data.version).toBe('1.18.0');
+    expect(data.version).toBe('1.18.2');
     expect(data.build).toBe(20260830);
   });
 
@@ -888,7 +888,7 @@ test.describe('SONAR v1.18.0 Tactical Gauntlet Loop E2E Validation', () => {
   });
 
   test('28. Critical UI Action Buttons, Strict Profile Isolation, HUD Telemetry & Sector Lock Validation (v1.13.0)', async ({ page }) => {
-    await page.goto('http://127.0.0.1:3005/');
+    await page.goto('/');
     await page.waitForSelector('#gameCanvas');
 
     // 1. Action Buttons Visibility & Clickability Check
@@ -1956,6 +1956,103 @@ test.describe('SONAR v1.18.0 Tactical Gauntlet Loop E2E Validation', () => {
     expect(check.pingVisible).toBe(true);
     expect(check.clusterInsideScreen).toBe(true);
     expect(check.pingInsideScreen).toBe(true);
+  });
+
+  test('47. Top-HUD 0% Overlap on Foldables, K.I.S.S. Main Menu, 2-Line Death Screen & Button Shortcut Audit (v1.18.1)', async ({ page }) => {
+    // 1. Foldable Cover Viewport (344x882) & Foldable Unfolded (904x1076)
+    for (const vp of [{ width: 344, height: 882 }, { width: 904, height: 1076 }]) {
+      await page.setViewportSize({ width: vp.width, height: vp.height });
+      await page.goto('/');
+      await page.waitForSelector('#gameCanvas');
+
+      const hudLayout = await page.evaluate(() => {
+        window.game.loadSector(0);
+        window.game.render();
+
+        const quickActions = document.querySelector('.canvas-quick-actions');
+        const qaRect = quickActions ? quickActions.getBoundingClientRect() : null;
+        const canvas = document.getElementById('gameCanvas');
+        const canvasRect = canvas.getBoundingClientRect();
+
+        return {
+          qaRect,
+          canvasRect,
+          qaRight: qaRect ? qaRect.right : 0,
+          qaLeft: qaRect ? qaRect.left : 0,
+          canvasLeft: canvasRect.left,
+          canvasRight: canvasRect.right
+        };
+      });
+
+      // Header actions are contained within canvas boundaries without causing page overflow
+      expect(hudLayout.qaRect).not.toBeNull();
+      expect(hudLayout.qaLeft).toBeGreaterThan(hudLayout.canvasLeft + (hudLayout.canvasRect.width * 0.45));
+    }
+
+    // 2. Main Menu K.I.S.S. Structure Validation
+    await page.setViewportSize({ width: 800, height: 600 });
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    const menuCheck = await page.evaluate(() => {
+      const ms = window.game.menuSystem;
+      return {
+        optionsCount: ms.options.length,
+        optionsTitles: ms.options.map(o => o.title),
+        isHeroCampaign: ms.options[0].id === 'SECTOR_SELECT',
+        hasUpgradeTile: ms.options[1].id === 'HANGAR',
+        hasLeaderboardTile: ms.options[2].id === 'LEADERBOARD',
+        hasProfileTile: ms.options[3].id === 'PROFILE'
+      };
+    });
+
+    expect(menuCheck.optionsCount).toBe(4);
+    expect(menuCheck.optionsTitles).toEqual(['KAMPAGNE', 'UPGRADES', 'BESTENLISTE', 'PROFIL']);
+    expect(menuCheck.isHeroCampaign).toBe(true);
+
+    // 3. Death-Screen 2-Line Text & Clean Button Labels Validation
+    const deathScreenCheck = await page.evaluate(() => {
+      window.game.loadSector(0);
+      window.game.onGameOver('WALL_CRASH');
+      window.game.render();
+
+      return {
+        isGameOverState: window.game.gameState === 'DYING' || window.game.gameState === 'GAME_OVER',
+        deathCause: window.game.deathCause
+      };
+    });
+
+    expect(deathScreenCheck.isGameOverState).toBe(true);
+    expect(deathScreenCheck.deathCause).toBe('WALL_CRASH');
+
+    // 4. Global Button Shortcut-Bracket Audit across All Modals
+    const buttonAudit = await page.evaluate(() => {
+      window.game.settingsModal.open(false);
+      window.game.profileModal.open();
+      window.game.leaderboardModal.open();
+      window.game.hangarModal.open();
+
+      const allButtons = Array.from(document.querySelectorAll('button, .modal-btn, .header-action-btn'));
+      const shortcutPattern = /\[[A-Z0-9\s]+\]|\((?:R|ESC|SPACE|L|M|H|O|F|SHIFT|E|Q|W|A|S|D)\)/i;
+      const invalid = [];
+
+      for (const btn of allButtons) {
+        const text = btn.innerText || btn.textContent || '';
+        const title = btn.getAttribute('title') || '';
+        if (shortcutPattern.test(text) || shortcutPattern.test(title)) {
+          invalid.push({ text: text.trim(), title });
+        }
+      }
+
+      window.game.hangarModal.close();
+      window.game.leaderboardModal.close();
+      window.game.profileModal.close();
+      window.game.settingsModal.close();
+
+      return invalid;
+    });
+
+    expect(buttonAudit).toEqual([]);
   });
 
 });

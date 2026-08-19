@@ -24,6 +24,7 @@ export class AudioEngine {
     this.droneFilter = null;
     this.droneSampleSource = null;
     this.musicSampleSource = null;
+    this.currentTrackGainNode = null;
     this.isDronePlaying = false;
     this.isMusicPlaying = false;
 
@@ -140,6 +141,10 @@ export class AudioEngine {
     this.isLoadingAssets = false;
   }
 
+  async preloadAll() {
+    return this.preloadAudioBuffers();
+  }
+
   /**
    * Plays a preloaded audio sample via AudioBufferSourceNode with 0ms latency.
    */
@@ -216,18 +221,18 @@ export class AudioEngine {
   /**
    * Dual-Soundtrack System: Menu vs. In-Game Gameplay
    */
-  playMenuMusic(fadeDuration = 1.0) {
+  playMenuMusic(fadeDuration = 0.8) {
     this.crossfadeMusic('music_menu', ['ambient_main', 'bg_music'], fadeDuration);
     this.currentMusicTrack = 'menu';
   }
 
-  playGameplayMusic(fadeDuration = 1.0) {
+  playGameplayMusic(fadeDuration = 0.8) {
     this.crossfadeMusic('music_gameplay', ['bg_music', 'ambient_main'], fadeDuration);
     this.currentMusicTrack = 'gameplay';
   }
 
-  crossfadeMusic(preferredKey, fallbackKeys, fadeDuration = 1.0) {
-    if (!this.ensureContext()) return;
+  crossfadeMusic(preferredKey, fallbackKeys = [], fadeDuration = 0.8) {
+    if (!this.ensureContext() || this.isMuted) return;
 
     if (this.currentMusicTrackKey === preferredKey && this.isMusicPlaying) {
       return; // Already playing this track
@@ -235,41 +240,65 @@ export class AudioEngine {
 
     const now = this.ctx.currentTime;
     const oldSource = this.musicSampleSource;
+    const oldGain = this.currentTrackGainNode;
 
-    // Fade out previous track smoothly
-    if (oldSource && this.musicGain) {
+    // 1. Crossfade OUT previous track smoothly over fadeDuration (800ms)
+    if (oldSource && oldGain) {
       try {
-        this.musicGain.gain.cancelScheduledValues(now);
-        this.musicGain.gain.setValueAtTime(this.musicGain.gain.value, now);
-        this.musicGain.gain.exponentialRampToValueAtTime(0.0001, now + fadeDuration * 0.5);
+        oldGain.gain.cancelScheduledValues(now);
+        oldGain.gain.setValueAtTime(Math.max(0.0001, oldGain.gain.value), now);
+        oldGain.gain.exponentialRampToValueAtTime(0.0001, now + fadeDuration);
         setTimeout(() => {
-          try { oldSource.stop(); } catch (e) {}
-        }, fadeDuration * 500);
+          try {
+            oldSource.stop();
+            oldGain.disconnect();
+          } catch (e) {}
+        }, fadeDuration * 1000);
       } catch (e) {}
+    } else if (oldSource) {
+      try { oldSource.stop(); } catch (e) {}
     }
 
-    // Start new track with fade in
-    let newSource = this.playSample(preferredKey, this.musicGain, true);
+    // 2. Resolve buffer for incoming track
+    let buffer = this.buffers.get(preferredKey);
     let chosenKey = preferredKey;
 
-    if (!newSource && fallbackKeys) {
+    if (!buffer && fallbackKeys && fallbackKeys.length > 0) {
       for (const fb of fallbackKeys) {
-        newSource = this.playSample(fb, this.musicGain, true);
-        if (newSource) {
+        if (this.buffers.get(fb)) {
+          buffer = this.buffers.get(fb);
           chosenKey = fb;
           break;
         }
       }
     }
 
-    if (newSource && this.musicGain) {
-      this.musicSampleSource = newSource;
-      this.isMusicPlaying = true;
-      this.currentMusicTrackKey = preferredKey;
+    // 3. Create dedicated Track GainNode for incoming track to ramp IN parallel
+    try {
+      const trackGain = this.ctx.createGain();
+      trackGain.gain.setValueAtTime(0.0001, now);
+      trackGain.gain.exponentialRampToValueAtTime(1.0, now + fadeDuration);
+      trackGain.connect(this.musicGain);
 
-      this.musicGain.gain.cancelScheduledValues(now + fadeDuration * 0.5);
-      this.musicGain.gain.setValueAtTime(0.0001, now + fadeDuration * 0.5);
-      this.musicGain.gain.exponentialRampToValueAtTime(Math.max(0.0001, this.musicVolume), now + fadeDuration);
+      let newSource = null;
+      if (buffer) {
+        newSource = this.ctx.createBufferSource();
+        newSource.buffer = buffer;
+        newSource.loop = true;
+        newSource.connect(trackGain);
+        newSource.start(0);
+      } else {
+        newSource = this.playSample(chosenKey, trackGain, true);
+      }
+
+      if (newSource) {
+        this.musicSampleSource = newSource;
+        this.currentTrackGainNode = trackGain;
+        this.isMusicPlaying = true;
+        this.currentMusicTrackKey = preferredKey;
+      }
+    } catch (e) {
+      console.warn('[AudioEngine] Crossfade execution error:', e);
     }
   }
 

@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 
-test.describe('SONAR v1.17.0 Tactical Gauntlet Loop E2E Validation', () => {
+test.describe('SONAR v1.18.0 Tactical Gauntlet Loop E2E Validation', () => {
 
   test.beforeEach(async ({ page }) => {
     page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
@@ -11,11 +11,11 @@ test.describe('SONAR v1.17.0 Tactical Gauntlet Loop E2E Validation', () => {
     });
   });
 
-  test('1. Version Endpoint & JSON Integrity (v1.17.0)', async ({ request }) => {
+  test('1. Version Endpoint & JSON Integrity (v1.18.0)', async ({ request }) => {
     const response = await request.get('/version.json');
     expect(response.ok()).toBeTruthy();
     const data = await response.json();
-    expect(data.version).toBe('1.17.0');
+    expect(data.version).toBe('1.18.0');
     expect(data.build).toBe(20260830);
   });
 
@@ -1704,5 +1704,77 @@ test.describe('SONAR v1.17.0 Tactical Gauntlet Loop E2E Validation', () => {
     expect(gameJuiceValid).toBe(true);
   });
 
+  test('42. Dual-Soundtrack Engine, Web Audio Decoding & State-Machine Crossfading (v1.18.0)', async ({ page }) => {
+    let consoleErrors = 0;
+    page.on('console', msg => {
+      if (msg.type() === 'error') consoleErrors++;
+    });
+
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    // 1. Verify Audio Decoding of both soundtracks
+    const audioPreloadCheck = await page.evaluate(async () => {
+      const audio = window.game.audioEngine;
+      audio.init();
+      await audio.preloadAudioBuffers();
+      const hasMenuTrack = audio.buffers.has('music_menu');
+      const hasGameplayTrack = audio.buffers.has('music_gameplay');
+      return {
+        hasMenuTrack,
+        hasGameplayTrack,
+        totalBuffers: audio.buffers.size
+      };
+    });
+
+    expect(audioPreloadCheck.hasMenuTrack).toBe(true);
+    expect(audioPreloadCheck.hasGameplayTrack).toBe(true);
+    expect(audioPreloadCheck.totalBuffers).toBe(10);
+    expect(consoleErrors).toBe(0);
+
+    // 2. Verify State-Machine Crossfading: Menu vs Gameplay
+    const routingCheck = await page.evaluate(() => {
+      const audio = window.game.audioEngine;
+      audio.playMenuMusic(0.8);
+      const menuTrack = audio.currentMusicTrack;
+      const menuKey = audio.currentMusicTrackKey;
+      const menuGainOk = !!audio.currentTrackGainNode;
+
+      // Start sector -> switches to gameplay music
+      window.game.loadSector(0);
+      const gameTrack = audio.currentMusicTrack;
+      const gameKey = audio.currentMusicTrackKey;
+      const gameGainOk = !!audio.currentTrackGainNode;
+
+      // Trigger Game Over -> switches back to menu music
+      window.game.onGameOver('PREDATOR');
+      const gameOverTrack = audio.currentMusicTrack;
+      const gameOverKey = audio.currentMusicTrackKey;
+
+      return {
+        menuTrack,
+        menuKey,
+        menuGainOk,
+        gameTrack,
+        gameKey,
+        gameGainOk,
+        gameOverTrack,
+        gameOverKey
+      };
+    });
+
+    expect(routingCheck.menuTrack).toBe('menu');
+    expect(routingCheck.menuKey).toBe('music_menu');
+    expect(routingCheck.menuGainOk).toBe(true);
+
+    expect(routingCheck.gameTrack).toBe('gameplay');
+    expect(routingCheck.gameKey).toBe('music_gameplay');
+    expect(routingCheck.gameGainOk).toBe(true);
+
+    expect(routingCheck.gameOverTrack).toBe('menu');
+    expect(routingCheck.gameOverKey).toBe('music_menu');
+  });
+
 });
+
 

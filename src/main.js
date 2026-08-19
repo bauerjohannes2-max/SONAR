@@ -439,7 +439,7 @@ export class Game {
     }
 
     this.audioEngine.startDrone();
-    this.audioEngine.playGameplayMusic(1.0);
+    this.audioEngine.playGameplayMusic(0.8);
     this.touchControls.show();
     this.gameState = CONFIG.STATES.PLAYING;
   }
@@ -474,7 +474,7 @@ export class Game {
     }
 
     this.audioEngine.startDrone();
-    this.audioEngine.playGameplayMusic(1.0);
+    this.audioEngine.playGameplayMusic(0.8);
     this.touchControls.show();
     this.gameState = CONFIG.STATES.PLAYING;
   }
@@ -940,6 +940,9 @@ export class Game {
     if (this.inputHandler) {
       this.inputHandler.resetInputState();
     }
+    if (this.audioEngine && typeof this.audioEngine.playMenuMusic === 'function') {
+      this.audioEngine.playMenuMusic(0.8);
+    }
     this.gameState = CONFIG.STATES.SECTOR_CLEARED;
   }
 
@@ -957,6 +960,9 @@ export class Game {
       this.audioEngine.playWallCrash();
     } else {
       this.audioEngine.playDeath();
+    }
+    if (this.audioEngine && typeof this.audioEngine.playMenuMusic === 'function') {
+      this.audioEngine.playMenuMusic(0.8);
     }
     const posX = this.player ? this.player.x : CONFIG.CANVAS_WIDTH / 2;
     const posY = this.player ? this.player.y : CONFIG.CANVAS_HEIGHT / 2;

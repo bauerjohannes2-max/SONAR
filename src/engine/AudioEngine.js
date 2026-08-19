@@ -1,3 +1,5 @@
+import { Haptics } from './Haptics.js';
+
 const AUDIO_ASSETS = {
   sonar_ping: './assets/audio/sonar_ping.mp3',
   crystal_pickup: './assets/audio/crystal_pickup.mp3',
@@ -415,20 +417,24 @@ export class AudioEngine {
    * Haptic vibration trigger helper for mobile touch & gameplay events.
    */
   triggerHaptic(type = 'ping') {
-    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
-      try {
-        if (type === 'ping') {
-          navigator.vibrate(15);
-        } else if (type === 'pickup') {
-          navigator.vibrate([30, 40, 30]);
-        } else if (type === 'death' || type === 'collision') {
-          navigator.vibrate(120);
-        } else if (type === 'step') {
-          navigator.vibrate(10);
-        } else if (type === 'heartbeat') {
-          navigator.vibrate([12, 40, 10]);
-        }
-      } catch (e) {}
+    if (type === 'ping') {
+      Haptics.ping();
+    } else if (type === 'pickup') {
+      Haptics.pickup();
+    } else if (type === 'death' || type === 'enemyContact') {
+      Haptics.enemyContact();
+    } else if (type === 'collision') {
+      Haptics.collision();
+    } else if (type === 'step') {
+      Haptics.vibrate(10);
+    } else if (type === 'heartbeat' || type === 'danger') {
+      Haptics.danger();
+    } else if (type === 'alarm') {
+      Haptics.vibrate([30, 40, 30]);
+    } else if (type === 'restart') {
+      Haptics.restart();
+    } else {
+      Haptics.vibrate(15);
     }
   }
 

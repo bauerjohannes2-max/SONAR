@@ -146,24 +146,26 @@ export class ParticleEngine {
   }
 
   /**
-   * Spawns hydrodynamic wake bubbles behind moving drone.
+   * Spawns delicate hydrodynamic wake bubbles behind moving drone.
    */
-  spawnWakeBubble(x, y, droneAngle, isSneaking = false) {
-    if (Math.random() > (isSneaking ? 0.15 : 0.45)) return;
+  spawnWakeBubble(x, y, droneAngle, isSneaking = false, force = false) {
+    if (!force && Math.random() > (isSneaking ? 0.35 : 0.75)) return;
 
-    // Emit slightly behind drone heading
-    const backAngle = droneAngle + Math.PI + (Math.random() - 0.5) * 0.5;
-    const speed = Math.random() * 0.8 + 0.3;
+    // Emit slightly behind drone thrusters with natural spread
+    const backAngle = droneAngle + Math.PI + (Math.random() - 0.5) * 0.7;
+    const speed = Math.random() * 0.5 + 0.2;
 
     this.particles.push({
-      x: x + Math.cos(backAngle) * 8,
-      y: y + Math.sin(backAngle) * 8,
+      x: x + Math.cos(backAngle) * 7 + (Math.random() - 0.5) * 3,
+      y: y + Math.sin(backAngle) * 7 + (Math.random() - 0.5) * 3,
       vx: Math.cos(backAngle) * speed,
-      vy: Math.sin(backAngle) * speed,
-      color: isSneaking ? '#00ff88' : '#00f0ff',
-      life: isSneaking ? 20 : 35,
-      maxLife: isSneaking ? 20 : 35,
-      size: Math.random() * 1.5 + 0.8,
+      vy: Math.sin(backAngle) * speed - 0.2, // initial upward micro-buoyancy
+      buoyancy: Math.random() * 0.06 + 0.03,
+      wobbleOffset: Math.random() * Math.PI * 2,
+      color: isSneaking ? '#00ffaa' : '#00f0ff',
+      life: isSneaking ? 22 : 36,
+      maxLife: isSneaking ? 22 : 36,
+      size: isSneaking ? (Math.random() * 1.0 + 0.6) : (Math.random() * 1.6 + 0.8),
       type: 'BUBBLE'
     });
   }
@@ -237,8 +239,15 @@ export class ParticleEngine {
     // 2. Update dynamic burst particles & bubbles
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i];
-      p.x += p.vx * timeScale;
-      p.y += p.vy * timeScale;
+      if (p.type === 'BUBBLE') {
+        p.vy -= (p.buoyancy || 0.04) * timeScale;
+        p.vx *= Math.pow(0.96, timeScale);
+        p.x += (p.vx + Math.sin((p.maxLife - p.life) * 0.2 + (p.wobbleOffset || 0)) * 0.18) * timeScale;
+        p.y += p.vy * timeScale;
+      } else {
+        p.x += p.vx * timeScale;
+        p.y += p.vy * timeScale;
+      }
       p.life -= timeScale;
 
       if (p.life <= 0) {
@@ -319,12 +328,25 @@ export class ParticleEngine {
         ctx.restore();
       } else if (p.type === 'BUBBLE') {
         ctx.save();
-        ctx.strokeStyle = p.color;
-        ctx.lineWidth = 1;
-        ctx.globalAlpha = alpha * 0.6;
+        // Delicate translucent bubble body
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = alpha * 0.18;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Crisp glowing rim
+        ctx.strokeStyle = p.color;
+        ctx.lineWidth = 0.75;
+        ctx.globalAlpha = alpha * 0.65;
         ctx.stroke();
+
+        // Delicate specular reflection highlight
+        ctx.fillStyle = '#FFFFFF';
+        ctx.globalAlpha = alpha * 0.75;
+        ctx.beginPath();
+        ctx.arc(p.x - p.size * 0.3, p.y - p.size * 0.3, Math.max(0.35, p.size * 0.22), 0, Math.PI * 2);
+        ctx.fill();
         ctx.restore();
       } else if (p.type === 'WAKE_TRAIL') {
         ctx.save();

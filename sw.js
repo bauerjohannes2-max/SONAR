@@ -3,7 +3,7 @@
  * Service Worker with Offline Cache-First Strategy for Instant Load Times
  */
 
-const CACHE_NAME = 'sonar-cache-v1.18.0';
+const CACHE_NAME = 'sonar-cache-v1.19.0';
 
 const ASSETS_TO_CACHE = [
   './',
@@ -14,12 +14,14 @@ const ASSETS_TO_CACHE = [
   './src/main.js',
   './src/config.js',
   './src/engine/AudioEngine.js',
+  './src/engine/Haptics.js',
   './src/engine/WaveSystem.js',
   './src/engine/CanvasRenderer.js',
   './src/engine/InputHandler.js',
   './src/engine/TouchControls.js',
   './src/engine/DisplayManager.js',
   './src/engine/ParticleEngine.js',
+  './src/engine/Particles.js',
   './src/engine/SpriteManager.js',
   './src/engine/PostProcessing.js',
   './src/world/GridMap.js',

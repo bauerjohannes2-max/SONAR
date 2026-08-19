@@ -4,6 +4,7 @@
  */
 
 import { CONFIG } from '../config.js';
+import { Haptics } from './Haptics.js';
 
 export class InputHandler {
   constructor(canvas, displayManager) {
@@ -177,13 +178,25 @@ export class InputHandler {
     });
 
     let lastTouchStartTime = 0;
+    let lastTouchX = 0;
+    let lastTouchY = 0;
     const handleDoubleTapCheck = (e) => {
-      if (e.target && (e.target.closest('button, input, textarea, a, .touch-btn, .dpad-btn, .terminal-modal-box, .modal-body'))) {
+      if (e.target && (e.target.closest('button, input, textarea, a, .touch-btn, .dpad-btn, .terminal-modal-box, .modal-body, .canvas-quick-actions, .modal-backdrop, .touch-actions, .touch-dpad'))) {
         return;
       }
+      const touch = e.touches && e.touches[0] ? e.touches[0] : (e.changedTouches ? e.changedTouches[0] : null);
       const now = Date.now();
-      if (now - lastTouchStartTime < 350) {
-        this.restartTriggered = true;
+      const timeDiff = now - lastTouchStartTime;
+      if (touch && timeDiff > 40 && timeDiff < 350) {
+        const dist = Math.hypot(touch.clientX - lastTouchX, touch.clientY - lastTouchY);
+        if (dist < 80) {
+          this.restartTriggered = true;
+          Haptics.restart();
+        }
+      }
+      if (touch) {
+        lastTouchX = touch.clientX;
+        lastTouchY = touch.clientY;
       }
       lastTouchStartTime = now;
       this.lastTouchTime = now;

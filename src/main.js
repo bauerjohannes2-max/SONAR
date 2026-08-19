@@ -396,6 +396,9 @@ export class Game {
       this.inputHandler.resetInputState();
       this.inputHandler.ignoreClicksUntil = 0;
     }
+    if (this.audioEngine && typeof this.audioEngine.triggerHaptic === 'function') {
+      this.audioEngine.triggerHaptic('restart');
+    }
     if (this.isEndlessActive) {
       this.loadEndlessFloor(this.endlessMode.currentFloor || 1);
     } else {

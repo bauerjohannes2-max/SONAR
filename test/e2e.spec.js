@@ -327,9 +327,9 @@ test.describe('SONAR v1.19.0 Tactical Gauntlet Loop E2E Validation', () => {
 
     const result = await page.evaluate(async () => {
       const sm = window.game.storageManager;
-      const ts = Date.now();
-      const userA = 'PILOT_A_' + ts.toString().slice(-4);
-      const userB = 'PILOT_B_' + ts.toString().slice(-4);
+      const rnd = Math.random().toString(36).substring(2, 6).toUpperCase();
+      const userA = 'PA_' + rnd;
+      const userB = 'PB_' + rnd;
 
       // 1. Pilot A registers and achieves Level 5
       await sm.login(userA, '1234');
@@ -903,7 +903,7 @@ test.describe('SONAR v1.19.0 Tactical Gauntlet Loop E2E Validation', () => {
   });
 
   test('28. Critical UI Action Buttons, Strict Profile Isolation, HUD Telemetry & Sector Lock Validation (v1.13.0)', async ({ page }) => {
-    await page.goto('http://127.0.0.1:3005/');
+    await page.goto('/');
     await page.waitForSelector('#gameCanvas');
 
     // 1. Action Buttons Visibility & Clickability Check
@@ -931,7 +931,7 @@ test.describe('SONAR v1.19.0 Tactical Gauntlet Loop E2E Validation', () => {
     // 2. Strict Profile vs. Guest Isolation Check
     const isolationTest = await page.evaluate(async () => {
       const sm = window.game.storageManager;
-      const isoCallsign = 'ISO_' + Date.now().toString().slice(-4);
+      const isoCallsign = 'ISO_' + Math.random().toString(36).substring(2, 8).toUpperCase();
 
       // Register / Login Pilot
       await sm.login(isoCallsign, '1234');

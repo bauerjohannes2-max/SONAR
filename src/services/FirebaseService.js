@@ -178,7 +178,7 @@ class FirebaseService {
 
       if (docSnap.exists()) {
         const existingData = docSnap.data();
-        if (existingData.pinHash !== pinHash) {
+        if (existingData.pinHash && existingData.pinHash !== pinHash) {
           return { success: false, error: 'Falsche PIN für dieses Pilot-Callsign!' };
         }
 

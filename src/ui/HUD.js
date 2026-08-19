@@ -38,66 +38,50 @@ export class HUD {
     ctx.textBaseline = 'middle';
     ctx.shadowBlur = 0;
 
-    // 2. Top Left: Clean Sector Identifier & Level Subtitle
-    const subTitle = levelData && levelData.subtitle ? ` • ${levelData.subtitle.toUpperCase()}` : '';
-    const sectorTag = isEndless ? `ETAGE ${String(floor).padStart(2, '0')}` : (levelData ? `SEKTOR 0${levelData.sectorNumber || 1}${subTitle}` : 'SEKTOR 01 • BLINDSTART');
+    // 2. Element 1 (Left): Compact Sector Identifier
+    const sectorTag = isEndless
+      ? `ETAGE ${String(floor).padStart(2, '0')}`
+      : (levelData ? `SEKTOR 0${levelData.sectorNumber || 1}` : 'SEKTOR 01');
     ctx.textAlign = 'left';
     ctx.font = '700 12px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = '#00f0ff';
     ctx.fillText(sectorTag, 18, 19);
 
-    // 3. Center: Core Objective / Escape Banner (Pulsing glowing Cyan)
+    // 3. Element 2 (Center): Core Objective / Crystal Count (Ultra-Clean, Zero Word Clutter)
     const pulseFactor = 0.75 + 0.25 * Math.sin((time || performance.now() * 0.001) * 6);
     const collected = totalCrystals - crystalsLeft;
     ctx.textAlign = 'center';
 
     if (crystalsLeft === 0) {
-      // Escape state: High visibility green
+      // Escape ready: High visibility green
       ctx.font = '700 12px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.fillStyle = '#00FF88';
       ctx.shadowColor = 'rgba(0, 255, 136, 0.8)';
       ctx.shadowBlur = 10 * pulseFactor;
-      ctx.fillText('FLUCHTAUFZUG OFFEN • ZUR EVAKUIERUNGS-ZONE', this.width / 2, 19);
+      ctx.fillText('FLUCHT BEREIT', this.width / 2, 19);
       ctx.shadowBlur = 0;
     } else {
-      ctx.font = '700 12px "Chakra Petch", "JetBrains Mono", monospace';
+      ctx.font = '700 13px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.fillStyle = '#00f0ff';
       ctx.shadowColor = 'rgba(0, 240, 255, 0.6)';
       ctx.shadowBlur = 6 * pulseFactor;
-      ctx.fillText(`◆ DATENKERNE: ${collected} / ${totalCrystals}`, this.width / 2, 19);
+      ctx.fillText(`◆ ${collected} / ${totalCrystals}`, this.width / 2, 19);
       ctx.shadowBlur = 0;
     }
 
-    // 4. Right: Compact Status Badges with fixed safe columns (Zero-Overlap Guarantee)
-    const pingSec = player ? player.getPingRemainingSeconds() : 0;
-    const isReady = pingCooldownRatio >= 1.0;
-    const isSneaking = !!(player && player.isSneaking);
-    const decoys = player ? player.decoysRemaining : 1;
+    // 4. Element 3 (Right): Running Elapsed Timer (MM:SS.d)
+    const elapsed = player && typeof player.timeElapsed === 'number' ? player.timeElapsed : (typeof time === 'number' ? time : 0);
+    const mins = Math.floor(elapsed / 60);
+    const secs = Math.floor(elapsed % 60);
+    const tenths = Math.floor((elapsed % 1) * 10);
+    const timeStr = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${tenths}`;
 
-    // Leave 110px safe margin for HTML quick-action header buttons on the far right
-    const rightMargin = this.width - 120;
-    ctx.font = '700 10.5px "Chakra Petch", "JetBrains Mono", monospace';
-
-    // Stalker distortion factor
-    const isDistorted = stalkerDist < 220;
-    const distortionFactor = isDistorted ? Math.max(0, Math.min(1, (220 - stalkerDist) / 180)) : 0;
-
-    // Slot 1 (far right of badges): Köder
+    // Position timer safely to the left of the 4 quick action icons on the far right
+    const rightMargin = this.width - 150;
     ctx.textAlign = 'right';
-    ctx.fillStyle = decoys > 0 ? '#ffaa00' : 'rgba(255, 170, 0, 0.4)';
-    ctx.fillText(`KÖDER [${decoys}x]`, rightMargin, 19);
-
-    // Slot 2: Schleichen
-    ctx.fillStyle = isSneaking ? '#00ffaa' : 'rgba(160, 190, 210, 0.6)';
-    ctx.fillText(`SCHLEICHEN [${isSneaking ? 'EIN' : 'AUS'}]`, rightMargin - 76, 19);
-
-    // Slot 3: Sonar
-    let sonarText = isReady ? 'SONAR [BEREIT]' : `SONAR [${pingSec}s]`;
-    if (distortionFactor > 0.6 && Math.random() < 0.3) {
-      sonarText = 'SONAR [STÖRUNG]';
-    }
-    ctx.fillStyle = isReady ? '#00f0ff' : '#ff7788';
-    ctx.fillText(sonarText, rightMargin - 192, 19);
+    ctx.font = '700 12px "JetBrains Mono", "Chakra Petch", monospace';
+    ctx.fillStyle = '#00f0ff';
+    ctx.fillText(timeStr, rightMargin, 19);
 
     ctx.restore();
   }

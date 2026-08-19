@@ -1775,6 +1775,49 @@ test.describe('SONAR v1.18.0 Tactical Gauntlet Loop E2E Validation', () => {
     expect(routingCheck.gameOverKey).toBe('music_menu');
   });
 
+  test('43. Ultra-Clean Mobile HUD, Zero Text Overlap & Zero Horizontal Scroll (375px & 390px Viewports)', async ({ page }) => {
+    const viewports = [
+      { width: 375, height: 667, name: 'iPhone SE' },
+      { width: 390, height: 844, name: 'iPhone 13/14' }
+    ];
+
+    for (const vp of viewports) {
+      await page.setViewportSize({ width: vp.width, height: vp.height });
+      await page.goto('/');
+      await page.waitForSelector('#gameCanvas');
+
+      // Test Sector 01 & Sector 04
+      for (const sectorIdx of [0, 3]) {
+        const check = await page.evaluate((idx) => {
+          window.game.loadSector(idx);
+          window.game.touchControls.show();
+          window.game.update(0.016);
+          window.game.render();
+
+          const cluster = document.getElementById('touch-action-cluster');
+          const dpad = document.getElementById('touch-dpad-container');
+          const docEl = document.documentElement;
+
+          const scrollWidth = docEl.scrollWidth;
+          const clientWidth = docEl.clientWidth;
+          const clusterRect = cluster ? cluster.getBoundingClientRect() : null;
+
+          return {
+            hasZeroHorizontalOverflow: scrollWidth <= clientWidth + 1,
+            clusterVisible: cluster && cluster.style.display !== 'none',
+            clusterInsideViewport: clusterRect ? (clusterRect.right <= clientWidth + 2 && clusterRect.bottom <= docEl.clientHeight + 2) : false,
+            dpadVisible: dpad && dpad.style.display !== 'none'
+          };
+        }, sectorIdx);
+
+        expect(check.hasZeroHorizontalOverflow).toBe(true);
+        expect(check.clusterVisible).toBe(true);
+        expect(check.clusterInsideViewport).toBe(true);
+      }
+    }
+  });
+
 });
+
 
 

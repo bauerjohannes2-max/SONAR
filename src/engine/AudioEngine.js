@@ -698,39 +698,77 @@ export class AudioEngine {
     osc.stop(now + 0.13);
   }
 
+  /**
+   * Data Core (Crystal) Salvage: Plays pentatonic chime scale (C -> D -> E -> G -> A)
+   */
   playCrystalPickup(crystalIndex = 0) {
     this.triggerHaptic('pickup');
     if (!this.ensureContext() || this.isMuted) return;
 
-    // Melodic Pentatonic scale pitch multipliers: C, D, E, G, A, C5, D5
-    const pentatonicRatios = [1.0, 1.122, 1.26, 1.498, 1.682, 2.0, 2.245];
-    const pitch = pentatonicRatios[crystalIndex % pentatonicRatios.length] || 1.0;
+    // Pentatonic scale base frequencies: C5 (523.25), D5 (587.33), E5 (659.25), G5 (783.99), A5 (880.00)
+    const pentatonicNotes = [523.25, 587.33, 659.25, 783.99, 880.00];
+    const pentatonicRatios = [1.0, 1.122462, 1.259921, 1.498307, 1.681793];
 
-    if (this.playSample('crystal_pickup', null, false, pitch)) return;
+    const idx = Math.max(0, Math.floor(crystalIndex || 0));
+    const noteIdx = idx % pentatonicNotes.length;
+    const octave = Math.floor(idx / pentatonicNotes.length);
+    const octaveMultiplier = Math.pow(2, octave);
 
+    const pitchRatio = pentatonicRatios[noteIdx] * octaveMultiplier;
+    const baseFreq = pentatonicNotes[noteIdx] * octaveMultiplier;
+
+    // 1. Play sample pitched to exact pentatonic note if loaded
+    if (this.playSample('crystal_pickup', null, false, pitchRatio)) return;
+
+    // 2. Procedural Crystal Chime Synthesizer (Pure Crystalline Resonance)
     const now = this.ctx.currentTime;
-    const notes = [523.25, 659.25, 783.99];
 
-    notes.forEach((freq, i) => {
-      const tunedFreq = freq * pitch;
-      const start = now + i * 0.055;
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
+    // Primary Pure Sine Tone
+    const osc1 = this.ctx.createOscillator();
+    const gain1 = this.ctx.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(baseFreq, now);
+    osc1.frequency.exponentialRampToValueAtTime(baseFreq * 1.01, now + 0.35);
 
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(tunedFreq, start);
-      osc.frequency.exponentialRampToValueAtTime(tunedFreq * 1.05, start + 0.18);
+    gain1.gain.setValueAtTime(0.001, now);
+    gain1.gain.linearRampToValueAtTime(0.35, now + 0.015);
+    gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.45);
 
-      gain.gain.setValueAtTime(0.001, start);
-      gain.gain.linearRampToValueAtTime(0.35, start + 0.015);
-      gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.28);
+    osc1.connect(gain1);
+    gain1.connect(this.sfxGain);
+    osc1.start(now);
+    osc1.stop(now + 0.5);
 
-      osc.connect(gain);
-      gain.connect(this.sfxGain);
+    // Harmonic Bell Chime Overtone (Octave 2x)
+    const osc2 = this.ctx.createOscillator();
+    const gain2 = this.ctx.createGain();
+    osc2.type = 'triangle';
+    osc2.frequency.setValueAtTime(baseFreq * 2.0, now);
+    osc2.frequency.exponentialRampToValueAtTime(baseFreq * 2.01, now + 0.25);
 
-      osc.start(start);
-      osc.stop(start + 0.3);
-    });
+    gain2.gain.setValueAtTime(0.001, now);
+    gain2.gain.linearRampToValueAtTime(0.18, now + 0.01);
+    gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+
+    osc2.connect(gain2);
+    gain2.connect(this.sfxGain);
+    osc2.start(now);
+    osc2.stop(now + 0.38);
+
+    // High Shimmer Sparkle (3x frequency overtone)
+    const osc3 = this.ctx.createOscillator();
+    const gain3 = this.ctx.createGain();
+    osc3.type = 'sine';
+    osc3.frequency.setValueAtTime(baseFreq * 3.0, now);
+
+    gain3.gain.setValueAtTime(0.001, now);
+    gain3.gain.linearRampToValueAtTime(0.12, now + 0.008);
+    gain3.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+
+    osc3.connect(gain3);
+    gain3.connect(this.sfxGain);
+    osc3.start(now);
+    osc3.stop(now + 0.25);
   }
 
   /**

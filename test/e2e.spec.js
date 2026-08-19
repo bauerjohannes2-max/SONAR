@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 
-test.describe('SONAR v1.18.0 Tactical Gauntlet Loop E2E Validation', () => {
+test.describe('SONAR v1.19.0 Tactical Gauntlet Loop E2E Validation', () => {
 
   test.beforeEach(async ({ page }) => {
     page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
@@ -11,12 +11,12 @@ test.describe('SONAR v1.18.0 Tactical Gauntlet Loop E2E Validation', () => {
     });
   });
 
-  test('1. Version Endpoint & JSON Integrity (v1.18.0)', async ({ request }) => {
+  test('1. Version Endpoint & JSON Integrity (v1.19.0)', async ({ request }) => {
     const response = await request.get('/version.json');
     expect(response.ok()).toBeTruthy();
     const data = await response.json();
-    expect(data.version).toBe('1.18.0');
-    expect(data.build).toBe(20260830);
+    expect(data.version).toBe('1.19.0');
+    expect(data.build).toBe(20260831);
   });
 
   test('2. Sci-Fi Audio Assets Existence & Preloading in Web Audio API (10 MP3 Samples)', async ({ page }) => {
@@ -1956,6 +1956,97 @@ test.describe('SONAR v1.18.0 Tactical Gauntlet Loop E2E Validation', () => {
     expect(check.pingVisible).toBe(true);
     expect(check.clusterInsideScreen).toBe(true);
     expect(check.pingInsideScreen).toBe(true);
+  });
+
+  test('47. Audio-Update v1.19.0: Distinct Soundtracks, 800ms GainNode Crossfade & Pentatonic Chime Scale', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    // 1. Verify that Menu and Gameplay soundtracks exist, are distinct files, and decode into Web Audio buffers
+    const soundtrackValidation = await page.evaluate(async () => {
+      const audio = window.game.audioEngine;
+      audio.init();
+      await audio.preloadAudioBuffers();
+
+      const menuBuffer = audio.buffers.get('music_menu');
+      const gameBuffer = audio.buffers.get('music_gameplay');
+
+      return {
+        hasMenu: !!menuBuffer,
+        hasGameplay: !!gameBuffer,
+        menuLength: menuBuffer ? menuBuffer.length : 0,
+        gameplayLength: gameBuffer ? gameBuffer.length : 0,
+        menuDuration: menuBuffer ? menuBuffer.duration : 0,
+        gameplayDuration: gameBuffer ? gameBuffer.duration : 0
+      };
+    });
+
+    expect(soundtrackValidation.hasMenu).toBe(true);
+    expect(soundtrackValidation.hasGameplay).toBe(true);
+    expect(soundtrackValidation.menuLength).toBeGreaterThan(0);
+    expect(soundtrackValidation.gameplayLength).toBeGreaterThan(0);
+
+    // 2. Verify 800ms GainNode Crossfading between Menu and Gameplay
+    const crossfadeValidation = await page.evaluate(() => {
+      const audio = window.game.audioEngine;
+      audio.playMenuMusic(0.8);
+      const menuGain = audio.currentTrackGainNode;
+      const initialTrack = audio.currentMusicTrack;
+
+      // Start gameplay -> crossfade to gameplay
+      window.game.loadSector(0);
+      const gameGain = audio.currentTrackGainNode;
+      const gameTrack = audio.currentMusicTrack;
+
+      // Return to menu -> crossfade to menu
+      window.game.onGameOver('WALL_CRASH');
+      const returnTrack = audio.currentMusicTrack;
+
+      return {
+        initialTrack,
+        gameTrack,
+        returnTrack,
+        hasGainNode: !!gameGain && !!menuGain
+      };
+    });
+
+    expect(crossfadeValidation.initialTrack).toBe('menu');
+    expect(crossfadeValidation.gameTrack).toBe('gameplay');
+    expect(crossfadeValidation.returnTrack).toBe('menu');
+    expect(crossfadeValidation.hasGainNode).toBe(true);
+
+    // 3. Verify Pentatonic Chime Scale (C -> D -> E -> G -> A) upon Crystal Collection
+    const chimeValidation = await page.evaluate(() => {
+      const audio = window.game.audioEngine;
+      let playedNotes = [];
+
+      // Intercept playCrystalPickup / playSample to record scale ratios
+      const originalPlaySample = audio.playSample.bind(audio);
+      audio.playSample = (key, customGain, loop, playbackRate) => {
+        if (key === 'crystal_pickup') {
+          playedNotes.push(playbackRate);
+        }
+        return originalPlaySample(key, customGain, loop, playbackRate);
+      };
+
+      // Collect 5 consecutive crystals
+      for (let i = 0; i < 5; i++) {
+        audio.playCrystalPickup(i);
+      }
+
+      return {
+        playedNotes,
+        scaleCount: playedNotes.length
+      };
+    });
+
+    expect(chimeValidation.scaleCount).toBe(5);
+    // C, D, E, G, A ratios: ~1.0, ~1.122, ~1.26, ~1.498, ~1.682
+    expect(chimeValidation.playedNotes[0]).toBeCloseTo(1.0, 2);
+    expect(chimeValidation.playedNotes[1]).toBeCloseTo(1.122, 2);
+    expect(chimeValidation.playedNotes[2]).toBeCloseTo(1.26, 2);
+    expect(chimeValidation.playedNotes[3]).toBeCloseTo(1.498, 2);
+    expect(chimeValidation.playedNotes[4]).toBeCloseTo(1.682, 2);
   });
 
 });

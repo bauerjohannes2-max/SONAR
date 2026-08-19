@@ -47,7 +47,18 @@ export class HUD {
     ctx.fillStyle = '#00f0ff';
     ctx.fillText(sectorTag, 18, 19);
 
-    // 3. Element 2 (Center): Core Objective / Crystal Count (Ultra-Clean, Zero Word Clutter)
+    // 3. Element 2 (Left-Center): Running Elapsed Timer (MM:SS.d) - Placed safely on left to guarantee 0% collision on Foldables/Mobiles
+    const elapsed = player && typeof player.timeElapsed === 'number' ? player.timeElapsed : (typeof time === 'number' ? time : 0);
+    const mins = Math.floor(elapsed / 60);
+    const secs = Math.floor(elapsed % 60);
+    const tenths = Math.floor((elapsed % 1) * 10);
+    const timeStr = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${tenths}`;
+
+    ctx.font = '700 12px "JetBrains Mono", "Chakra Petch", monospace';
+    ctx.fillStyle = '#00f0ff';
+    ctx.fillText(timeStr, 130, 19);
+
+    // 4. Element 3 (Center): Core Objective / Crystal Count (Ultra-Clean, Zero Word Clutter)
     const pulseFactor = 0.75 + 0.25 * Math.sin((time || performance.now() * 0.001) * 6);
     const collected = totalCrystals - crystalsLeft;
     ctx.textAlign = 'center';
@@ -68,20 +79,6 @@ export class HUD {
       ctx.fillText(`◆ ${collected} / ${totalCrystals}`, this.width / 2, 19);
       ctx.shadowBlur = 0;
     }
-
-    // 4. Element 3 (Right): Running Elapsed Timer (MM:SS.d)
-    const elapsed = player && typeof player.timeElapsed === 'number' ? player.timeElapsed : (typeof time === 'number' ? time : 0);
-    const mins = Math.floor(elapsed / 60);
-    const secs = Math.floor(elapsed % 60);
-    const tenths = Math.floor((elapsed % 1) * 10);
-    const timeStr = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${tenths}`;
-
-    // Position timer safely to the left of the 4 quick action icons on the far right
-    const rightMargin = this.width - 150;
-    ctx.textAlign = 'right';
-    ctx.font = '700 12px "JetBrains Mono", "Chakra Petch", monospace';
-    ctx.fillStyle = '#00f0ff';
-    ctx.fillText(timeStr, rightMargin, 19);
 
     ctx.restore();
   }

@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 
-test.describe('SONAR v1.18.1 Tactical Gauntlet Loop E2E Validation', () => {
+test.describe('SONAR v1.18.2 Tactical Gauntlet Loop E2E Validation', () => {
 
   test.beforeEach(async ({ page }) => {
     page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
@@ -11,11 +11,11 @@ test.describe('SONAR v1.18.1 Tactical Gauntlet Loop E2E Validation', () => {
     });
   });
 
-  test('1. Version Endpoint & JSON Integrity (v1.18.1)', async ({ request }) => {
+  test('1. Version Endpoint & JSON Integrity (v1.18.2)', async ({ request }) => {
     const response = await request.get('/version.json');
     expect(response.ok()).toBeTruthy();
     const data = await response.json();
-    expect(data.version).toBe('1.18.1');
+    expect(data.version).toBe('1.18.2');
     expect(data.build).toBe(20260830);
   });
 

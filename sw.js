@@ -61,6 +61,9 @@ const ASSETS_TO_CACHE = [
   './assets/audio/enemy_alert.mp3',
   './assets/audio/portal_open.mp3',
   './assets/audio/ambient_drone.mp3',
+  './assets/audio/ambient_main.mp3',
+  './assets/audio/music_menu.mp3',
+  './assets/audio/music_gameplay.mp3',
   './assets/audio/bg_music.mp3'
 ];
 

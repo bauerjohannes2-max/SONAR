@@ -1974,10 +1974,7 @@ test.describe('SONAR v1.18.0 Tactical Gauntlet Loop E2E Validation', () => {
     expect(check.pingInsideScreen).toBe(true);
   });
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-  test('47. Top-HUD 0% Overlap on Foldables, K.I.S.S. Main Menu, 2-Line Death Screen & Button Shortcut Audit (v1.18.1)', async ({ page }) => {
+  test('47. Top-HUD 0% Overlap on Foldables, K.I.S.S. Main Menu, 2-Line Death Screen & Button Shortcut Audit (v1.18.0)', async ({ page }) => {
     // 1. Foldable Cover Viewport (344x882) & Foldable Unfolded (904x1076)
     for (const vp of [{ width: 344, height: 882 }, { width: 904, height: 1076 }]) {
       await page.setViewportSize({ width: vp.width, height: vp.height });

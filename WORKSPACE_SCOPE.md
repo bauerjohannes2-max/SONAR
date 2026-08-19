@@ -1,29 +1,19 @@
-# WORKSPACE SCOPE: UI & RESPONSIVE LAYOUTS (Agent 1)
+# MULTI-WORKSPACE SCOPE & DOMAIN ARCHITECTURE
 
-## 📌 Zuständigkeit & Branch
-- **Branch:** `feature/ui-layout-cleanup`
-- **Workspace Pfad:** `../sonar-ui`
+This project uses a multi-worktree architecture with strict domain isolation across 4 workspaces:
 
----
+## 1. UI & Responsive Layouts (`../sonar-ui` / `feature/ui-layout-cleanup`)
+- **Files:** `src/ui/HUD.js`, `src/ui/MenuSystem.js`, `src/ui/LevelSelectModal.js`, `styles/main.css`, `index.html`
+- **Scope:** Galaxy Z Fold HUD layout, K.I.S.S. main menu, streamlined death screen, button shortcut audit.
 
-## 🎯 Zuständige Dateien (Strikte Domain-Isolation)
-- `src/ui/HUD.js`
-- `src/ui/MenuSystem.js`
-- `src/ui/LevelSelectModal.js`
-- `styles/main.css`
-- `index.html`
+## 2. Audio & Soundtracks (`../sonar-audio` / `feature/audio-dual-engine`)
+- **Files:** `src/audio/*`, `assets/audio/*`, `src/engine/AudioEngine.js`, `src/entities/Pickups.js`
+- **Scope:** Dual-soundtrack engine, Web Audio decoding, 800ms GainNode crossfade, pentatonic chime scale.
 
----
+## 3. Gameplay, Game-Juice & Haptics (`../sonar-gameplay` / `feature/gameplay-juice`)
+- **Files:** `src/engine/TouchControls.js`, `src/engine/Haptics.js`, `src/engine/Particles.js`, `src/engine/Drone.js`, `src/engine/ParticleEngine.js`, `src/engine/PostProcessing.js`
+- **Scope:** Mobile safe-area touch clusters, bubble thruster particles, tactile vibration, danger-vignette shader, instant restart.
 
-## 📋 Aufgaben & Verantwortlichkeiten
-1. **Galaxy-Z-Fold & Foldable Top-HUD Fix:** 0% Text-Crash, Truncation für schmale Screens (`SEKTOR 01` / `S-01`, `◆ 0 / 3`, Zeit).
-2. **K.I.S.S. Hauptmenü:** Pure Core Titles (`KAMPAGNE`, `UPGRADES`, `BESTENLISTE`, `PROFIL`), User-Avatar-Button oben links, Version im Footer.
-3. **Sterbemenü (Game-Over):** Maximal 2 Zeilen Text (`SIGNAL VERLOREN`, `Wandkollision` / `Feindkontakt`), Icon-freie Ergebnis-Buttons (`NEUSTART`, `LEVELAUSWAHL`, `HAUPTMENÜ`).
-4. **Globaler Shortcut-Audit:** Entfernung sämtlicher Tastatur-Kürzel in Klammern aus allen Buttons.
-
----
-
-## 🧪 Validierungs-Befehl
-```bash
-node ./node_modules/@playwright/test/cli.js test
-```
+## 4. Progression, Cloud & Leaderboard (`../sonar-progression` / `feature/progression-storage`)
+- **Files:** `src/services/*`, `src/engine/Progression.js`, `src/config/levels.js`, `src/ui/LeaderboardModal.js`, `src/ui/ProfileModal.js`, `src/ui/HangarModal.js`
+- **Scope:** Total star rating vs. upgrade currency separation, Firestore cloud sync, multi-user pilot isolation.

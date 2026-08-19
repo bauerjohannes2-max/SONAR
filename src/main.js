@@ -120,7 +120,12 @@ export class Game {
       },
       () => {
         // onExitToMenu: Abort game, stop drone audio, return to menu
-        if (this.audioEngine) this.audioEngine.stopAmbientDrone();
+        if (this.audioEngine) {
+          this.audioEngine.stopAmbientDrone();
+          if (typeof this.audioEngine.playMenuMusic === 'function') {
+            this.audioEngine.playMenuMusic(0.8);
+          }
+        }
         this.isEndlessActive = false;
         this.gameState = CONFIG.STATES.MENU;
       },
@@ -798,7 +803,9 @@ export class Game {
       if (!c.collected) {
         remainingCrystals++;
         if (c.checkPickup(this.player.gridX, this.player.gridY)) {
-          this.audioEngine.playCrystalPickup(this.player.crystalsCollected);
+          const crystalIndex = this.player.crystalsCollected || 0;
+          this.player.crystalsCollected = crystalIndex + 1;
+          this.audioEngine.playCrystalPickup(crystalIndex);
           this.particleEngine.spawnSparks(c.x, c.y, CONFIG.COLORS.CRYSTAL, 16);
           this.particleEngine.addShake(3, 150);
         }

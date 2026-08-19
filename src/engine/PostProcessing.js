@@ -5,6 +5,7 @@
  */
 
 import { CONFIG } from '../config.js';
+import { Haptics } from './Haptics.js';
 
 export class PostProcessing {
   constructor(width = CONFIG.CANVAS_WIDTH, height = CONFIG.CANVAS_HEIGHT) {
@@ -60,13 +61,18 @@ export class PostProcessing {
     }
 
     // Proximity tension activates within 4 grid tiles (4 * 32 = 128px)
-    const tensionThreshold = 128;
+    const tensionThreshold = 4 * (CONFIG.TILE_SIZE || 32);
     const targetTension = minDistance < tensionThreshold
       ? Math.max(0, 1 - minDistance / tensionThreshold)
       : 0;
 
     // Smooth lerp
     this.tension += (targetTension - this.tension) * Math.min(1.0, dt * 5);
+
+    // Tactile threat heartbeat vibration when close to predator
+    if (this.tension > 0.35) {
+      Haptics.danger();
+    }
   }
 
   /**

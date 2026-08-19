@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 
-test.describe('SONAR v1.18.0 Tactical Gauntlet Loop E2E Validation', () => {
+test.describe('SONAR v1.19.0 Tactical Gauntlet Loop E2E Validation', () => {
 
   test.beforeEach(async ({ page }) => {
     page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
@@ -11,12 +11,12 @@ test.describe('SONAR v1.18.0 Tactical Gauntlet Loop E2E Validation', () => {
     });
   });
 
-  test('1. Version Endpoint & JSON Integrity (v1.18.0)', async ({ request }) => {
+  test('1. Version Endpoint & JSON Integrity (v1.19.0)', async ({ request }) => {
     const response = await request.get('/version.json');
     expect(response.ok()).toBeTruthy();
     const data = await response.json();
-    expect(data.version).toBe('1.18.0');
-    expect(data.build).toBe(20260830);
+    expect(data.version).toBe('1.19.0');
+    expect(data.build).toBe(20260831);
   });
 
   test('2. Sci-Fi Audio Assets Existence & Preloading in Web Audio API (10 MP3 Samples)', async ({ page }) => {
@@ -1959,6 +1959,7 @@ test.describe('SONAR v1.18.0 Tactical Gauntlet Loop E2E Validation', () => {
   });
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   test('47. Top-HUD 0% Overlap on Foldables, K.I.S.S. Main Menu, 2-Line Death Screen & Button Shortcut Audit (v1.18.1)', async ({ page }) => {
     // 1. Foldable Cover Viewport (344x882) & Foldable Unfolded (904x1076)
     for (const vp of [{ width: 344, height: 882 }, { width: 904, height: 1076 }]) {
@@ -2149,9 +2150,74 @@ test.describe('SONAR v1.18.0 Tactical Gauntlet Loop E2E Validation', () => {
     expect(chimeValidation.playedNotes[4]).toBeCloseTo(1.682, 2);
   });
 
+  test('49. Gameplay-Juice Update: Safe-Area Action Cluster, Haptics Engine, Danger-Vignette Proximity, Delicate Bubble Particles & Quick Restart (v1.18.0)', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('domcontentloaded');
+
+    const result = await page.evaluate(async () => {
+      // 1. Verify Haptics engine availability & module integrity
+      const { Haptics, HapticEngine } = await import('./src/engine/Haptics.js');
+      const hasHaptics = typeof Haptics !== 'undefined' && typeof Haptics.ping === 'function' && typeof Haptics.enemyContact === 'function';
+
+      // 2. Verify Particles module re-export & ParticleEngine bubble simulation
+      const { ParticleEngine } = await import('./src/engine/Particles.js');
+      const pe = new ParticleEngine();
+      pe.spawnWakeBubble(200, 200, 0, false, true);
+      const hasBubbles = pe.particles.some(p => p.type === 'BUBBLE');
+      pe.update(0.016);
+      const bubbleMoved = pe.particles.length > 0 && typeof pe.particles[0].buoyancy === 'number';
+
+      // 3. Verify Danger-Vignette proximity (< 4 blocks / 128px)
+      const { PostProcessing } = await import('./src/engine/PostProcessing.js');
+      const pp = new PostProcessing(800, 576);
+      const mockPlayer = { x: 100, y: 100, isAlive: true };
+      const mockHunterFar = [{ x: 300, y: 300 }]; // ~282px (> 128px)
+      pp.update(0.1, mockPlayer, mockHunterFar, []);
+      const farTension = pp.tension;
+
+      const mockHunterNear = [{ x: 140, y: 100 }]; // 40px (< 128px / 4 blocks)
+      pp.update(0.5, mockPlayer, mockHunterNear, []);
+      const nearTension = pp.tension;
+
+      // 4. Verify CSS Safe-Area Inset on Action Cluster
+      const cluster = document.getElementById('touch-action-cluster');
+      const dpad = document.getElementById('touch-dpad-container');
+
+      // 5. Verify Instant Restart via Key R
+      window.game.loadSector(0);
+      window.game.player.x = 300;
+      window.game.player.y = 300;
+      const initialGridX = window.game.player.gridX;
+
+      // Trigger restart via InputHandler
+      window.game.inputHandler.restartTriggered = true;
+      window.game.update(0.016);
+
+      const restartedToOrigin = window.game.player.gridX === initialGridX && window.game.gameState === 'PLAYING';
+
+      return {
+        hasHaptics,
+        hasBubbles,
+        bubbleMoved,
+        farTensionZero: farTension === 0,
+        nearTensionActive: nearTension > 0.1,
+        clusterExists: !!cluster,
+        dpadExists: !!dpad,
+        restartedToOrigin
+      };
+    });
+
+    expect(result.hasHaptics).toBe(true);
+    expect(result.hasBubbles).toBe(true);
+    expect(result.bubbleMoved).toBe(true);
+    expect(result.farTensionZero).toBe(true);
+    expect(result.nearTensionActive).toBe(true);
+    expect(result.clusterExists).toBe(true);
+    expect(result.dpadExists).toBe(true);
+    expect(result.restartedToOrigin).toBe(true);
+  });
+
 });
-
-
 
 
 

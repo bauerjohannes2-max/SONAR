@@ -15,9 +15,11 @@
 | `src/engine/WaveSystem.js` | Akustische Schallwellen-Ausbreitung (Normal/Sneak/Decoy), Tile-Reveals & Reflexionsfunken. |
 | `src/engine/ParticleEngine.js` | Marine Snow, Hydrodynamic Wake-Trails, Crash-Funken & Screen-Shake. |
 | `src/engine/AudioEngine.js` | Web Audio Buffers, Soundeffekte (Ping, Pickups, Crash, Ambient) & dynamischer Feind-Herzschlag. |
+| `src/engine/Haptics.js` | Taktile Vibrationen (navigator.vibrate) für Pings, Feindkontakt, Herzschlag & Neustarts. |
 | `src/engine/SpriteManager.js` | Preloading und Caching von CC0 Pixel-Art Sprites (Drohne, Hunter, Stalker, Kristalle). |
-| `src/engine/InputHandler.js` | Tastatur-Steuerung (WASD/Pfeile/Space), Klick-Events & Touch-Abstraktion. |
-| `src/engine/TouchControls.js` | Mobile D-Pad, Aktions-Buttons (Ping, Sneak, Decoy, Menu) & Multi-Touch-Handling. |
+| `src/engine/InputHandler.js` | Tastatur-Steuerung (WASD/Pfeile/Space/R), Klick-Events & Touch-Abstraktion. |
+| `src/engine/TouchControls.js` | Mobile D-Pad, Aktions-Buttons (Ping, Sneak, Decoy, Menu) & Safe-Area Multi-Touch-Handling. |
+| `src/engine/Particles.js` | Re-Export & Utility-Schnittstelle für Hydrodynamische Partikel & Bläschen. |
 | `src/engine/DisplayManager.js` | Responsive Canvas-Skalierung, Aspect-Ratio & Safe-Area-Management. |
 | `src/entities/Player.js` | Drohnen-Status (ECHO-7), Bewegung, Kollisionen, Schleichen, 3-Sterne-Rangberechnung. |
 | `src/entities/Hunter.js` | Patrouillen- & Jagdlogik der Raubdrohnen (PATROL, ALERT, CHASE, SEARCH). |

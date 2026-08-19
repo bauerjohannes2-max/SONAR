@@ -4,6 +4,7 @@
  */
 
 import { CONFIG } from '../config.js';
+import { Haptics } from './Haptics.js';
 
 export class TouchControls {
   constructor(audioEngine, inputHandler) {
@@ -529,10 +530,12 @@ export class TouchControls {
   }
 
   triggerHaptic(ms = 8) {
-    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
-      try {
-        navigator.vibrate(ms);
-      } catch (e) {}
+    if (typeof ms === 'number') {
+      Haptics.vibrate(ms);
+    } else if (Array.isArray(ms)) {
+      Haptics.vibrate(ms);
+    } else {
+      Haptics.button();
     }
   }
 

@@ -17,14 +17,31 @@ const MIME_TYPES = {
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
   '.svg': 'image/svg+xml',
-  '.ico': 'image/x-icon'
+  '.ico': 'image/x-icon',
+  '.mp3': 'audio/mpeg',
+  '.wav': 'audio/wav',
+  '.woff2': 'font/woff2',
+  '.woff': 'font/woff',
+  '.ttf': 'font/ttf'
 };
 
-const server = http.createServer((req, res) => {
-  let reqPath = req.url.split('?')[0];
-  if (reqPath === '/') reqPath = '/index.html';
+process.on('uncaughtException', (err) => {
+  console.warn('[Server] Suppressed uncaught exception:', err.message);
+});
 
-  const filePath = path.join(rootDir, reqPath);
+const server = http.createServer((req, res) => {
+  req.on('error', (err) => {
+    console.warn('[Server] Req error:', err.message);
+  });
+  res.on('error', (err) => {
+    console.warn('[Server] Res error:', err.message);
+  });
+
+  let reqPath = req.url.split('?')[0];
+  if (reqPath === '/' || !reqPath) reqPath = 'index.html';
+
+  const relPath = reqPath.replace(/^[/\\]+/, '');
+  const filePath = path.join(rootDir, relPath);
 
   fs.stat(filePath, (err, stats) => {
     if (err || !stats.isFile()) {
@@ -43,8 +60,19 @@ const server = http.createServer((req, res) => {
     });
 
     const stream = fs.createReadStream(filePath);
+    stream.on('error', (streamErr) => {
+      console.warn('[Server] Stream error:', streamErr.message);
+      if (!res.headersSent) {
+        res.statusCode = 500;
+        res.end();
+      }
+    });
     stream.pipe(res);
   });
+});
+
+server.on('error', (err) => {
+  console.warn('[Server] Server error:', err.message);
 });
 
 server.listen(PORT, '127.0.0.1', () => {

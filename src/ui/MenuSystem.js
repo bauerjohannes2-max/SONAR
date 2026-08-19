@@ -504,7 +504,7 @@ export class MenuSystem {
 
     ctx.font = '700 12.5px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = '#FFD700';
-    ctx.fillText(`GESAMTERFOLG: ${totalStars} / 30 ★ • FREIGESCHALTET: 0${Math.min(10, this.unlockedSector)}`, CONFIG.CANVAS_WIDTH / 2, 76);
+    ctx.fillText(`GESAMTERFOLG: ${totalStars} / 30 ★ • FREIGESCHALTET: ${String(Math.min(10, this.unlockedSector)).padStart(2, '0')}`, CONFIG.CANVAS_WIDTH / 2, 76);
 
     // 2x5 Grid of Sector Cards (Clean Layout with Level Names)
     const startX = 70;

@@ -138,8 +138,10 @@ class FirebaseService {
             unlockedSector: storedPilot.unlockedSector || 1,
             maxClearedSector: storedPilot.maxClearedSector || 0,
             sectorStats: storedPilot.sectorStats || {},
+            totalStars: storedPilot.totalStars || 0,
             endlessHighscore: storedPilot.endlessHighscore || 0,
-            highestLevel: storedPilot.maxClearedSector || storedPilot.unlockedSector || 1
+            highestLevel: storedPilot.maxClearedSector || storedPilot.unlockedSector || 1,
+            upgrades: storedPilot.upgrades || null
           },
           message: `Willkommen zurück, Pilot ${callsign}!`
         };
@@ -150,9 +152,11 @@ class FirebaseService {
         pinHash,
         unlockedSector: 1,
         maxClearedSector: 0,
+        totalStars: 0,
         sectorStats: {},
         endlessHighscore: 0,
-        highestLevel: 1
+        highestLevel: 1,
+        upgrades: { sonarBooster: 0, extraDecoy: 0, hydroDampener: 0, emergencyShield: 0 }
       };
       try {
         localStorage.setItem(localKey, JSON.stringify(newPilotData));
@@ -184,9 +188,12 @@ class FirebaseService {
           data: {
             callsign: existingData.callsign || callsign,
             unlockedSector: existingData.unlockedSector || 1,
+            maxClearedSector: existingData.maxClearedSector !== undefined ? existingData.maxClearedSector : (existingData.unlockedSector > 1 ? existingData.unlockedSector - 1 : 0),
             sectorStats: existingData.sectorStats || {},
+            totalStars: existingData.totalStars !== undefined ? existingData.totalStars : 0,
             endlessHighscore: existingData.endlessHighscore || 0,
-            highestLevel: existingData.highestLevel || existingData.unlockedSector || 1
+            highestLevel: existingData.highestLevel || existingData.unlockedSector || 1,
+            upgrades: existingData.upgrades || null
           },
           message: `Willkommen zurück, Pilot ${callsign}!`
         };
@@ -196,9 +203,12 @@ class FirebaseService {
           callsign,
           pinHash,
           unlockedSector: 1,
+          maxClearedSector: 0,
+          totalStars: 0,
           sectorStats: {},
           endlessHighscore: 0,
           highestLevel: 1,
+          upgrades: { sonarBooster: 0, extraDecoy: 0, hydroDampener: 0, emergencyShield: 0 },
           createdAt: serverTimestamp(),
           lastUpdated: serverTimestamp()
         };
@@ -211,21 +221,54 @@ class FirebaseService {
           data: {
             callsign,
             unlockedSector: 1,
+            maxClearedSector: 0,
+            totalStars: 0,
             sectorStats: {},
             endlessHighscore: 0,
-            highestLevel: 1
+            highestLevel: 1,
+            upgrades: { sonarBooster: 0, extraDecoy: 0, hydroDampener: 0, emergencyShield: 0 }
           },
           message: `Neues Pilot-Profil registriert: ${callsign}!`
         };
       }
     } catch (err) {
       console.warn('[FirebaseService] Firestore Login/Register Fehler:', err);
-      return { success: false, error: 'Cloud-Sync Verbindungsfehler: ' + (err.message || 'Unbekannt') };
+      // Graceful offline fallback if local pilot exists
+      const localKey = 'sonar_pilot_' + callsign.toUpperCase();
+      let storedPilot = null;
+      try {
+        const raw = localStorage.getItem(localKey);
+        if (raw) storedPilot = JSON.parse(raw);
+      } catch (e) {}
+
+      if (storedPilot) {
+        if (storedPilot.pinHash && storedPilot.pinHash !== pinHash) {
+          return { success: false, error: 'Falsche PIN für dieses Pilot-Callsign!' };
+        }
+        return {
+          success: true,
+          offline: true,
+          isNew: false,
+          data: {
+            callsign: storedPilot.callsign || callsign,
+            unlockedSector: storedPilot.unlockedSector || 1,
+            maxClearedSector: storedPilot.maxClearedSector || 0,
+            sectorStats: storedPilot.sectorStats || {},
+            totalStars: storedPilot.totalStars || 0,
+            endlessHighscore: storedPilot.endlessHighscore || 0,
+            highestLevel: storedPilot.maxClearedSector || storedPilot.unlockedSector || 1,
+            upgrades: storedPilot.upgrades || null
+          },
+          message: `Offline-Modus: Lokales Profil für ${callsign} geladen (Server nicht erreichbar).`
+        };
+      }
+
+      return { success: false, error: 'Cloud-Sync Verbindungsfehler: Bitte Internetverbindung prüfen.' };
     }
   }
 
   /**
-   * Save / Sync Pilot Progress to Firestore.
+   * Save / Sync Pilot Progress to Firestore with offline queueing.
    */
   async savePilotProgress(callsign, progressData) {
     if (!callsign || callsign === 'GAST') return false;
@@ -238,7 +281,13 @@ class FirebaseService {
     } catch (e) {}
 
     const ready = await this.init();
-    if (!ready || !this.db) return true;
+    if (!ready || !this.db) {
+      // Store pending sync payload
+      try {
+        localStorage.setItem('sonar_pending_sync_' + callsign.toUpperCase(), JSON.stringify(progressData));
+      } catch (e) {}
+      return true;
+    }
 
     try {
       const { doc, setDoc, serverTimestamp } = this.firestoreModule;
@@ -274,12 +323,39 @@ class FirebaseService {
         lastUpdated: serverTimestamp()
       };
 
+      if (progressData.upgrades) {
+        payload.upgrades = progressData.upgrades;
+      }
+
       await setDoc(docRef, payload, { merge: true });
+      try {
+        localStorage.removeItem('sonar_pending_sync_' + callsign.toUpperCase());
+      } catch (e) {}
       return true;
     } catch (err) {
-      console.warn('[FirebaseService] Cloud-Save Fehler:', err);
+      console.warn('[FirebaseService] Cloud-Save Fehler, speichere in Offline-Queue:', err);
+      try {
+        localStorage.setItem('sonar_pending_sync_' + callsign.toUpperCase(), JSON.stringify(progressData));
+      } catch (e) {}
       return false;
     }
+  }
+
+  /**
+   * Synchronize pending progress queued while offline.
+   */
+  async syncPendingProgress(callsign) {
+    if (!callsign || callsign === 'GAST') return false;
+    try {
+      const raw = localStorage.getItem('sonar_pending_sync_' + callsign.toUpperCase());
+      if (raw) {
+        const pendingData = JSON.parse(raw);
+        if (pendingData) {
+          return await this.savePilotProgress(callsign, pendingData);
+        }
+      }
+    } catch (e) {}
+    return false;
   }
 
   /**

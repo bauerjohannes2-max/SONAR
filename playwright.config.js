@@ -21,7 +21,7 @@ export default defineConfig({
   webServer: {
     command: 'node scratch/server.js',
     url: 'http://127.0.0.1:3005',
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: true,
     timeout: 15000,
   },
 });

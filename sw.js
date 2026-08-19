@@ -3,7 +3,7 @@
  * Service Worker with Offline Cache-First Strategy for Instant Load Times
  */
 
-const CACHE_NAME = 'sonar-cache-v1.18.0';
+const CACHE_NAME = 'sonar-cache-v1.19.0';
 
 const ASSETS_TO_CACHE = [
   './',
@@ -105,7 +105,8 @@ self.addEventListener('fetch', (event) => {
     url.origin !== self.location.origin ||
     url.pathname.endsWith('version.json') ||
     url.searchParams.has('updated') ||
-    url.searchParams.has('t')
+    url.searchParams.has('t') ||
+    url.searchParams.has('v')
   ) {
     event.respondWith(
       fetch(event.request).catch(() => caches.match(event.request))

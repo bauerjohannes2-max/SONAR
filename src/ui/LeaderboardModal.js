@@ -401,7 +401,7 @@ export class LeaderboardModal {
 
       sectorRowsHtml += `
         <tr style="border-bottom: 1px solid rgba(0, 240, 255, 0.08);">
-          <td style="padding: 6px 8px; font-weight: 700; color: var(--cyan-primary);">SEKTOR 0${s}</td>
+          <td style="padding: 6px 8px; font-weight: 700; color: var(--cyan-primary);">SEKTOR ${String(s).padStart(2, '0')}</td>
           <td style="padding: 6px 8px; color: ${myTime !== null ? '#00FF88' : '#8da8b8'}; font-weight: 600;">${myTimeStr}</td>
           <td style="padding: 6px 8px; color: ${rivalT !== null ? '#00F0FF' : '#8da8b8'}; font-weight: 600;">${rivalTimeStr}</td>
           <td style="padding: 6px 8px;">${verdict}</td>
@@ -414,14 +414,14 @@ export class LeaderboardModal {
         <div class="rival-pilot-card" style="background: rgba(0, 255, 136, 0.08); border: 1px solid rgba(0, 255, 136, 0.3); border-radius: 6px; padding: 10px; text-align: center;">
           <div class="rival-pilot-name" style="color: #00FF88; font-weight: 700; font-size: 13px;">${myCallsign} (DU)</div>
           <div class="rival-pilot-stars" style="color: #FFD700; font-weight: 700; font-size: 13px; margin: 4px 0;">${myTotalStars} / 30 ★</div>
-          <div style="font-size: 11px; color: #a0c4d8;">Erreicht: 0${myCleared} / 10</div>
+          <div style="font-size: 11px; color: #a0c4d8;">Erreicht: ${String(myCleared).padStart(2, '0')} / 10</div>
           <div style="font-size: 11px; color: #00FF88; margin-top: 2px;">Siege: ${myWins} Sektoren</div>
         </div>
         <div class="rival-vs-divider" style="font-weight: 800; color: var(--text-dim); font-size: 14px;">VS</div>
         <div class="rival-pilot-card" style="background: rgba(0, 240, 255, 0.08); border: 1px solid rgba(0, 240, 255, 0.3); border-radius: 6px; padding: 10px; text-align: center;">
           <div class="rival-pilot-name" style="color: #00F0FF; font-weight: 700; font-size: 13px;">${rivalCallsign}</div>
           <div class="rival-pilot-stars" style="color: #FFD700; font-weight: 700; font-size: 13px; margin: 4px 0;">${rivalTotalStars} / 30 ★</div>
-          <div style="font-size: 11px; color: #a0c4d8;">Erreicht: 0${rivalCleared} / 10</div>
+          <div style="font-size: 11px; color: #a0c4d8;">Erreicht: ${String(rivalCleared).padStart(2, '0')} / 10</div>
           <div style="font-size: 11px; color: #00F0FF; margin-top: 2px;">Siege: ${rivalWins} Sektoren</div>
         </div>
       </div>

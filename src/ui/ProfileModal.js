@@ -153,10 +153,10 @@ export class ProfileModal {
         `;
         if (logoutBtn) logoutBtn.style.display = 'none';
       } else {
-        const cloudLabel = isFbOnline ? 'CLOUD-SYNC AKTIV' : 'LOKAL GESICHERT';
+        const totalStars = storageManager.calculateTotalStars();
         banner.innerHTML = `
           <div class="status-badge logged-in">SPIELER: <strong>${pilot.callsign}</strong> • [ ${cloudLabel} ]</div>
-          <div class="status-detail">Höchster Sektor: 0${pilot.unlockedSector || 1} • Sterne: ${pilot.totalStars || 0} / 30</div>
+          <div class="status-detail">Höchster Sektor: ${String(pilot.unlockedSector || 1).padStart(2, '0')} • Sterne: ${totalStars} / 30 ★</div>
         `;
         if (logoutBtn) logoutBtn.style.display = 'inline-block';
       }

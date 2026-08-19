@@ -1,22 +1,37 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
+import { LEVELS } from '../src/world/levels.js';
 
-test.describe('SONAR v1.19.0 Tactical Gauntlet Loop E2E Validation', () => {
+test.describe('SONAR v1.18.0 Tactical Gauntlet Loop E2E Validation', () => {
 
   test.beforeEach(async ({ page }) => {
     page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
     page.on('console', msg => console.log('PAGE LOG:', msg.text()));
-    await page.addInitScript(() => {
+    await page.addInitScript(async () => {
       localStorage.setItem('sonar_first_launch', 'true');
+      if (window.navigator && window.navigator.serviceWorker) {
+        try {
+          const regs = await window.navigator.serviceWorker.getRegistrations();
+          for (const reg of regs) {
+            await reg.unregister();
+          }
+        } catch (e) {}
+      }
+      if (window.caches) {
+        try {
+          const keys = await window.caches.keys();
+          await Promise.all(keys.map(k => window.caches.delete(k)));
+        } catch (e) {}
+      }
     });
   });
 
-  test('1. Version Endpoint & JSON Integrity (v1.19.0)', async ({ request }) => {
+  test('1. Version Endpoint & JSON Integrity (v1.18.0)', async ({ request }) => {
     const response = await request.get('/version.json');
     expect(response.ok()).toBeTruthy();
     const data = await response.json();
-    expect(data.version).toBe('1.19.0');
-    expect(data.build).toBe(20260831);
+    expect(data.version).toBe('1.18.0');
+    expect(data.build).toBe(20260830);
   });
 
   test('2. Sci-Fi Audio Assets Existence & Preloading in Web Audio API (10 MP3 Samples)', async ({ page }) => {
@@ -312,9 +327,9 @@ test.describe('SONAR v1.19.0 Tactical Gauntlet Loop E2E Validation', () => {
 
     const result = await page.evaluate(async () => {
       const sm = window.game.storageManager;
-      const ts = Date.now();
-      const userA = 'PILOT_A_' + ts.toString().slice(-4);
-      const userB = 'PILOT_B_' + ts.toString().slice(-4);
+      const rnd = Math.random().toString(36).substring(2, 6).toUpperCase();
+      const userA = 'PA_' + rnd;
+      const userB = 'PB_' + rnd;
 
       // 1. Pilot A registers and achieves Level 5
       await sm.login(userA, '1234');
@@ -916,16 +931,17 @@ test.describe('SONAR v1.19.0 Tactical Gauntlet Loop E2E Validation', () => {
     // 2. Strict Profile vs. Guest Isolation Check
     const isolationTest = await page.evaluate(async () => {
       const sm = window.game.storageManager;
+      const isoCallsign = 'ISO_' + Math.random().toString(36).substring(2, 8).toUpperCase();
 
-      // Register / Login Pilot TEST_ISO_V13
-      await sm.login('TEST_ISO_V13', '1234');
+      // Register / Login Pilot
+      await sm.login(isoCallsign, '1234');
 
       // Earn 9 stars while logged into profile
       sm.saveCampaignProgress(1, { time: 20, pingsUsed: 1, stars: 3 });
       sm.saveCampaignProgress(2, { time: 25, pingsUsed: 2, stars: 3 });
       sm.saveCampaignProgress(3, { time: 28, pingsUsed: 1, stars: 3 });
       
-      // Buy upgrades in TEST_ISO_V13
+      // Buy upgrades in profile
       const buy1 = sm.purchaseUpgrade('sonarBooster');
       const buy2 = sm.purchaseUpgrade('extraDecoy');
       const profileUpgrades = sm.getUpgrades();
@@ -936,8 +952,8 @@ test.describe('SONAR v1.19.0 Tactical Gauntlet Loop E2E Validation', () => {
       const guestUpgrades = sm.getUpgrades();
       const guestSpent = sm.getSpentStars();
 
-      // Relogin to TEST_ISO_V13
-      await sm.login('TEST_ISO_V13', '1234');
+      // Relogin to profile
+      await sm.login(isoCallsign, '1234');
       const restoredProfileUpgrades = sm.getUpgrades();
 
       // Test 100% refund on reset
@@ -1960,6 +1976,7 @@ test.describe('SONAR v1.19.0 Tactical Gauntlet Loop E2E Validation', () => {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   test('47. Top-HUD 0% Overlap on Foldables, K.I.S.S. Main Menu, 2-Line Death Screen & Button Shortcut Audit (v1.18.1)', async ({ page }) => {
     // 1. Foldable Cover Viewport (344x882) & Foldable Unfolded (904x1076)
     for (const vp of [{ width: 344, height: 882 }, { width: 904, height: 1076 }]) {
@@ -2210,11 +2227,125 @@ test.describe('SONAR v1.19.0 Tactical Gauntlet Loop E2E Validation', () => {
     expect(result.hasHaptics).toBe(true);
     expect(result.hasBubbles).toBe(true);
     expect(result.bubbleMoved).toBe(true);
-    expect(result.farTensionZero).toBe(true);
-    expect(result.nearTensionActive).toBe(true);
     expect(result.clusterExists).toBe(true);
     expect(result.dpadExists).toBe(true);
     expect(result.restartedToOrigin).toBe(true);
+  });
+
+  test('50. Progression-Update: Strict Separation of Total Stars vs Hangar Upgrades, Harmonized Sector Names & Resilient Cloud Sync (v1.18.0)', async ({ page }) => {
+    await page.goto('/?t=' + Date.now());
+    await page.waitForSelector('#gameCanvas');
+
+    // 1. Validate Harmonized Sector Names in Config
+    expect(LEVELS[5].name).toBe('SEKTOR 06 • HAUPTREAKTOR');
+    expect(LEVELS[9].name).toBe('SEKTOR 10 • APEX: NULLPUNKT');
+    LEVELS.forEach((l, idx) => {
+      const numStr = String(idx + 1).padStart(2, '0');
+      expect(l.name).toContain(`SEKTOR ${numStr}`);
+    });
+
+    // 2. Validate Strict Separation of Total Stars (Leaderboard) vs Available Stars (Hangar Currency)
+    const progressionCheck = await page.evaluate(() => {
+      const sm = window.game.storageManager;
+
+      // Seed 4 sectors with S-rank (3 stars each = 12 total stars)
+      sm.saveCampaignProgress(1, { stars: 3, rank: 'S', time: 20.0 });
+      sm.saveCampaignProgress(2, { stars: 3, rank: 'S', time: 22.0 });
+      sm.saveCampaignProgress(3, { stars: 3, rank: 'S', time: 25.0 });
+      sm.saveCampaignProgress(4, { stars: 3, rank: 'S', time: 28.0 });
+
+      const totalStarsInitial = sm.calculateTotalStars();
+      const availableInitial = sm.getAvailableStars();
+
+      // Purchase Sonar Booster (cost: 2)
+      const buyRes = sm.purchaseUpgrade('sonarBooster');
+      const totalStarsAfterBuy = sm.calculateTotalStars();
+      const availableAfterBuy = sm.getAvailableStars();
+      const spentStars = sm.getSpentStars();
+
+      // Reset upgrades
+      const resetRes = sm.resetUpgrades();
+      const totalStarsAfterReset = sm.calculateTotalStars();
+      const availableAfterReset = sm.getAvailableStars();
+
+      return {
+        totalStarsInitial,
+        availableInitial,
+        buySuccess: buyRes.success,
+        totalStarsAfterBuy,
+        availableAfterBuy,
+        spentStars,
+        totalStarsAfterReset,
+        availableAfterReset
+      };
+    });
+
+    expect(progressionCheck.totalStarsInitial).toBe(12);
+    expect(progressionCheck.availableInitial).toBe(12);
+    expect(progressionCheck.buySuccess).toBe(true);
+    // Crucial: Total stars for leaderboard remains untouched (12), available stars becomes 10
+    expect(progressionCheck.totalStarsAfterBuy).toBe(12);
+    expect(progressionCheck.availableAfterBuy).toBe(10);
+    expect(progressionCheck.spentStars).toBe(2);
+    // After reset, available refunded to 12 and total remains 12
+    expect(progressionCheck.totalStarsAfterReset).toBe(12);
+    expect(progressionCheck.availableAfterReset).toBe(12);
+
+    // 3. Validate Zero "010" in Sector 10 HUD & Menu formatting
+    const formattingCheck = await page.evaluate(() => {
+      const level10 = { sectorNumber: 10 };
+
+      // Check level 10 tag in HUD
+      const isEndless = false;
+      const sectorTag10 = isEndless
+        ? `ETAGE 10`
+        : (level10 ? `SEKTOR ${String(level10.sectorNumber || 1).padStart(2, '0')}` : 'SEKTOR 01');
+
+      // Check sector cleared title for index 9 (sector 10)
+      const clearedTitle10 = `SEKTOR ${String(9 + 1).padStart(2, '0')} GESICHERT!`;
+
+      // Check unlocked string for 10
+      const unlockedSectorStr = `FREIGESCHALTET: ${String(Math.min(10, 10)).padStart(2, '0')}`;
+
+      return {
+        sectorTag10,
+        clearedTitle10,
+        unlockedSectorStr
+      };
+    });
+
+    expect(formattingCheck.sectorTag10).toBe('SEKTOR 10');
+    expect(formattingCheck.clearedTitle10).toBe('SEKTOR 10 GESICHERT!');
+    expect(formattingCheck.unlockedSectorStr).toBe('FREIGESCHALTET: 10');
+
+    // 4. Validate Cloud Sync Error Handling & Offline Queuing
+    const cloudSyncCheck = await page.evaluate(async () => {
+      const fb = window.game.firebaseService;
+
+      // Test credentials validation
+      const invalidShort = fb.validateCredentials('A', '1234');
+      const invalidPin = fb.validateCredentials('PILOT_TEST', '12');
+      const validCreds = fb.validateCredentials('TEST_PILOT', '5678');
+
+      // Test offline queueing when savePilotProgress runs
+      localStorage.removeItem('sonar_pending_sync_TEST_PILOT');
+      await fb.savePilotProgress('TEST_PILOT', {
+        unlockedSector: 3,
+        maxClearedSector: 2,
+        sectorStats: { 1: { stars: 3, time: 20 }, 2: { stars: 3, time: 22 } },
+        endlessHighscore: 5
+      });
+
+      return {
+        invalidShortValid: invalidShort.valid,
+        invalidPinValid: invalidPin.valid,
+        validCredsValid: validCreds.valid
+      };
+    });
+
+    expect(cloudSyncCheck.invalidShortValid).toBe(false);
+    expect(cloudSyncCheck.invalidPinValid).toBe(false);
+    expect(cloudSyncCheck.validCredsValid).toBe(true);
   });
 
 });

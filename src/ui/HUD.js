@@ -41,7 +41,7 @@ export class HUD {
     // 2. Element 1 (Left): Compact Sector Identifier
     const sectorTag = isEndless
       ? `ETAGE ${String(floor).padStart(2, '0')}`
-      : (levelData ? `SEKTOR 0${levelData.sectorNumber || 1}` : 'SEKTOR 01');
+      : (levelData ? `SEKTOR ${String(levelData.sectorNumber || 1).padStart(2, '0')}` : 'SEKTOR 01');
     ctx.textAlign = 'left';
     ctx.font = '700 12px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = '#00f0ff';
@@ -191,7 +191,7 @@ export class HUD {
     ctx.fillStyle = CONFIG.COLORS.CRYSTAL;
     const title = isEndless
       ? `ETAGE ${currentSectorIndex} BEREINIGT!`
-      : `SEKTOR 0${currentSectorIndex + 1} GESICHERT!`;
+      : `SEKTOR ${String(currentSectorIndex + 1).padStart(2, '0')} GESICHERT!`;
     ctx.fillText(title, this.width / 2, 70);
 
     // 3-Star Rating Display

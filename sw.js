@@ -102,8 +102,14 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // External APIs / Firebase -> direct fetch with cache fallback
-  if (url.origin !== self.location.origin) {
+  // Direct network for version.json, query cache busters (?updated=, ?t=), and external network calls
+  if (
+    url.origin !== self.location.origin ||
+    url.pathname.endsWith('version.json') ||
+    url.searchParams.has('updated') ||
+    url.searchParams.has('t') ||
+    url.searchParams.has('v')
+  ) {
     event.respondWith(
       fetch(event.request).catch(() => caches.match(event.request))
     );

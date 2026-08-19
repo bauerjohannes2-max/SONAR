@@ -336,7 +336,7 @@ export const LEVELS = [
   // ==========================================
   {
     sectorNumber: 6,
-    name: "SEKTOR 06 • THE CORE",
+    name: "SEKTOR 06 • HAUPTREAKTOR",
     subtitle: "Hyper-Resonanz",
     description: "Kernreaktor-Sektor: Hyper-Resonanz. 3 Ringe, 1 Kern. Nutze Köder [E] um Jäger wegzulocken.",
     playerStart: { gx: 12, gy: 16 },
@@ -582,7 +582,7 @@ export const LEVELS = [
   // ==========================================
   {
     sectorNumber: 10,
-    name: "SECTOR 10 • APEX : NULLPUNKT",
+    name: "SEKTOR 10 • APEX: NULLPUNKT",
     subtitle: "Letzter Datenkern",
     description: "Apex : Nullpunkt: Letzter Datenkern. Entschlüsseln Sie das Zero-Light Protokoll der STATION ABYSS!",
     playerStart: { gx: 12, gy: 16 },

@@ -100,7 +100,7 @@ flowchart TD
 # Entwicklungs-Server starten
 npm run dev
 # oder
-python -m http.server 3005
+python -m http.server 3004
 ```
 
-Öffne **`http://localhost:3005`** im Browser.
+Öffne **`http://localhost:3004`** im Browser.

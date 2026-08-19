@@ -56,8 +56,8 @@ class StorageManager {
     } catch (e) {}
 
     const res = await firebaseService.loginOrRegister(callsign, pin);
-    if (!res.success && !localPilot) {
-      return res;
+    if (!res || !res.success) {
+      return res || { success: false, error: 'Unbekannter Login-Fehler.' };
     }
 
     const cloudData = (res && res.data) ? res.data : {};
@@ -75,19 +75,46 @@ class StorageManager {
       pilotMaxCleared = Math.max(pilotMaxCleared, localPilot.maxClearedSector || 0);
     }
 
-    let pilotSectorStats = { ...(localPilot ? localPilot.sectorStats : {}), ...(cloudData.sectorStats || {}) };
+    let pilotSectorStats = {};
+    const localStats = (localPilot && localPilot.sectorStats) ? localPilot.sectorStats : {};
+    const cloudStats = (cloudData && cloudData.sectorStats) ? cloudData.sectorStats : {};
+    for (let s = 1; s <= 10; s++) {
+      const loc = localStats[s] || localStats[String(s)] || localStats[`0${s}`];
+      const cld = cloudStats[s] || cloudStats[String(s)] || cloudStats[`0${s}`];
+      if (loc && cld) {
+        const locStars = loc.stars || (loc.rank === 'S' ? 3 : (loc.rank === 'A' ? 2 : 1));
+        const cldStars = cld.stars || (cld.rank === 'S' ? 3 : (cld.rank === 'A' ? 2 : 1));
+        if (locStars > cldStars) {
+          pilotSectorStats[s] = loc;
+        } else if (cldStars > locStars) {
+          pilotSectorStats[s] = cld;
+        } else {
+          pilotSectorStats[s] = ((loc.time || 9999) <= (cld.time || 9999)) ? loc : cld;
+        }
+      } else if (loc) {
+        pilotSectorStats[s] = loc;
+      } else if (cld) {
+        pilotSectorStats[s] = cld;
+      }
+    }
     let pilotEndless = Math.max(cloudData.endlessHighscore || 0, localPilot ? (localPilot.endlessHighscore || 0) : 0);
 
     let pilotUpgrades = { sonarBooster: 0, extraDecoy: 0, hydroDampener: 0, emergencyShield: 0 };
-    if (localPilot && localPilot.upgrades) {
-      pilotUpgrades = { ...pilotUpgrades, ...localPilot.upgrades };
-    }
+    const localUp = (localPilot && localPilot.upgrades) ? localPilot.upgrades : {};
+    let savedUpRaw = {};
     try {
       const upRaw = localStorage.getItem('sonar_profile_' + pilotCallsign + '_upgrades');
-      if (upRaw) {
-        pilotUpgrades = { ...pilotUpgrades, ...JSON.parse(upRaw) };
-      }
+      if (upRaw) savedUpRaw = JSON.parse(upRaw);
     } catch (e) {}
+    const cloudUp = (cloudData && cloudData.upgrades) ? cloudData.upgrades : {};
+
+    for (const k of ['sonarBooster', 'extraDecoy', 'hydroDampener', 'emergencyShield']) {
+      pilotUpgrades[k] = Math.max(
+        localUp[k] || 0,
+        savedUpRaw[k] || 0,
+        cloudUp[k] || 0
+      );
+    }
 
     // Only for brand-new registrations from Guest mode: option to preserve initial guest progress
     if (res.isNew && this.isGuest()) {
@@ -101,11 +128,14 @@ class StorageManager {
       }
     }
 
+    const pilotTotalStars = this.calculateTotalStars(pilotSectorStats);
+
     this.currentPilot = {
       callsign: pilotCallsign,
       isGuest: false,
       unlockedSector: pilotUnlocked,
       maxClearedSector: pilotMaxCleared,
+      totalStars: pilotTotalStars,
       sectorStats: pilotSectorStats,
       endlessHighscore: pilotEndless,
       highestLevel: pilotMaxCleared,
@@ -140,9 +170,12 @@ class StorageManager {
         unlockedSector: pilotUnlocked,
         maxClearedSector: pilotMaxCleared,
         sectorStats: pilotSectorStats,
+        totalStars: pilotTotalStars,
         endlessHighscore: pilotEndless,
-        highestLevel: pilotMaxCleared
+        highestLevel: pilotMaxCleared,
+        upgrades: pilotUpgrades
       });
+      firebaseService.syncPendingProgress(this.currentPilot.callsign);
     }
 
     return {
@@ -255,13 +288,19 @@ class StorageManager {
     // Cloud auto-sync
     if (!this.isGuest()) {
       const totalStars = this.calculateTotalStars(sectorStats);
+      const updatedPilot = {
+        ...this.currentPilot,
+        totalStars
+      };
+      this.currentPilot = updatedPilot;
       firebaseService.savePilotProgress(this.currentPilot.callsign, {
         unlockedSector,
         maxClearedSector,
         sectorStats,
         totalStars,
         highestLevel: maxClearedSector,
-        endlessHighscore: this.currentPilot.endlessHighscore || 0
+        endlessHighscore: this.currentPilot.endlessHighscore || 0,
+        upgrades: this.getUpgrades()
       });
     }
 
@@ -311,11 +350,15 @@ class StorageManager {
     }
 
     if (!this.isGuest()) {
+      const totalStars = this.calculateTotalStars(this.currentPilot.sectorStats);
       firebaseService.savePilotProgress(this.currentPilot.callsign, {
         unlockedSector: this.currentPilot.unlockedSector || 1,
+        maxClearedSector: this.currentPilot.maxClearedSector || 0,
         sectorStats: this.currentPilot.sectorStats || {},
-        highestLevel: this.currentPilot.unlockedSector || 1,
-        endlessHighscore: bestFloor
+        totalStars,
+        highestLevel: this.currentPilot.maxClearedSector || 0,
+        endlessHighscore: bestFloor,
+        upgrades: this.getUpgrades()
       });
     }
 
@@ -392,10 +435,11 @@ class StorageManager {
     for (let s = 1; s <= 10; s++) {
       const entry = stats[s] || stats[String(s)] || stats[`0${s}`];
       if (entry) {
-        total += entry.stars || (entry.rank === 'S' ? 3 : (entry.rank === 'A' ? 2 : 1));
+        const earned = typeof entry.stars === 'number' ? entry.stars : (entry.rank === 'S' ? 3 : (entry.rank === 'A' ? 2 : 1));
+        total += Math.min(3, Math.max(0, earned));
       }
     }
-    return total;
+    return Math.min(30, Math.max(0, total));
   }
 
   /**
@@ -422,6 +466,14 @@ class StorageManager {
    */
   getUpgrades() {
     try {
+      if (!this.isGuest() && this.currentPilot && this.currentPilot.upgrades) {
+        return {
+          sonarBooster: this.currentPilot.upgrades.sonarBooster || 0,
+          extraDecoy: this.currentPilot.upgrades.extraDecoy || 0,
+          hydroDampener: this.currentPilot.upgrades.hydroDampener || 0,
+          emergencyShield: this.currentPilot.upgrades.emergencyShield || 0
+        };
+      }
       const key = this.getUpgradesKey();
       let raw = localStorage.getItem(key);
       if (!raw) {
@@ -429,7 +481,14 @@ class StorageManager {
         const ctxRaw = localStorage.getItem(ctxKey);
         if (ctxRaw) {
           const parsed = JSON.parse(ctxRaw);
-          if (parsed && parsed.upgrades) return parsed.upgrades;
+          if (parsed && parsed.upgrades) {
+            return {
+              sonarBooster: parsed.upgrades.sonarBooster || 0,
+              extraDecoy: parsed.upgrades.extraDecoy || 0,
+              hydroDampener: parsed.upgrades.hydroDampener || 0,
+              emergencyShield: parsed.upgrades.emergencyShield || 0
+            };
+          }
         }
       }
       if (raw) {
@@ -439,14 +498,6 @@ class StorageManager {
           extraDecoy: parsed.extraDecoy || 0,
           hydroDampener: parsed.hydroDampener || 0,
           emergencyShield: parsed.emergencyShield || 0
-        };
-      }
-      if (!this.isGuest() && this.currentPilot && this.currentPilot.upgrades) {
-        return {
-          sonarBooster: this.currentPilot.upgrades.sonarBooster || 0,
-          extraDecoy: this.currentPilot.upgrades.extraDecoy || 0,
-          hydroDampener: this.currentPilot.upgrades.hydroDampener || 0,
-          emergencyShield: this.currentPilot.upgrades.emergencyShield || 0
         };
       }
     } catch (e) {}
@@ -471,10 +522,20 @@ class StorageManager {
     return Math.max(0, total - spent);
   }
 
+  getUpgradeCurrency() {
+    return this.getAvailableStars();
+  }
+
   saveUpgrades(upgrades) {
     try {
+      const upCopy = {
+        sonarBooster: upgrades.sonarBooster || 0,
+        extraDecoy: upgrades.extraDecoy || 0,
+        hydroDampener: upgrades.hydroDampener || 0,
+        emergencyShield: upgrades.emergencyShield || 0
+      };
       const upKey = this.getUpgradesKey();
-      localStorage.setItem(upKey, JSON.stringify(upgrades));
+      localStorage.setItem(upKey, JSON.stringify(upCopy));
 
       const ctxKey = this.getContextDataKey();
       let ctxData = {};
@@ -482,13 +543,24 @@ class StorageManager {
         const raw = localStorage.getItem(ctxKey);
         if (raw) ctxData = JSON.parse(raw);
       } catch (e) {}
-      ctxData.upgrades = upgrades;
+      ctxData.upgrades = upCopy;
       localStorage.setItem(ctxKey, JSON.stringify(ctxData));
 
       if (!this.isGuest() && this.currentPilot) {
-        this.currentPilot.upgrades = upgrades;
+        this.currentPilot.upgrades = upCopy;
         localStorage.setItem('sonar_pilot_' + this.currentPilot.callsign, JSON.stringify(this.currentPilot));
         localStorage.setItem(CONFIG.STORAGE.PILOT_SESSION, JSON.stringify(this.currentPilot));
+
+        // Cloud sync upgrades if logged in
+        firebaseService.savePilotProgress(this.currentPilot.callsign, {
+          unlockedSector: this.currentPilot.unlockedSector || 1,
+          maxClearedSector: this.currentPilot.maxClearedSector || 0,
+          sectorStats: this.currentPilot.sectorStats || {},
+          totalStars: this.calculateTotalStars(this.currentPilot.sectorStats),
+          highestLevel: this.currentPilot.maxClearedSector || 0,
+          endlessHighscore: this.currentPilot.endlessHighscore || 0,
+          upgrades: upCopy
+        });
       }
     } catch (e) {}
   }

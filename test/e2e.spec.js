@@ -1921,7 +1921,45 @@ test.describe('SONAR v1.18.0 Tactical Gauntlet Loop E2E Validation', () => {
     await expect(profileModal).not.toBeVisible();
   });
 
+  test('46. Foldable Viewport (904x1076 Galaxy Z Fold), Zero HUD Crash & Permanent Action Cluster (v1.18.0)', async ({ page }) => {
+    // Test on Galaxy Z Fold Foldable Inner Screen (904x1076)
+    await page.setViewportSize({ width: 904, height: 1076 });
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    // 1. Enter Gameplay in Sektor 01
+    await page.evaluate(() => {
+      window.game.loadSector(0);
+      window.game.touchControls.show();
+      window.game.update(0.016);
+      window.game.render();
+    });
+
+    const check = await page.evaluate(() => {
+      const cluster = document.getElementById('touch-action-cluster');
+      const pingBtn = document.getElementById('btn-ping');
+      const docEl = document.documentElement;
+      const clusterRect = cluster ? cluster.getBoundingClientRect() : null;
+      const pingRect = pingBtn ? pingBtn.getBoundingClientRect() : null;
+
+      return {
+        hasZeroOverflow: docEl.scrollWidth <= docEl.clientWidth + 1,
+        clusterVisible: cluster && cluster.style.display !== 'none',
+        pingVisible: pingBtn && pingBtn.style.display !== 'none',
+        clusterInsideScreen: clusterRect ? (clusterRect.right <= docEl.clientWidth + 2 && clusterRect.bottom <= docEl.clientHeight + 2) : false,
+        pingInsideScreen: pingRect ? (pingRect.right <= docEl.clientWidth + 2 && pingRect.bottom <= docEl.clientHeight + 2) : false
+      };
+    });
+
+    expect(check.hasZeroOverflow).toBe(true);
+    expect(check.clusterVisible).toBe(true);
+    expect(check.pingVisible).toBe(true);
+    expect(check.clusterInsideScreen).toBe(true);
+    expect(check.pingInsideScreen).toBe(true);
+  });
+
 });
+
 
 
 

@@ -1171,8 +1171,8 @@ kbd {
 #touch-action-cluster {
   display: flex !important;
   position: fixed !important;
-  right: calc(16px + env(safe-area-inset-right, 0px)) !important;
-  bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important;
+  right: calc(20px + env(safe-area-inset-right, 0px)) !important;
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px)) !important;
   flex-direction: column;
   align-items: flex-end;
   gap: calc(14px * var(--touch-scale, 1));
@@ -1856,8 +1856,8 @@ kbd {
 
   .touch-actions,
   #touch-action-cluster {
-    right: calc(16px + env(safe-area-inset-right, 0px)) !important;
-    bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important;
+    right: calc(20px + env(safe-area-inset-right, 0px)) !important;
+    bottom: calc(20px + env(safe-area-inset-bottom, 0px)) !important;
     gap: calc(14px * var(--touch-scale, 1));
   }
 

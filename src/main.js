@@ -902,6 +902,19 @@ export class Game {
       this.audioEngine.updateStalkerDistortion(minStalkerDist, dt);
     }
 
+    // Update Danger-Vignette Overlay (Red Alert Proximity Pulse)
+    const dangerVignette = document.getElementById('danger-vignette');
+    if (dangerVignette) {
+      if (this.gameState === CONFIG.STATES.PLAYING && minEnemyDist < 180) {
+        const threatFactor = Math.max(0, (180 - minEnemyDist) / 140);
+        const pulse = 0.75 + 0.25 * Math.sin(Date.now() * 0.008);
+        const opacity = (threatFactor * pulse).toFixed(3);
+        dangerVignette.style.setProperty('--danger-opacity', opacity);
+      } else {
+        dangerVignette.style.setProperty('--danger-opacity', '0');
+      }
+    }
+
     // 11. Update Waves & Particles (particles react to active sound waves)
     this.waveSystem.update(dt, this.gridMap, this.particleEngine);
     this.particleEngine.update(dt, this.waveSystem);

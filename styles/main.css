@@ -31,7 +31,8 @@
 
 html, body {
   width: 100vw;
-  height: 100vh;
+  height: 100dvh;
+  min-height: 100dvh;
   margin: 0;
   padding: 0;
   background-color: var(--bg-color);
@@ -210,6 +211,20 @@ html, body {
   z-index: 5;
   opacity: 0.04;
   display: none;
+}
+
+/* Dynamic Danger Vignette Glow (Red Alert Proximity Pulse) */
+.danger-vignette-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  box-shadow: inset 0 0 65px rgba(255, 30, 68, var(--danger-opacity, 0));
+  z-index: 25;
+  opacity: var(--danger-opacity, 0);
+  transition: opacity 0.1s linear;
 }
 
 /* Subtle Vignette & Tube Curvature */
@@ -1156,8 +1171,8 @@ kbd {
 #touch-action-cluster {
   display: flex !important;
   position: fixed !important;
-  right: max(20px, env(safe-area-inset-right, 20px)) !important;
-  bottom: max(20px, env(safe-area-inset-bottom, 20px)) !important;
+  right: calc(20px + env(safe-area-inset-right, 0px)) !important;
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px)) !important;
   flex-direction: column;
   align-items: flex-end;
   gap: calc(14px * var(--touch-scale, 1));
@@ -1732,9 +1747,9 @@ kbd {
    ========================================================= */
 :fullscreen #game-wrapper, :-webkit-full-screen #game-wrapper {
   width: 100vw;
-  height: 100vh;
+  height: 100dvh;
   max-width: 100vw;
-  max-height: 100vh;
+  max-height: 100dvh;
   padding: 0;
   margin: 0;
   justify-content: center;
@@ -1839,10 +1854,11 @@ kbd {
   .dpad-right { top: 50px; right: 0; width: 48px; height: 50px; }
   .dpad-center { top: 50px; left: 50px; width: 50px; height: 50px; }
 
-  .touch-actions {
-    right: 20px;
-    bottom: 28px;
-    gap: 14px;
+  .touch-actions,
+  #touch-action-cluster {
+    right: calc(20px + env(safe-area-inset-right, 0px)) !important;
+    bottom: calc(20px + env(safe-area-inset-bottom, 0px)) !important;
+    gap: calc(14px * var(--touch-scale, 1));
   }
 
   .touch-actions-row {

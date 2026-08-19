@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 
-test.describe('SONAR v1.16.9 Tactical Gauntlet Loop E2E Validation', () => {
+test.describe('SONAR v1.17.0 Tactical Gauntlet Loop E2E Validation', () => {
 
   test.beforeEach(async ({ page }) => {
     page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
@@ -11,11 +11,11 @@ test.describe('SONAR v1.16.9 Tactical Gauntlet Loop E2E Validation', () => {
     });
   });
 
-  test('1. Version Endpoint & JSON Integrity (v1.16.9)', async ({ request }) => {
+  test('1. Version Endpoint & JSON Integrity (v1.17.0)', async ({ request }) => {
     const response = await request.get('/version.json');
     expect(response.ok()).toBeTruthy();
     const data = await response.json();
-    expect(data.version).toBe('1.16.9');
+    expect(data.version).toBe('1.17.0');
     expect(data.build).toBe(20260830);
   });
 
@@ -1647,4 +1647,62 @@ test.describe('SONAR v1.16.9 Tactical Gauntlet Loop E2E Validation', () => {
     expect(soundSynthesized).toBe(true);
   });
 
+  test('41. Mobile UI Safe-Area Cluster, dvh Modals & Game-Juice Features (v1.17.0)', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    // 1. Launch Game and verify touch action cluster styling & elements
+    await page.evaluate(() => {
+      window.game.loadSector(0);
+      window.game.touchControls.show();
+    });
+
+    const clusterInfo = await page.evaluate(() => {
+      const cluster = document.getElementById('touch-action-cluster');
+      const sneakBtn = document.getElementById('btn-sneak');
+      const baitBtn = document.getElementById('btn-bait');
+      const pingBtn = document.getElementById('btn-ping');
+      const dangerOverlay = document.getElementById('danger-vignette');
+      const computed = window.getComputedStyle(cluster);
+
+      return {
+        hasCluster: !!cluster,
+        hasSneak: !!sneakBtn,
+        hasBait: !!baitBtn,
+        hasPing: !!pingBtn,
+        hasDangerOverlay: !!dangerOverlay,
+        display: computed.display,
+        position: computed.position,
+        zIndex: computed.zIndex
+      };
+    });
+
+    expect(clusterInfo.hasCluster).toBe(true);
+    expect(clusterInfo.hasSneak).toBe(true);
+    expect(clusterInfo.hasBait).toBe(true);
+    expect(clusterInfo.hasPing).toBe(true);
+    expect(clusterInfo.hasDangerOverlay).toBe(true);
+    expect(clusterInfo.position).toBe('fixed');
+    expect(Number(clusterInfo.zIndex)).toBeGreaterThanOrEqual(90);
+
+    // 2. Validate Game-Juice Features in engine
+    const gameJuiceValid = await page.evaluate(() => {
+      const audio = window.game.audioEngine;
+      const particles = window.game.particleEngine;
+      const input = window.game.inputHandler;
+
+      // Audio Chime and Haptic check
+      let audioOk = typeof audio.playCrystalPickup === 'function' && typeof audio.triggerHaptic === 'function';
+      // Particles Thruster Bubble check
+      let particlesOk = typeof particles.spawnWakeBubble === 'function' && typeof particles.spawnDroneGhostTrail === 'function';
+      // Instant Restart check
+      let inputOk = typeof input.consumeRestart === 'function';
+
+      return audioOk && particlesOk && inputOk;
+    });
+
+    expect(gameJuiceValid).toBe(true);
+  });
+
 });
+

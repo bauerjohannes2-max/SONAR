@@ -177,13 +177,21 @@ export class InputHandler {
     });
 
     let lastTouchStartTime = 0;
-    this.canvas.addEventListener('touchstart', (e) => {
+    const handleDoubleTapCheck = (e) => {
+      if (e.target && (e.target.closest('button, input, textarea, a, .touch-btn, .dpad-btn, .terminal-modal-box, .modal-body'))) {
+        return;
+      }
       const now = Date.now();
       if (now - lastTouchStartTime < 350) {
         this.restartTriggered = true;
       }
       lastTouchStartTime = now;
       this.lastTouchTime = now;
+    };
+
+    window.addEventListener('touchstart', handleDoubleTapCheck, { passive: true });
+
+    this.canvas.addEventListener('touchstart', (e) => {
       if (e.touches && e.touches.length > 0) {
         const t = e.touches[0];
         handlePointerDown(t.clientX, t.clientY);

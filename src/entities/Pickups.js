@@ -76,7 +76,7 @@ export class Crystal {
 
     if (player.gridX === this.gridX && player.gridY === this.gridY) {
       this.isCollected = true;
-      if (audioEngine) audioEngine.playCrystalPickup();
+      if (audioEngine) audioEngine.playCrystalPickup(player.crystalsCollected || 0);
       return true;
     }
     return false;

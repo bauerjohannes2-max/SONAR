@@ -130,6 +130,12 @@ export class ProfileModal {
     };
     if (callsignInput) callsignInput.addEventListener('keydown', handleKey);
     if (pinInput) pinInput.addEventListener('keydown', handleKey);
+
+    window.addEventListener('keydown', (e) => {
+      if (this.isOpen && e.key === 'Escape') {
+        this.close();
+      }
+    });
   }
 
   updateStatusBanner() {

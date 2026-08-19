@@ -255,7 +255,7 @@ export class TouchControls {
     const margin = 12;
 
     const moveEl = this.dpadContainer;
-    const actionsEl = document.querySelector('.touch-actions');
+    const actionsEl = document.getElementById('touch-action-cluster') || document.querySelector('.touch-actions');
 
     if (moveEl && moveEl.style.display !== 'none') {
       const rect = moveEl.getBoundingClientRect();
@@ -275,12 +275,12 @@ export class TouchControls {
       const rect = actionsEl.getBoundingClientRect();
       if (rect.right > vpW - margin && rect.width > 0) {
         const offset = rect.right - (vpW - margin);
-        const curRight = parseFloat(actionsEl.style.right) || 16;
+        const curRight = parseFloat(actionsEl.style.right) || 20;
         actionsEl.style.right = `${Math.max(margin, curRight - offset)}px`;
       }
       if (rect.bottom > vpH - margin && rect.height > 0) {
         const offset = rect.bottom - (vpH - margin);
-        const curBottom = parseFloat(actionsEl.style.bottom) || 16;
+        const curBottom = parseFloat(actionsEl.style.bottom) || 20;
         actionsEl.style.bottom = `${Math.max(margin, curBottom - offset)}px`;
       }
     }

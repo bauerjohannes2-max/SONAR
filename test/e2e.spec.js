@@ -1892,7 +1892,37 @@ test.describe('SONAR v1.18.0 Tactical Gauntlet Loop E2E Validation', () => {
     expect(deathScreenValid.deathCause).toBe('WALL_CRASH');
   });
 
+  test('45. K.I.S.S. Main Menu, Pure Core Titles & User Avatar Button (v1.18.0)', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    // 1. Verify exact core titles in Main Menu
+    const titles = await page.evaluate(() => {
+      const menu = window.game.menuSystem;
+      return menu.options.map(o => o.title);
+    });
+
+    expect(titles).toEqual(['KAMPAGNE', 'UPGRADES', 'BESTENLISTE', 'PROFIL']);
+
+    // 2. Click User-Avatar button in top-left (x: 40, y: 20)
+    await page.evaluate(() => {
+      window.game.inputHandler.mouseClick = { x: 40, y: 20 };
+      window.game.update(0.016);
+    });
+
+    // Profile modal opens directly
+    const profileModal = page.locator('#pilot-profile-modal');
+    await expect(profileModal).toBeVisible();
+
+    // Close Profile modal
+    await page.evaluate(() => {
+      window.game.profileModal.close();
+    });
+    await expect(profileModal).not.toBeVisible();
+  });
+
 });
+
 
 
 

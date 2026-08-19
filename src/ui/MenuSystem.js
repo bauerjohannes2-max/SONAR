@@ -20,33 +20,25 @@ export class MenuSystem {
       // 0. Hero Campaign Element
       {
         id: 'SECTOR_SELECT',
-        title: 'KAMPAGNE • SEKTOREN 01–10',
-        description: 'Taktische Stealth-Bergung in 10 handgebauten Labyrinthen',
-        tag: '10 SEKTOREN',
+        title: 'KAMPAGNE',
         desc: 'Station ABYSS: Berge Datenkerne aus 10 taktischen Sektoren'
       },
-      // 1. Hangar Tile
+      // 1. Upgrades Tile
       {
         id: 'HANGAR',
-        title: 'HANGAR',
-        subtitle: 'Drohnen-Upgrades',
-        icon: '▲',
+        title: 'UPGRADES',
         desc: 'Taktische Drohnen-Upgrades mit Kampagnen-Sternen'
       },
       // 2. Leaderboard Tile
       {
         id: 'LEADERBOARD',
         title: 'BESTENLISTE',
-        subtitle: 'Ränge & Rivalen',
-        icon: '◆',
         desc: 'Weltweite Top-Piloten & Freunde-Direktvergleich'
       },
       // 3. Profile Tile
       {
         id: 'PROFILE',
         title: 'PROFIL',
-        subtitle: 'Callsign & Cloud',
-        icon: '◈',
         desc: 'Callsign & PIN zur Cloud-Sicherung'
       }
     ];
@@ -263,11 +255,12 @@ export class MenuSystem {
       ctx.fill();
     }
 
-    // 3. Top-Left Pilot Profile Chip (Industry Best Practice Standard)
-    const chipX = 10;
-    const chipY = 8;
-    const chipW = 200;
-    const chipH = 34;
+    // 3. User-Button Top-Left (Kompakte Piloten-ID: [ 👤 <Callsign / GAST> ])
+    const callsignText = isGuest ? 'GAST' : pilot.callsign.toUpperCase();
+    const chipX = 14;
+    const chipY = 10;
+    const chipW = 120;
+    const chipH = 30;
 
     ctx.save();
     ctx.fillStyle = isGuest ? 'rgba(255, 200, 0, 0.08)' : 'rgba(0, 255, 136, 0.08)';
@@ -276,56 +269,31 @@ export class MenuSystem {
     ctx.lineWidth = 1;
     ctx.strokeRect(chipX, chipY, chipW, chipH);
 
-    // Online / Sync status indicator dot
-    const dotX = chipX + 14;
-    const dotY = chipY + chipH / 2;
     const dotColor = isGuest ? '#f0c040' : '#00ffaa';
-    ctx.fillStyle = dotColor;
-    ctx.shadowColor = dotColor;
-    ctx.shadowBlur = 6;
-    ctx.beginPath();
-    ctx.arc(dotX, dotY, 4, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.shadowBlur = 0;
-
-    // Pilot Callsign & Status
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    ctx.font = '700 11.5px "Chakra Petch", "JetBrains Mono", monospace';
-    ctx.fillStyle = '#ffffff';
-    const pilotName = isGuest ? 'PILOT: GAST' : `PILOT: ${pilot.callsign.toUpperCase()}`;
-    ctx.fillText(pilotName, chipX + 26, chipY + 11);
-
-    ctx.font = '600 9.5px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.font = '700 11px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = dotColor;
-    const pilotSub = isGuest ? 'LOKAL • [ ANMELDEN ]' : 'CLOUD-SYNC AKTIV';
-    ctx.fillText(pilotSub, chipX + 26, chipY + 24);
+    ctx.fillText(`👤 ${callsignText}`, chipX + 10, chipY + chipH / 2);
     ctx.restore();
 
-    // 4. Game Logo Banner with Subtle Scanline & Glowing Subtitle
+    // 4. Header: Only the word SONAR (Clean, Zero Subtitles)
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-
-    // Sci-Fi Header SONAR
-    ctx.font = '800 42px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.font = '800 44px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = '#00f0ff';
     ctx.shadowColor = 'rgba(0, 240, 255, 0.6)';
     ctx.shadowBlur = 16;
-    ctx.fillText('S O N A R', CONFIG.CANVAS_WIDTH / 2, 46);
+    ctx.fillText('SONAR', CONFIG.CANVAS_WIDTH / 2, 54);
     ctx.shadowBlur = 0;
 
-    // Glowing Subtitle
-    ctx.font = '600 11.5px "Chakra Petch", "JetBrains Mono", monospace';
-    ctx.fillStyle = '#00F0FF';
-    ctx.fillText('THE ECHO CHAMBER • ZERO-LIGHT STEALTH', CONFIG.CANVAS_WIDTH / 2, 76);
-
-    // 5. Large Hero Element: Campaign (Option 0)
+    // 5. Large Hero Element: KAMPAGNE (Option 0)
     const barW = 560;
     const barX = CONFIG.CANVAS_WIDTH / 2 - barW / 2;
     const heroX = barX;
-    const heroY = 118;
+    const heroY = 108;
     const heroW = barW;
-    const heroH = 126;
+    const heroH = 116;
     const isHeroSelected = this.selectedIndex === 0;
 
     ctx.save();
@@ -345,7 +313,7 @@ export class MenuSystem {
     ctx.fillRect(heroX, heroY, 6, heroH);
 
     // Glowing Sonar Radar Waves Icon
-    const iconX = heroX + 44;
+    const iconX = heroX + 48;
     const iconY = heroY + heroH / 2;
     ctx.save();
     ctx.strokeStyle = '#00f0ff';
@@ -353,10 +321,10 @@ export class MenuSystem {
     ctx.shadowColor = '#00f0ff';
     ctx.shadowBlur = isHeroSelected ? 12 : 6;
     ctx.beginPath();
-    ctx.arc(iconX, iconY, 15, 0, Math.PI * 2);
+    ctx.arc(iconX, iconY, 16, 0, Math.PI * 2);
     ctx.stroke();
     ctx.beginPath();
-    ctx.arc(iconX, iconY, 8.5, 0, Math.PI * 2);
+    ctx.arc(iconX, iconY, 9, 0, Math.PI * 2);
     ctx.stroke();
     ctx.fillStyle = '#00f0ff';
     ctx.beginPath();
@@ -364,41 +332,27 @@ export class MenuSystem {
     ctx.fill();
     ctx.restore();
 
-    // Hero Title
+    // Hero Title: Pure "KAMPAGNE"
     ctx.textAlign = 'left';
-    ctx.font = '800 21px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.font = '800 24px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = '#ffffff';
-    ctx.fillText('KAMPAGNE • SEKTOREN 01–10', heroX + 78, heroY + 44);
-
-    // Hero Subtitle
-    ctx.font = '600 13px "Chakra Petch", "JetBrains Mono", monospace';
-    ctx.fillStyle = '#00f0ff';
-    ctx.fillText('Operation Zero-Light • Station ABYSS', heroX + 78, heroY + 78);
-
-    // Right Action Badge
-    ctx.textAlign = 'right';
-    ctx.font = '700 13.5px "Chakra Petch", "JetBrains Mono", monospace';
-    ctx.fillStyle = '#00f0ff';
-    ctx.fillText('STARTEN', heroX + heroW - 24, heroY + heroH / 2);
+    ctx.fillText('KAMPAGNE', heroX + 86, heroY + heroH / 2);
     ctx.restore();
 
-    // 6. Sub-Tiles Row: 3 Symmetrical Tiles (Hangar, Leaderboard, Profile)
-    const tileY = 270;
-    const tileH = 132;
+    // 6. Sub-Tiles Row: 3 Symmetrical Tiles (UPGRADES, BESTENLISTE, PROFIL)
+    const tileY = 250;
+    const tileH = 120;
     const tileW = 176;
     const tileGap = 16;
 
-    const maxCleared = this.maxClearedSector !== undefined ? this.maxClearedSector : (this.unlockedSector > 1 ? this.unlockedSector - 1 : 0);
-    const profileSub = isGuest ? 'Gast (Lokal)' : `${pilot.callsign.toUpperCase()} • ${maxCleared}/10`;
-
     const subOptions = [
-      { idx: 1, opt: this.options[1], id: 'HANGAR', sub: 'Drohnen-Upgrades' },
-      { idx: 2, opt: this.options[2], id: 'LEADERBOARD', sub: 'Ränge & Rivalen' },
-      { idx: 3, opt: this.options[3], id: 'PROFILE', sub: profileSub }
+      { idx: 1, opt: this.options[1], id: 'HANGAR' },
+      { idx: 2, opt: this.options[2], id: 'LEADERBOARD' },
+      { idx: 3, opt: this.options[3], id: 'PROFILE' }
     ];
 
     for (let i = 0; i < subOptions.length; i++) {
-      const { idx, opt, id, sub } = subOptions[i];
+      const { idx, opt, id } = subOptions[i];
       const x = barX + i * (tileW + tileGap);
       const isSelected = this.selectedIndex === idx;
 
@@ -420,25 +374,21 @@ export class MenuSystem {
       }
 
       // Draw Glowing Sci-Fi Vector Icon
-      this.drawMenuTileIcon(ctx, id, x + tileW / 2, tileY + 34, isSelected);
+      this.drawMenuTileIcon(ctx, id, x + tileW / 2, tileY + 38, isSelected);
 
-      // Title & Subtitle
+      // Title (Pure, Bold, Clean)
       ctx.textAlign = 'center';
-      ctx.font = isSelected ? '700 14px "Chakra Petch", "JetBrains Mono", monospace' : '700 13px "Chakra Petch", "JetBrains Mono", monospace';
+      ctx.font = isSelected ? '700 14.5px "Chakra Petch", "JetBrains Mono", monospace' : '700 13.5px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.fillStyle = isSelected ? '#ffffff' : '#00f0ff';
-      ctx.fillText(opt.title, x + tileW / 2, tileY + 76);
-
-      ctx.font = '500 10.5px "Chakra Petch", "JetBrains Mono", monospace';
-      ctx.fillStyle = isSelected ? '#00f0ff' : '#5c788a';
-      ctx.fillText(sub, x + tileW / 2, tileY + 100);
+      ctx.fillText(opt.title, x + tileW / 2, tileY + 84);
       ctx.restore();
     }
 
-    // 7. Clean Minimal Footer Status
+    // 7. Clean Minimal Footer: Pure Version Number Only
     ctx.textAlign = 'center';
-    ctx.font = '500 10.5px "Chakra Petch", "JetBrains Mono", monospace';
+    ctx.font = '500 11px "JetBrains Mono", monospace';
     ctx.fillStyle = '#425866';
-    ctx.fillText(`SONAR TACTICAL OS • v${CONFIG.VERSION} • SYSTEM BEREIT`, CONFIG.CANVAS_WIDTH / 2, 532);
+    ctx.fillText(`v${CONFIG.VERSION}`, CONFIG.CANVAS_WIDTH / 2, 545);
 
     ctx.restore();
   }

@@ -148,8 +148,8 @@ export class HUD {
     ctx.fillText('SIGNAL VERLOREN', this.width / 2, 125);
     ctx.shadowBlur = 0;
 
-    // 2. Cause (1 clean short line)
-    const causeText = deathCause === 'WALL_CRASH' ? 'Wandkollision' : 'Durch Jäger abgefangen';
+    // 2. Cause (1 clean short line: Wandkollision bzw. Feindkontakt)
+    const causeText = deathCause === 'WALL_CRASH' ? 'Wandkollision' : 'Feindkontakt';
     ctx.font = '600 14px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = '#ff8899';
     ctx.fillText(causeText, this.width / 2, 172);

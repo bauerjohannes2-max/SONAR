@@ -17,7 +17,7 @@
 | `src/engine/AudioEngine.js` | Web Audio Buffers, Soundeffekte (Ping, Pickups, Crash, Ambient) & dynamischer Feind-Herzschlag. |
 | `src/engine/Haptics.js` | Taktile Vibrationen (navigator.vibrate) für Pings, Feindkontakt, Herzschlag & Neustarts. |
 | `src/engine/SpriteManager.js` | Preloading und Caching von CC0 Pixel-Art Sprites (Drohne, Hunter, Stalker, Kristalle). |
-| `src/engine/InputHandler.js` | Tastatur-Steuerung (WASD/Pfeile/Space/R), Klick-Events, Doppel-Tap & Touch-Abstraktion. |
+| `src/engine/InputHandler.js` | Tastatur-Steuerung (WASD/Pfeile/Space/R), Klick-Events & Touch-Abstraktion. |
 | `src/engine/TouchControls.js` | Mobile D-Pad, Aktions-Buttons (Ping, Sneak, Decoy, Menu) & Safe-Area Multi-Touch-Handling. |
 | `src/engine/Particles.js` | Re-Export & Utility-Schnittstelle für Hydrodynamische Partikel & Bläschen. |
 | `src/engine/DisplayManager.js` | Responsive Canvas-Skalierung, Aspect-Ratio & Safe-Area-Management. |

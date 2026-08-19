@@ -1991,7 +1991,7 @@ test.describe('SONAR v1.19.0 Tactical Gauntlet Loop E2E Validation', () => {
       const cluster = document.getElementById('touch-action-cluster');
       const dpad = document.getElementById('touch-dpad-container');
 
-      // 5. Verify Instant Restart via Key R and double tap
+      // 5. Verify Instant Restart via Key R
       window.game.loadSector(0);
       window.game.player.x = 300;
       window.game.player.y = 300;

@@ -6,8 +6,8 @@
   "type": "module",
   "scripts": {
     "test": "playwright test",
-    "start": "npx -y serve . -l 3005",
-    "dev": "npx -y serve . -l 3005",
+    "start": "npx -y serve . -l 3001",
+    "dev": "npx -y serve . -l 3001",
     "push": "git push origin main",
     "deploy": "git add . && git commit -m \"Automated build update\" && git push origin main"
   },

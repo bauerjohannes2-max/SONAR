@@ -888,7 +888,7 @@ test.describe('SONAR v1.18.2 Tactical Gauntlet Loop E2E Validation', () => {
   });
 
   test('28. Critical UI Action Buttons, Strict Profile Isolation, HUD Telemetry & Sector Lock Validation (v1.13.0)', async ({ page }) => {
-    await page.goto('http://127.0.0.1:3005/');
+    await page.goto('/');
     await page.waitForSelector('#gameCanvas');
 
     // 1. Action Buttons Visibility & Clickability Check

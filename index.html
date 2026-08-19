@@ -26,16 +26,16 @@
 
       <!-- In-Game Quick Action Overlay (Non-Intrusive) -->
       <div class="canvas-quick-actions">
-        <button id="btn-header-tutorial" class="header-action-btn" title="Einsatz-Handbuch & Taktik (H)">
+        <button id="btn-header-tutorial" class="header-action-btn" title="Einsatz-Handbuch & Taktik">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
         </button>
-        <button id="btn-settings-gear" class="header-action-btn" title="Einstellungen (O / ESC)">
+        <button id="btn-settings-gear" class="header-action-btn" title="Einstellungen">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
         </button>
-        <button id="btn-header-fullscreen" class="header-action-btn" title="Vollbild (F)">
+        <button id="btn-header-fullscreen" class="header-action-btn" title="Vollbild">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
         </button>
-        <button id="btn-header-mute" class="header-action-btn" title="Ton stummschalten / aktivieren (M)">
+        <button id="btn-header-mute" class="header-action-btn" title="Ton stummschalten / aktivieren">
           <svg class="icon-speaker" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
         </button>
       </div>
@@ -58,20 +58,20 @@
       <!-- Action Buttons Cluster (Right Safe-Area, Zero Overlap) -->
       <div class="touch-actions" id="touch-action-cluster">
         <div class="touch-actions-row">
-          <button class="touch-btn touch-btn-sneak" id="btn-sneak" data-touch-id="touch-sneak" title="Schleichen Toggle (SHIFT)">
+          <button class="touch-btn touch-btn-sneak" id="btn-sneak" data-touch-id="touch-sneak" title="Lautlos schleichen">
             <span class="sneak-icon">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
             </span>
             <span class="touch-btn-badge" id="touch-sneak-badge">AUS</span>
           </button>
-          <button class="touch-btn touch-btn-decoy" id="btn-bait" data-touch-id="touch-decoy" title="Köder / Decoy (F)">
+          <button class="touch-btn touch-btn-decoy" id="btn-bait" data-touch-id="touch-decoy" title="Köder werfen">
             <span class="decoy-icon">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="7" stroke-dasharray="3 3"/></svg>
             </span>
             <span class="touch-btn-badge" id="touch-decoy-count">1/1</span>
           </button>
         </div>
-        <button class="touch-btn touch-btn-ping" id="btn-ping" data-touch-id="touch-ping" title="Sonar Ping (SPACE)">
+        <button class="touch-btn touch-btn-ping" id="btn-ping" data-touch-id="touch-ping" title="Sonar Ping">
           <span class="ping-icon">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 0 1 10 10"/><path d="M12 6a6 6 0 0 1 6 6"/><path d="M12 10a2 2 0 0 1 2 2"/><line x1="12" y1="12" x2="12" y2="22"/><circle cx="12" cy="12" r="1"/></svg>
           </span>

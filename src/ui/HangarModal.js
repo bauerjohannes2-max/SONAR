@@ -68,7 +68,7 @@ export class HangarModal {
 
         <div class="modal-footer" style="display: flex; justify-content: flex-end;">
           <button id="btn-hangar-close-footer" class="modal-btn modal-btn-primary">
-            FERTIG / ZURÜCK
+            ZURÜCK
           </button>
         </div>
       </div>

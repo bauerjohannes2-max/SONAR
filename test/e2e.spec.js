@@ -1817,7 +1817,83 @@ test.describe('SONAR v1.18.0 Tactical Gauntlet Loop E2E Validation', () => {
     }
   });
 
+  test('44. Global Shortcut-Audit, Minimalist Game-Over Screen & Centralized Controls (v1.18.0)', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#gameCanvas');
+
+    // 1. Shortcut-Audit: Check all HTML buttons in DOM for forbidden keyboard shortcut brackets
+    const shortcutViolations = await page.evaluate(() => {
+      // Open settings and profile to populate all modals
+      window.game.settingsModal.open(false);
+      window.game.profileModal.open();
+      window.game.leaderboardModal.open();
+      window.game.hangarModal.open();
+
+      const buttons = Array.from(document.querySelectorAll('button, a, .modal-btn'));
+      const forbiddenPattern = /\((?:R|ESC|SPACE|L|M|H|O|F|SHIFT)\)/i;
+      const violations = [];
+
+      for (const btn of buttons) {
+        const text = btn.textContent || '';
+        const title = btn.getAttribute('title') || '';
+        if (forbiddenPattern.test(text) || forbiddenPattern.test(title)) {
+          violations.push({ text: text.trim(), title });
+        }
+      }
+
+      window.game.hangarModal.close();
+      window.game.leaderboardModal.close();
+      window.game.profileModal.close();
+      window.game.settingsModal.close();
+
+      return violations;
+    });
+
+    expect(shortcutViolations).toEqual([]);
+
+    // 2. Centralized Controls Section in Settings
+    const controlsOverviewValid = await page.evaluate(() => {
+      window.game.settingsModal.open(false);
+      const modal = window.game.settingsModal.modalEl;
+      const grid = modal ? modal.querySelector('.controls-overview-grid') : null;
+      const title = modal ? modal.textContent.includes('STEUERUNG & BEFEHLE') : false;
+      const hasDesktop = modal ? modal.textContent.includes('DESKTOP') : false;
+      const hasMobile = modal ? modal.textContent.includes('MOBILE') : false;
+      window.game.settingsModal.close();
+
+      return {
+        hasGrid: !!grid,
+        hasTitle: title,
+        hasDesktop,
+        hasMobile
+      };
+    });
+
+    expect(controlsOverviewValid.hasGrid).toBe(true);
+    expect(controlsOverviewValid.hasTitle).toBe(true);
+    expect(controlsOverviewValid.hasDesktop).toBe(true);
+    expect(controlsOverviewValid.hasMobile).toBe(true);
+
+    // 3. Minimalist K.I.S.S. Game-Over Screen Validation
+    const deathScreenValid = await page.evaluate(() => {
+      window.game.loadSector(0);
+      window.game.onGameOver('WALL_CRASH');
+
+      // Check canvas rendering without exceptions
+      window.game.render();
+
+      return {
+        isDying: window.game.gameState === 'DYING',
+        deathCause: window.game.deathCause
+      };
+    });
+
+    expect(deathScreenValid.isDying).toBe(true);
+    expect(deathScreenValid.deathCause).toBe('WALL_CRASH');
+  });
+
 });
+
 
 
 

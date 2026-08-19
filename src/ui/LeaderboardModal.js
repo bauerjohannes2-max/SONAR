@@ -97,7 +97,7 @@ export class LeaderboardModal {
 
         <div class="modal-footer">
           <button id="btn-lb-back" class="modal-btn modal-btn-dim">
-            ZURÜCK ZUM MENÜ (ESC)
+            ZURÜCK ZUM MENÜ
           </button>
         </div>
       </div>

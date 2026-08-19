@@ -105,10 +105,10 @@ export class HUD {
     ctx.fillText('PAUSE • SYSTEM BEREIT', this.width / 2, 120);
 
     const buttons = [
-      { text: '▶ WEITERSPIELEN', badge: 'ESC', y: 200, color: CONFIG.COLORS.PLAYER },
-      { text: '⊞ LEVELAUSWAHL', badge: 'L', y: 255, color: CONFIG.COLORS.CRYSTAL },
-      { text: '↺ NEUSTART', badge: 'R', y: 310, color: CONFIG.COLORS.TEXT_MAIN },
-      { text: '⌂ HAUPTMENÜ', badge: 'M', y: 365, color: CONFIG.COLORS.TEXT_DIM }
+      { text: 'WEITERSPIELEN', y: 200, color: CONFIG.COLORS.PLAYER },
+      { text: 'LEVELAUSWAHL', y: 255, color: CONFIG.COLORS.CRYSTAL },
+      { text: 'NEUSTART', y: 310, color: CONFIG.COLORS.TEXT_MAIN },
+      { text: 'HAUPTMENÜ', y: 365, color: CONFIG.COLORS.TEXT_DIM }
     ];
 
     buttons.forEach((b) => {
@@ -121,20 +121,13 @@ export class HUD {
       ctx.font = '700 14px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.fillStyle = b.color;
       ctx.fillText(b.text, this.width / 2, b.y);
-
-      // Subtle desktop shortcut tag on right edge
-      if (b.badge) {
-        ctx.font = '600 10.5px "JetBrains Mono", monospace';
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
-        ctx.fillText(`[${b.badge}]`, this.width / 2 + 160, b.y);
-      }
     });
 
     ctx.restore();
   }
 
   /**
-   * Game Over Screen
+   * Minimalist K.I.S.S. Game Over Screen
    */
   renderGameOver(time, sectorIndex, isEndless = false, floor = 1, deathCause = 'PREDATOR') {
     const ctx = this.ctx;
@@ -147,52 +140,25 @@ export class HUD {
     ctx.textBaseline = 'middle';
     ctx.shadowBlur = 0;
 
-    // 10. Todesursachen-Stempel (Distressed Military Warning Stamp)
-    ctx.save();
-    ctx.translate(this.width / 2, 58);
-    ctx.rotate(-0.04);
-
-    const stampText = deathCause === 'WALL_CRASH'
-      ? 'STATUS: WAND-KOLLISION'
-      : 'STATUS: DURCH JÄGER DESTABILISIERT';
-
-    ctx.font = '800 12.5px "Share Tech Mono", "JetBrains Mono", monospace';
-    const textWidth = ctx.measureText(stampText).width;
-
-    ctx.fillStyle = 'rgba(255, 30, 68, 0.18)';
-    ctx.fillRect(-textWidth / 2 - 14, -14, textWidth + 28, 28);
-
-    ctx.strokeStyle = '#FF1E44';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(-textWidth / 2 - 14, -14, textWidth + 28, 28);
-
-    ctx.shadowColor = '#FF1E44';
-    ctx.shadowBlur = 10;
-    ctx.fillStyle = '#FF5577';
-    ctx.fillText(stampText, 0, 1);
-    ctx.restore();
-
-    ctx.font = '700 26px "Chakra Petch", "JetBrains Mono", monospace';
+    // 1. Title: SIGNAL VERLOREN
+    ctx.font = '800 28px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = CONFIG.COLORS.HUNTER;
+    ctx.shadowColor = '#FF1E44';
+    ctx.shadowBlur = 12;
+    ctx.fillText('SIGNAL VERLOREN', this.width / 2, 125);
+    ctx.shadowBlur = 0;
 
-    const title = deathCause === 'WALL_CRASH'
-      ? 'DROHNEN-KOLLISION • AN WAND ZERSCHELLT'
-      : 'SIGNAL VERLOREN • ELIMINIERT';
-    ctx.fillText(title, this.width / 2, 114);
-
-    ctx.font = '500 13px "Chakra Petch", "JetBrains Mono", monospace';
+    // 2. Cause (1 clean short line)
+    const causeText = deathCause === 'WALL_CRASH' ? 'Wandkollision' : 'Durch Jäger abgefangen';
+    ctx.font = '600 14px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = '#ff8899';
-    const subText = deathCause === 'WALL_CRASH'
-      ? 'Die Drohne hält Wandaufprallen nicht stand! Nutze Pings (SPACE) & bewege dich vorsichtig.'
-      : (isEndless
-        ? `Drohne auf Etage ${floor} zerstört • Feindkontakt`
-        : `Drohne in Sektor 0${sectorIndex + 1} zerstört • Feindkontakt`);
-    ctx.fillText(subText, this.width / 2, 162);
+    ctx.fillText(causeText, this.width / 2, 172);
 
+    // 3. Clean Text-Only Buttons (Zero Icons, Zero Shortcut Brackets)
     const buttons = [
-      { text: '↺ NEUSTART', badge: 'R', y: 240, color: CONFIG.COLORS.HUNTER },
-      { text: '⊞ LEVELAUSWAHL', badge: 'L', y: 300, color: CONFIG.COLORS.CRYSTAL },
-      { text: '⌂ HAUPTMENÜ', badge: 'M', y: 360, color: CONFIG.COLORS.TEXT_DIM }
+      { text: 'NEUSTART', y: 240, color: CONFIG.COLORS.HUNTER },
+      { text: 'LEVELAUSWAHL', y: 300, color: CONFIG.COLORS.CRYSTAL },
+      { text: 'HAUPTMENÜ', y: 360, color: CONFIG.COLORS.TEXT_DIM }
     ];
 
     buttons.forEach((b) => {
@@ -205,12 +171,6 @@ export class HUD {
       ctx.font = '700 14px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.fillStyle = b.color;
       ctx.fillText(b.text, this.width / 2, b.y);
-
-      if (b.badge) {
-        ctx.font = '600 10.5px "JetBrains Mono", monospace';
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
-        ctx.fillText(`[${b.badge}]`, this.width / 2 + 160, b.y);
-      }
     });
 
     ctx.restore();
@@ -278,15 +238,15 @@ export class HUD {
     ctx.fillText(`★ STERN 3: GHOST-MEISTERSCHAFT (${stats.pingsUsed} PINGS / MAX: 3)  ${isStealthy ? '✓' : '✗'}`, boxX + 20, boxY + 90);
 
     const nextActionLabel = isEndless
-      ? '▶ NÄCHSTE ETAGE'
+      ? 'NÄCHSTE ETAGE'
       : (currentSectorIndex + 1 < totalSectors
-        ? '▶ NÄCHSTER SEKTOR'
-        : '★ KAMPAGNE BEENDET ★');
+        ? 'NÄCHSTER SEKTOR'
+        : 'KAMPAGNE BEENDET');
 
     const buttons = [
-      { text: nextActionLabel, badge: 'SPACE', y: 325, color: CONFIG.COLORS.CRYSTAL },
-      { text: '⊞ LEVELAUSWAHL', badge: 'L', y: 380, color: CONFIG.COLORS.PLAYER },
-      { text: '⌂ HAUPTMENÜ', badge: 'M', y: 435, color: CONFIG.COLORS.TEXT_DIM }
+      { text: nextActionLabel, y: 325, color: CONFIG.COLORS.CRYSTAL },
+      { text: 'LEVELAUSWAHL', y: 380, color: CONFIG.COLORS.PLAYER },
+      { text: 'HAUPTMENÜ', y: 435, color: CONFIG.COLORS.TEXT_DIM }
     ];
 
     buttons.forEach((b) => {
@@ -300,12 +260,6 @@ export class HUD {
       ctx.textAlign = 'center';
       ctx.fillStyle = b.color;
       ctx.fillText(b.text, this.width / 2, b.y);
-
-      if (b.badge) {
-        ctx.font = '600 10.5px "JetBrains Mono", monospace';
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
-        ctx.fillText(`[${b.badge}]`, this.width / 2 + 160, b.y);
-      }
     });
 
     ctx.restore();
@@ -338,8 +292,8 @@ export class HUD {
     ctx.fillText('Sammle alle Sterne und werde zum ultimativen Piloten!', this.width / 2, 210);
 
     const buttons = [
-      { text: '⊞ LEVELAUSWAHL', badge: 'L', y: 300, color: CONFIG.COLORS.CRYSTAL },
-      { text: '⌂ HAUPTMENÜ', badge: 'M', y: 360, color: CONFIG.COLORS.PLAYER }
+      { text: 'LEVELAUSWAHL', y: 300, color: CONFIG.COLORS.CRYSTAL },
+      { text: 'HAUPTMENÜ', y: 360, color: CONFIG.COLORS.PLAYER }
     ];
 
     buttons.forEach((b) => {
@@ -352,12 +306,6 @@ export class HUD {
       ctx.font = '700 14px "Chakra Petch", "JetBrains Mono", monospace';
       ctx.fillStyle = b.color;
       ctx.fillText(b.text, this.width / 2, b.y);
-
-      if (b.badge) {
-        ctx.font = '600 10.5px "JetBrains Mono", monospace';
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
-        ctx.fillText(`[${b.badge}]`, this.width / 2 + 160, b.y);
-      }
     });
 
     ctx.restore();

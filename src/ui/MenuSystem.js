@@ -20,8 +20,8 @@ export class MenuSystem {
       // 0. Hero Campaign Element
       {
         id: 'SECTOR_SELECT',
-        title: 'KAMPAGNE (SEKTOREN 01–10)',
-        subtitle: 'Operation Zero-Light • Station ABYSS',
+        title: 'KAMPAGNE • SEKTOREN 01–10',
+        description: 'Taktische Stealth-Bergung in 10 handgebauten Labyrinthen',
         tag: '10 SEKTOREN',
         desc: 'Station ABYSS: Berge Datenkerne aus 10 taktischen Sektoren'
       },
@@ -368,7 +368,7 @@ export class MenuSystem {
     ctx.textAlign = 'left';
     ctx.font = '800 21px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = '#ffffff';
-    ctx.fillText('KAMPAGNE (SEKTOREN 01–10)', heroX + 78, heroY + 44);
+    ctx.fillText('KAMPAGNE • SEKTOREN 01–10', heroX + 78, heroY + 44);
 
     // Hero Subtitle
     ctx.font = '600 13px "Chakra Petch", "JetBrains Mono", monospace';
@@ -379,7 +379,7 @@ export class MenuSystem {
     ctx.textAlign = 'right';
     ctx.font = '700 13.5px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = '#00f0ff';
-    ctx.fillText('[ STARTEN ▶ ]', heroX + heroW - 24, heroY + heroH / 2);
+    ctx.fillText('STARTEN', heroX + heroW - 24, heroY + heroH / 2);
     ctx.restore();
 
     // 6. Sub-Tiles Row: 3 Symmetrical Tiles (Hangar, Leaderboard, Profile)
@@ -671,7 +671,7 @@ export class MenuSystem {
     ctx.textBaseline = 'middle';
     ctx.font = '700 13px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = '#00f0ff';
-    ctx.fillText('← ZURÜCK (ESC)', CONFIG.CANVAS_WIDTH / 2, backBtnY + backBtnH / 2);
+    ctx.fillText('ZURÜCK', CONFIG.CANVAS_WIDTH / 2, backBtnY + backBtnH / 2);
     ctx.restore();
 
     ctx.restore();

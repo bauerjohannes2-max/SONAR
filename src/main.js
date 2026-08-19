@@ -220,7 +220,7 @@ export class Game {
       const updateMuteIcon = (isMuted) => {
         if (isMuted) {
           muteBtn.classList.add('muted');
-          muteBtn.title = 'Ton einschalten (M)';
+          muteBtn.title = 'Ton einschalten';
           muteBtn.innerHTML = `
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
@@ -230,7 +230,7 @@ export class Game {
           `;
         } else {
           muteBtn.classList.remove('muted');
-          muteBtn.title = 'Ton stummschalten (M)';
+          muteBtn.title = 'Ton stummschalten';
           muteBtn.innerHTML = `
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>

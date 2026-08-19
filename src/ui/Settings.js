@@ -112,7 +112,7 @@ export class Settings {
             <span class="status-dot"></span>
             <span id="settings-modal-title-text">EINSTELLUNGEN</span>
           </div>
-          <button id="modal-settings-close-btn" class="modal-close-btn" title="Schließen (ESC)" aria-label="Schließen">
+          <button id="modal-settings-close-btn" class="modal-close-btn" title="Schließen" aria-label="Schließen">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
@@ -236,6 +236,36 @@ export class Settings {
             <button id="btn-toggle-shake" class="modal-btn modal-btn-toggle ${this.screenShake ? 'active' : ''}">
               ${this.screenShake ? 'AN' : 'AUS'}
             </button>
+          </div>
+
+          <!-- 3. STEUERUNG & BEFEHLE SECTION -->
+          <div class="settings-section-divider">
+            <span class="settings-section-title">3. STEUERUNG & BEFEHLE</span>
+            <div class="settings-section-line"></div>
+          </div>
+
+          <div class="controls-overview-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; background: rgba(4, 10, 18, 0.65); border: 1px solid rgba(0, 240, 255, 0.2); padding: 12px; border-radius: 4px;">
+            <div class="controls-column">
+              <div style="font-family: var(--font-tech); font-size: 11px; font-weight: 700; color: #00f0ff; margin-bottom: 6px; letter-spacing: 0.05em;">DESKTOP (TASTATUR)</div>
+              <div style="font-size: 11px; color: #e2f4ff; line-height: 1.6; font-family: var(--font-mono);">
+                <div><span style="color: #00f0ff; font-weight: 700;">W / A / S / D</span> : Drohne steuern</div>
+                <div><span style="color: #00f0ff; font-weight: 700;">Leertaste</span> : Sonar-Ping</div>
+                <div><span style="color: #00ffaa; font-weight: 700;">Shift</span> : Lautlos schleichen</div>
+                <div><span style="color: #ffaa00; font-weight: 700;">E</span> : Köder werfen</div>
+                <div><span style="color: #ff5577; font-weight: 700;">R</span> : Sofort-Neustart</div>
+                <div><span style="color: #88aacc; font-weight: 700;">ESC</span> : Pause</div>
+              </div>
+            </div>
+            <div class="controls-column">
+              <div style="font-family: var(--font-tech); font-size: 11px; font-weight: 700; color: #00f0ff; margin-bottom: 6px; letter-spacing: 0.05em;">MOBILE (TOUCH)</div>
+              <div style="font-size: 11px; color: #e2f4ff; line-height: 1.6; font-family: var(--font-mono);">
+                <div><span style="color: #00f0ff; font-weight: 700;">Steuerkreuz links</span> : Navigation</div>
+                <div><span style="color: #00f0ff; font-weight: 700;">PING Button</span> : Sonar-Puls</div>
+                <div><span style="color: #00ffaa; font-weight: 700;">SCHLEICH Button</span> : Lautlos</div>
+                <div><span style="color: #ffaa00; font-weight: 700;">KÖDER Button</span> : Ablenken</div>
+                <div><span style="color: #ff5577; font-weight: 700;">Doppel-Tap</span> : Sofort-Neustart</div>
+              </div>
+            </div>
           </div>
 
           <!-- SYSTEM-VERSION & UPDATES SECTION -->
@@ -552,10 +582,10 @@ export class Settings {
         footer.innerHTML = `
           <div style="display: flex; gap: 12px; width: 100%;">
             <button id="btn-settings-resume" class="modal-btn modal-btn-primary" style="flex: 1; min-height: 48px; font-weight: 700; font-size: 13px;">
-              ▶ WEITERSPIELEN
+              WEITERSPIELEN
             </button>
             <button id="btn-settings-mainmenu" class="modal-btn modal-btn-secondary" style="flex: 1; min-height: 48px; font-weight: 700; font-size: 13px;">
-              ⎋ HAUPTMENÜ
+              HAUPTMENÜ
             </button>
           </div>
         `;
@@ -586,7 +616,7 @@ export class Settings {
       } else {
         footer.innerHTML = `
           <button id="btn-settings-back" class="modal-btn modal-btn-dim" style="width: 100%; min-height: 48px; font-weight: 700;">
-            ✕ ZURÜCK ZUM MENÜ (ESC)
+            ZURÜCK ZUM MENÜ
           </button>
         `;
 

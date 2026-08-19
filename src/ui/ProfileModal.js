@@ -63,14 +63,14 @@ export class ProfileModal {
               ANMELDEN / REGISTRIEREN
             </button>
             <button id="btn-profile-logout" class="modal-btn modal-btn-secondary">
-              ABMELDEN (GAST-MODUS)
+              ABMELDEN
             </button>
           </div>
         </div>
 
         <div class="modal-footer">
           <button id="btn-profile-back" class="modal-btn modal-btn-dim">
-            ZURÜCK ZUM MENÜ (ESC)
+            ZURÜCK ZUM MENÜ
           </button>
         </div>
       </div>

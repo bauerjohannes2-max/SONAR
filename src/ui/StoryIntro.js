@@ -220,13 +220,8 @@ export class StoryIntro {
     ctx.textBaseline = 'middle';
     ctx.font = '700 12.5px "Chakra Petch", "JetBrains Mono", monospace';
     ctx.fillStyle = this.isTextFullyRevealed ? '#ffffff' : '#a0d8ef';
-    const btnLabel = this.isTextFullyRevealed ? '▶ MISSION STARTEN' : '▶ TEXT BESCHLEUNIGEN (KLICK)';
+    const btnLabel = this.isTextFullyRevealed ? 'MISSION STARTEN' : 'TEXT BESCHLEUNIGEN';
     ctx.fillText(btnLabel, btnX + btnW / 2, btnY + btnH / 2);
-
-    // Skip Hint
-    ctx.font = '500 10.5px "Chakra Petch", "JetBrains Mono", monospace';
-    ctx.fillStyle = '#557788';
-    ctx.fillText('[ ESC: ÜBERSPRINGEN ]', boxX + boxW / 2, boxY + boxH - 10);
 
     ctx.restore();
   }
